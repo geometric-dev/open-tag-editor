@@ -1,63 +1,19 @@
 # Open Tag Editor
 
-An open-source, cross-platform music tag editor and file renamer built with Flutter. A modern alternative to Tag&Rename.
+An open-source, cross-platform music tag editor and file renamer built with Flutter.
 
 ## Features
 
-- **Tag Editing** — Edit ID3v1, ID3v2, Vorbis Comments, APE, MP4/iTunes tags
-- **Batch Operations** — Edit tags for hundreds of files at once
-- **File Renaming** — Rename files based on tag data using customizable patterns
-- **Tag from Filename** — Generate tags from file/folder names using patterns
-- **Album Art** — Embed, extract, and manage cover art
-- **Online Lookup** — Fetch metadata from MusicBrainz, Discogs, and other sources
-- **Format Support** — MP3, FLAC, OGG, M4A/AAC, WMA, WAV, APE, OPUS
-- **Drag & Drop** — Drop files and folders directly into the editor
-- **Undo/Redo** — Full undo history for all tag modifications
-- **Cross-Platform** — Runs on Windows, macOS, and Linux
-
-## Getting Started
-
-### Prerequisites
-
-- Flutter SDK >= 3.22.0
-- Dart SDK >= 3.3.0
-
-### Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/open_tag_editor.git
-cd open_tag_editor
-
-# Install dependencies
-flutter pub get
-
-# Generate code (freezed models, riverpod providers)
-dart run build_runner build --delete-conflicting-outputs
-
-# Run the app
-flutter run -d windows   # or macos, linux
-```
-
-## Architecture
-
-The project follows a feature-first architecture with clear separation between UI and data layers:
-
-```
-lib/
-├── main.dart
-├── app.dart
-├── core/              # Shared utilities, theme, constants
-├── features/
-│   ├── tag_editor/    # Tag viewing and editing
-│   ├── file_browser/  # File/folder navigation
-│   ├── renamer/       # File renaming engine
-│   ├── batch/         # Batch operations
-│   ├── album_art/     # Cover art management
-│   ├── online_lookup/ # MusicBrainz, Discogs integration
-│   └── settings/      # App preferences
-└── shared/            # Shared widgets and models
-```
+- **Tag Reading & Writing** — Read and write tags across all major audio formats via native TagLib FFI integration. Atomic writes with optional backup ensure your files are never corrupted.
+- **Batch Editing** — Select multiple files and edit shared tag fields in one operation. All changes are undoable.
+- **File Renaming** — Rename files based on tag data using customizable mask patterns (e.g., `%artist - %album/%track - %title`). Live preview before committing.
+- **Tags from Filename** — Extract tag values from file and folder names using the same mask syntax in reverse.
+- **Online Metadata Lookup** — Search MusicBrainz, Discogs, and AcoustID (audio fingerprinting) to find and apply correct metadata and cover art.
+- **Album Art** — View, add, remove, and export embedded cover art. Drag-and-drop and clipboard paste support.
+- **Inline Cell Editing** — Double-click cells in the grid to edit tags directly, with Tab navigation and batch apply.
+- **Resizable Columns** — Drag column borders to resize; double-click to auto-fit. Widths persist across sessions.
+- **Undo/Redo** — Full undo history for all tag modifications and rename operations.
+- **Cross-Platform** — Runs natively on Windows, macOS, and Linux.
 
 ## Supported Formats
 
@@ -66,16 +22,128 @@ lib/
 | MP3    | ✓    | ✓     | ID3v1, ID3v2.3, ID3v2.4 |
 | FLAC   | ✓    | ✓     | Vorbis Comments |
 | OGG    | ✓    | ✓     | Vorbis Comments |
-| M4A    | ✓    | ✓     | MP4/iTunes |
+| Opus   | ✓    | ✓     | Vorbis Comments |
+| M4A/AAC| ✓    | ✓     | MP4/iTunes atoms |
 | WMA    | ✓    | ✓     | ASF |
 | WAV    | ✓    | ✓     | RIFF INFO, ID3v2 |
 | APE    | ✓    | ✓     | APEv2 |
-| OPUS   | ✓    | ✓     | Vorbis Comments |
+
+## Screenshots
+
+*Coming soon*
+
+## Getting Started
+
+### Prerequisites
+
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) >= 3.22.0
+- Dart SDK >= 3.3.0
+
+### Build & Run
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/open-tag-editor.git
+cd open-tag-editor
+
+# Install dependencies
+flutter pub get
+
+# Generate code (freezed models, riverpod providers)
+dart run build_runner build --delete-conflicting-outputs
+
+# Run the app
+flutter run -d windows   # or: -d macos, -d linux
+```
+
+### Release Build
+
+```bash
+flutter build windows --release
+# Output: build/windows/x64/runner/Release/
+```
+
+## Architecture
+
+The project uses a feature-first architecture with Riverpod for state management:
+
+```
+lib/
+├── main.dart                  # App entry point
+├── app.dart                   # MaterialApp configuration
+├── core/                      # Theme, constants, undo system, utilities
+├── features/
+│   ├── tag_editor/            # File list grid, tag edit panel, folder loading
+│   ├── renamer/               # File renaming via mask patterns
+│   ├── extractor/             # Tags-from-filename extraction
+│   ├── online_lookup/         # MusicBrainz, Discogs, AcoustID integration
+│   ├── album_art/             # Cover art management
+│   └── settings/              # App preferences
+└── shared/
+    ├── models/                # AudioFile, RenamePattern
+    └── services/              # TagLib FFI reader/writer, rename service
+```
+
+### Key Technologies
+
+- **Flutter** — Desktop UI framework
+- **Riverpod** — Reactive state management
+- **Freezed** — Immutable data models with union types
+- **dart:ffi + TagLib** — Native C library for safe, cross-format tag I/O
+- **ffigen** — Generates Dart FFI bindings from C headers
+
+### Native Libraries
+
+TagLib shared libraries are bundled per platform:
+
+| Platform | Library |
+|----------|---------|
+| Windows  | `windows/taglib_c.dll` |
+| macOS    | `macos/Frameworks/libtaglib_c.dylib` |
+| Linux    | `linux/lib/libtaglib_c.so` |
+
+## Roadmap
+
+### Completed
+
+- [x] **TagLib FFI Integration** — Native tag reading/writing for all formats with atomic writes and backup
+- [x] **Folder Loading & File Display** — Folder picker, recursive loading, sortable data grid, multi-select, status bar
+- [x] **Online Metadata Lookup** — MusicBrainz/Discogs search, AcoustID fingerprinting, Cover Art Archive, track matching
+- [x] **File Renaming (basic)** — Rename by pattern with preset selector, live preview, batch execution
+- [x] **Inline Cell Editing** — Double-click to edit, Tab/Enter navigation, batch apply, undo integration
+- [x] **Column Resize** — Drag-to-resize headers, double-click auto-fit, persisted widths
+- [x] **Album Art Management** — Add/remove/export cover art, drag-and-drop, batch operations
+
+### In Progress
+
+- [ ] **File Renaming (complete)** — Full-path masks with folder creation, user-defined presets, case transforms, conflict resolution UI, undo support
+- [ ] **Tags from Filename** — Parse filenames/paths into tag fields using mask patterns, preview, write with overwrite/fill-empty options
+
+### Planned
+
+- [ ] **Unsaved Changes Protection** — Close/load confirmation dialogs, window title dirty indicator, "confirm before saving" setting
+- [ ] **Keyboard Navigation** — Arrow keys, Page Up/Down, Home/End, Shift-select, action shortcuts (F2, F5, Delete)
+- [ ] **Settings Completeness** — Wire all preference stubs (ID3v2 version, encoding, write ID3v1, default patterns)
+- [ ] **Error Handling & Feedback** — Toast/snackbar system, error log panel, per-file failure reporting, retry actions
+- [ ] **Empty State & Onboarding** — First-run guidance, format support info, setup prompts for API keys
+- [ ] **Window State Persistence** — Remember window size/position, panel open/closed state, splitter positions
+- [ ] **Accessibility & Theming** — High-contrast theme, user font scaling, text labels for toolbar, screen reader semantics
+- [ ] **Drag-and-Drop Enhancements** — Column reorder via drag, track reorder in lookup dialog
+- [ ] **Tag Deletion & Cleanup** — Bulk remove specific tag types, strip ID3v1, clean empty frames
+- [ ] **ReplayGain Handling** — Read/display/preserve ReplayGain values
+- [ ] **Multi-Value Tag Editing** — Support multiple artists, genres, and other multi-value fields
+- [ ] **Online Lookup Enhancements** — Improved matching heuristics, result caching, batch fingerprinting
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+Quick start:
+1. Fork the repo and create a feature branch
+2. Run `flutter analyze` — no issues allowed
+3. Run `flutter test` — all tests must pass
+4. Open a PR with a clear description
 
 ## License
 
-This project is licensed under the GPL-3.0 License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE) for details.
