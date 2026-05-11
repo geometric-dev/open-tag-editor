@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/providers/filtered_sorted_file_list_provider.dart';
+import '../../data/providers/selection_provider.dart';
 import '../models/cell_coordinate.dart';
 import '../providers/inline_cell_edit_provider.dart';
 import '../utils/column_editability.dart';
@@ -42,9 +44,18 @@ class EditableCell extends ConsumerWidget {
 
     return GestureDetector(
       onDoubleTap: editable
-          ? () => ref
-              .read(inlineCellEditProvider.notifier)
-              .enterEditMode(coordinate, prePopulate: true)
+          ? () {
+              // Row selection guard: only enter edit mode if row is selected
+              final files = ref.read(filteredSortedFileListProvider);
+              if (coordinate.rowIndex >= files.length) return;
+              final filePath = files[coordinate.rowIndex].path;
+              final selection = ref.read(selectionProvider);
+              if (!selection.isSelected(filePath)) return;
+
+              ref
+                  .read(inlineCellEditProvider.notifier)
+                  .enterEditMode(coordinate, prePopulate: true);
+            }
           : null,
       onTap: () =>
           ref.read(inlineCellEditProvider.notifier).moveFocus(coordinate),

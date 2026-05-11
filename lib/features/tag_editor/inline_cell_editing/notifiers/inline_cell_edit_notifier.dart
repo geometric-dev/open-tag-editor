@@ -38,6 +38,11 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
     final files = ref.read(filteredSortedFileListProvider);
     if (cell.rowIndex < 0 || cell.rowIndex >= files.length) return;
 
+    // Guard: row must be selected (select-then-edit workflow)
+    final selection = ref.read(selectionProvider);
+    final filePath = files[cell.rowIndex].path;
+    if (!selection.isSelected(filePath)) return;
+
     // If already editing a different cell, confirm the current edit first
     if (state.isEditing && state.editingCell != cell) {
       _confirmEditInternal();

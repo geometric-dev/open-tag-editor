@@ -17,6 +17,7 @@ import '../../../inline_cell_editing/utils/column_editability.dart';
 import '../../../inline_cell_editing/widgets/editable_cell.dart';
 import '../address_bar.dart';
 import 'column_headers.dart';
+import 'marquee_overlay.dart';
 
 /// The main data grid widget displaying audio files in a virtualized table.
 ///
@@ -112,9 +113,17 @@ class DataGrid extends ConsumerWidget {
     _KeyModifiers modifiers,
     List<String> orderedPaths,
   ) {
+    // Exit edit mode on any row tap (confirm current edit)
+    final editState = ref.read(inlineCellEditProvider);
+    if (editState.isEditing) {
+      ref.read(inlineCellEditProvider.notifier).confirmEdit();
+    }
+
     final notifier = ref.read(selectionProvider.notifier);
 
-    if (modifiers.isShift) {
+    if (modifiers.isCtrl && modifiers.isShift) {
+      notifier.addRangeSelect(path, orderedPaths);
+    } else if (modifiers.isShift) {
       notifier.rangeSelect(path, orderedPaths);
     } else if (modifiers.isCtrl) {
       notifier.toggleSelect(path);
@@ -128,29 +137,85 @@ class DataGrid extends ConsumerWidget {
 
     final editNotifier = ref.read(inlineCellEditProvider.notifier);
     final editState = ref.read(inlineCellEditProvider);
+    final files = ref.read(filteredSortedFileListProvider);
+    final orderedPaths = files.map((f) => f.path).toList();
+    final selNotifier = ref.read(selectionProvider.notifier);
+
+    final isCtrl = HardwareKeyboard.instance.logicalKeysPressed.any(
+      (k) =>
+          k == LogicalKeyboardKey.controlLeft ||
+          k == LogicalKeyboardKey.controlRight,
+    );
+    final isShift = HardwareKeyboard.instance.logicalKeysPressed.any(
+      (k) =>
+          k == LogicalKeyboardKey.shiftLeft ||
+          k == LogicalKeyboardKey.shiftRight,
+    );
 
     // If already editing, let the InlineTextField handle keys
     if (editState.isEditing) return KeyEventResult.ignored;
 
-    // F2: enter edit mode on focused cell
+    // Ctrl+A: select all
+    if (isCtrl &&
+        !isShift &&
+        event.logicalKey == LogicalKeyboardKey.keyA) {
+      selNotifier.selectAll(orderedPaths);
+      return KeyEventResult.handled;
+    }
+
+    // Ctrl+Shift+Home: extend selection to start
+    if (isCtrl &&
+        isShift &&
+        event.logicalKey == LogicalKeyboardKey.home) {
+      selNotifier.extendToStart(orderedPaths);
+      return KeyEventResult.handled;
+    }
+
+    // Ctrl+Shift+End: extend selection to end
+    if (isCtrl &&
+        isShift &&
+        event.logicalKey == LogicalKeyboardKey.end) {
+      selNotifier.extendToEnd(orderedPaths);
+      return KeyEventResult.handled;
+    }
+
+    // Arrow Down
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      if (isShift) {
+        selNotifier.extendDown(orderedPaths);
+      } else {
+        selNotifier.moveDown(orderedPaths);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // Arrow Up
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      if (isShift) {
+        selNotifier.extendUp(orderedPaths);
+      } else {
+        selNotifier.moveUp(orderedPaths);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // F2: enter edit mode on focused cell (guard is in enterEditMode)
     if (event.logicalKey == LogicalKeyboardKey.f2) {
       final focused = editState.focusedCell;
       if (focused != null && isColumnEditable(focused.columnId)) {
-        editNotifier.enterEditMode(focused, prePopulate: true, selectAll: true);
+        editNotifier.enterEditMode(
+          focused,
+          prePopulate: true,
+          selectAll: true,
+        );
         return KeyEventResult.handled;
       }
     }
 
-    // Printable character: enter edit mode with that character
+    // Printable character: enter edit mode (guard is in enterEditMode)
     if (event.character != null &&
         event.character!.length == 1 &&
-        !HardwareKeyboard.instance.logicalKeysPressed.any(
-          (k) =>
-              k == LogicalKeyboardKey.controlLeft ||
-              k == LogicalKeyboardKey.controlRight ||
-              k == LogicalKeyboardKey.altLeft ||
-              k == LogicalKeyboardKey.altRight,
-        )) {
+        !isCtrl) {
       final focused = editState.focusedCell;
       if (focused != null && isColumnEditable(focused.columnId)) {
         editNotifier.enterEditMode(
@@ -192,10 +257,12 @@ class _ScrollableDataGrid extends StatefulWidget {
 
 class _ScrollableDataGridState extends State<_ScrollableDataGrid> {
   final _horizontalController = ScrollController();
+  final _verticalController = ScrollController();
 
   @override
   void dispose() {
     _horizontalController.dispose();
+    _verticalController.dispose();
     super.dispose();
   }
 
@@ -266,27 +333,34 @@ class _ScrollableDataGridState extends State<_ScrollableDataGrid> {
           children: [
             ColumnHeaders(onAutoFit: _handleAutoFit),
             Expanded(
-              child: ListView.builder(
-                itemCount: widget.files.length,
-                itemExtent: DataGrid._rowHeight,
-                itemBuilder: (context, index) {
-                  final file = widget.files[index];
-                  final isSelected =
-                      widget.selection.isSelected(file.path);
+              child: MarqueeOverlay(
+                rowHeight: DataGrid._rowHeight,
+                scrollController: _verticalController,
+                orderedPaths:
+                    widget.files.map((f) => f.path).toList(),
+                child: ListView.builder(
+                  controller: _verticalController,
+                  itemCount: widget.files.length,
+                  itemExtent: DataGrid._rowHeight,
+                  itemBuilder: (context, index) {
+                    final file = widget.files[index];
+                    final isSelected =
+                        widget.selection.isSelected(file.path);
 
-                  return _DataRow(
-                    file: file,
-                    rowIndex: index,
-                    isSelected: isSelected,
-                    visibleColumns: widget.visibleColumns,
-                    widthOverrides: widget.widthOverrides,
-                    rootFolder: widget.rootFolder,
-                    onTap: (modifiers) =>
-                        widget.onRowTap(file.path, modifiers),
-                    onDoubleTap: () =>
-                        widget.onRowDoubleTap(file.path),
-                  );
-                },
+                    return _DataRow(
+                      file: file,
+                      rowIndex: index,
+                      isSelected: isSelected,
+                      visibleColumns: widget.visibleColumns,
+                      widthOverrides: widget.widthOverrides,
+                      rootFolder: widget.rootFolder,
+                      onTap: (modifiers) =>
+                          widget.onRowTap(file.path, modifiers),
+                      onDoubleTap: () =>
+                          widget.onRowDoubleTap(file.path),
+                    );
+                  },
+                ),
               ),
             ),
           ],
