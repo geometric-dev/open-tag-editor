@@ -1,0 +1,3 @@
+# Placeholder for libtaglib_c.dylib
+# Build a universal (x64 + ARM64) TagLib 2.0+ dylib for macOS and place it here.
+# Build instructions: https://github.com/taglib/taglib/blob/master/INSTALL.md

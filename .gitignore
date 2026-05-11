@@ -1,0 +1,34 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+build/
+*.g.dart
+*.freezed.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flutter
+/android/
+/ios/
+/web/
+
+# Generated
+doc/api/
+coverage/
+
+# Environment
+.env
+.env.*
+
+# Flutter plugin cache
+.flutter-plugins
+.flutter-plugins-dependencies

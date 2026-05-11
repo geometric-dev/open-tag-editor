@@ -1,0 +1,125 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/providers/file_list_provider.dart';
+import '../../data/providers/filtered_sorted_file_list_provider.dart';
+import '../../data/providers/selection_provider.dart';
+import 'address_bar.dart';
+import 'data_grid/data_grid.dart';
+
+/// Panel showing the list of loaded audio files with address bar,
+/// data grid, filter controls, and status bar.
+class FileListPanel extends ConsumerWidget {
+  const FileListPanel({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyA, control: true): () {
+          final files = ref.read(filteredSortedFileListProvider);
+          ref
+              .read(selectionProvider.notifier)
+              .selectAll(files.map((f) => f.path).toList());
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: ClipRect(
+          child: Column(
+            children: [
+            // Address bar with folder path, recent folders, recursive toggle
+            AddressBar(
+              onFolderSelected: (path) {
+                // Handled by toolbar/home page loading logic
+              },
+            ),
+            // Filter bar with text filter and show-selected toggle
+            _FilterBar(),
+            // Data grid (column headers + virtualized rows)
+            const Expanded(child: DataGrid()),
+          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterBar extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_FilterBar> createState() => _FilterBarState();
+}
+
+class _FilterBarState extends ConsumerState<_FilterBar> {
+  final _filterController = TextEditingController();
+
+  @override
+  void dispose() {
+    _filterController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showSelectedOnly = ref.watch(showSelectedOnlyProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: [
+          // Text filter
+          Expanded(
+            child: SizedBox(
+              height: 32,
+              child: TextField(
+                controller: _filterController,
+                decoration: InputDecoration(
+                  hintText: 'Filter files...',
+                  prefixIcon: const Icon(Icons.search, size: 16),
+                  suffixIcon: _filterController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 14),
+                          onPressed: () {
+                            _filterController.clear();
+                            ref.read(fileFilterProvider.notifier).state = '';
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 12),
+                onChanged: (value) {
+                  ref.read(fileFilterProvider.notifier).state = value;
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Show selected only toggle
+          Tooltip(
+            message: 'Show selected files only',
+            child: IconButton(
+              icon: Icon(
+                showSelectedOnly
+                    ? Icons.filter_alt
+                    : Icons.filter_alt_outlined,
+                size: 18,
+                color: showSelectedOnly
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+              onPressed: () {
+                ref.read(showSelectedOnlyProvider.notifier).state =
+                    !showSelectedOnly;
+              },
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

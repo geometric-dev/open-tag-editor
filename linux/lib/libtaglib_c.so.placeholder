@@ -1,0 +1,4 @@
+# Placeholder for libtaglib_c.so
+# Build TagLib 2.0+ for Linux x64 and place libtaglib_c.so here.
+# Build instructions: https://github.com/taglib/taglib/blob/master/INSTALL.md
+# Or install via package manager: apt install libtag-c0-dev (Ubuntu/Debian)

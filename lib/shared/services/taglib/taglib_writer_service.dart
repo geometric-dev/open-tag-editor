@@ -1,0 +1,306 @@
+import 'dart:ffi';
+import 'dart:io';
+
+import 'package:ffi/ffi.dart';
+
+import '../../models/audio_file.dart';
+import '../tag_reader_service.dart';
+import 'atomic_write_manager.dart';
+import 'backup_manager.dart';
+import 'tag_property_mapper.dart';
+import 'taglib_bindings.g.dart';
+import 'validation_engine.dart';
+
+/// Writes audio file tags using TagLib via FFI bindings.
+///
+/// Implements atomic writes (temp-file-then-rename), optional backup creation,
+/// and post-write validation to ensure data integrity.
+class TagLibWriterService implements TagWriterService {
+  /// Creates a [TagLibWriterService] with the given dependencies.
+  TagLibWriterService(this._bindings, this._backupManager, this._validator);
+
+  final TagLibBindings _bindings;
+  final BackupManager _backupManager;
+  final ValidationEngine _validator;
+  final AtomicWriteManager _atomicWriteManager = AtomicWriteManager();
+
+  @override
+  Future<void> writeTags(String path, Map<String, String> tags) async {
+    _assertFileExists(path);
+    await _backupManager.createBackupIfEnabled(path);
+
+    await _atomicWriteManager.writeAtomic(path, (tempPath) async {
+      final nativePath = tempPath.toNativeUtf8();
+      Pointer<TagLib_File> file = nullptr;
+
+      try {
+        file = _bindings.taglib_file_new(nativePath);
+
+        if (file == nullptr) {
+          throw TagWriteException('Failed to open file for writing', path);
+        }
+
+        _writeProperties(file, tags);
+
+        final result = _bindings.taglib_file_save(file);
+        if (result == 0) {
+          throw TagWriteException('TagLib failed to save file', path);
+        }
+      } finally {
+        malloc.free(nativePath);
+        if (file != nullptr) {
+          _bindings.taglib_file_free(file);
+        }
+      }
+    });
+
+    await _validator.validate(path, tags);
+  }
+
+  @override
+  Future<void> writeAlbumArt(String path, AlbumArtData art) async {
+    _assertFileExists(path);
+    await _backupManager.createBackupIfEnabled(path);
+
+    await _atomicWriteManager.writeAtomic(path, (tempPath) async {
+      final nativePath = tempPath.toNativeUtf8();
+      Pointer<TagLib_File> file = nullptr;
+      PictureAttributes? attrs;
+
+      try {
+        file = _bindings.taglib_file_new(nativePath);
+
+        if (file == nullptr) {
+          throw TagWriteException(
+            'Failed to open file for album art writing',
+            path,
+          );
+        }
+
+        attrs = PictureAttributeBuilder.build(
+          imageBytes: art.bytes,
+          mimeType: art.mimeType,
+          description: art.description ?? '',
+          pictureType: _albumArtTypeToString(art.type),
+        );
+
+        final pictureKey = 'PICTURE'.toNativeUtf8();
+        try {
+          _bindings.taglib_complex_property_set(
+            file,
+            pictureKey,
+            attrs.pointer,
+          );
+        } finally {
+          malloc.free(pictureKey);
+        }
+
+        final result = _bindings.taglib_file_save(file);
+        if (result == 0) {
+          throw TagWriteException(
+            'TagLib failed to save file after album art write',
+            path,
+          );
+        }
+      } finally {
+        malloc.free(nativePath);
+        attrs?.dispose();
+        if (file != nullptr) {
+          _bindings.taglib_file_free(file);
+        }
+      }
+    });
+  }
+
+  @override
+  Future<void> removeAlbumArt(String path) async {
+    _assertFileExists(path);
+    await _backupManager.createBackupIfEnabled(path);
+
+    await _atomicWriteManager.writeAtomic(path, (tempPath) async {
+      final nativePath = tempPath.toNativeUtf8();
+      Pointer<TagLib_File> file = nullptr;
+
+      try {
+        file = _bindings.taglib_file_new(nativePath);
+
+        if (file == nullptr) {
+          throw TagWriteException(
+            'Failed to open file for album art removal',
+            path,
+          );
+        }
+
+        final pictureKey = 'PICTURE'.toNativeUtf8();
+        try {
+          _bindings.taglib_complex_property_set(file, pictureKey, nullptr);
+        } finally {
+          malloc.free(pictureKey);
+        }
+
+        final result = _bindings.taglib_file_save(file);
+        if (result == 0) {
+          throw TagWriteException(
+            'TagLib failed to save file after album art removal',
+            path,
+          );
+        }
+      } finally {
+        malloc.free(nativePath);
+        if (file != nullptr) {
+          _bindings.taglib_file_free(file);
+        }
+      }
+    });
+  }
+
+  @override
+  Future<List<TagWriteResult>> writeTagsBatch(
+    Map<String, Map<String, String>> fileTagsMap,
+  ) async {
+    final results = <TagWriteResult>[];
+
+    for (final entry in fileTagsMap.entries) {
+      final filePath = entry.key;
+      final tags = entry.value;
+
+      try {
+        await writeTags(filePath, tags);
+        results.add(TagWriteResult(path: filePath, success: true));
+      } catch (e) {
+        results.add(
+          TagWriteResult(path: filePath, success: false, error: e.toString()),
+        );
+      }
+    }
+
+    return results;
+  }
+
+  /// Writes tag properties to the open TagLib file handle.
+  ///
+  /// Handles track/disc number formatting (combining number and total as
+  /// "3/12") and clearing properties when the value is empty.
+  void _writeProperties(
+    Pointer<TagLib_File> file,
+    Map<String, String> tags,
+  ) {
+    // Process track/disc totals alongside their numbers
+    final processedTags = _preprocessTrackDiscFields(tags);
+
+    for (final entry in processedTags.entries) {
+      final appField = entry.key;
+      final value = entry.value;
+
+      // Skip total fields — they are merged into the number field
+      if (appField == 'trackTotal' || appField == 'discTotal') {
+        continue;
+      }
+
+      final tagLibKey = TagPropertyMapper.toTagLibKey(appField);
+      if (tagLibKey == null) continue;
+
+      final keyNative = tagLibKey.toNativeUtf8();
+      try {
+        if (value.isEmpty) {
+          // Clear the property by passing nullptr as value
+          _bindings.taglib_property_set(file, keyNative, nullptr);
+        } else {
+          final valueNative = value.toNativeUtf8();
+          try {
+            _bindings.taglib_property_set(file, keyNative, valueNative);
+          } finally {
+            malloc.free(valueNative);
+          }
+        }
+      } finally {
+        malloc.free(keyNative);
+      }
+    }
+  }
+
+  /// Preprocesses track/disc number fields to combine number and total.
+  ///
+  /// If both `trackNumber` and `trackTotal` are present, formats as "3/12".
+  /// Same for `discNumber` and `discTotal`.
+  Map<String, String> _preprocessTrackDiscFields(Map<String, String> tags) {
+    final result = Map<String, String>.of(tags);
+
+    // Combine trackNumber with trackTotal if both present
+    if (result.containsKey('trackNumber')) {
+      final number = result['trackNumber']!;
+      final total = result['trackTotal'];
+      if (number.isNotEmpty && total != null && total.isNotEmpty) {
+        result['trackNumber'] =
+            TagPropertyMapper.formatTrackNumber(number, total);
+      }
+    }
+
+    // Combine discNumber with discTotal if both present
+    if (result.containsKey('discNumber')) {
+      final number = result['discNumber']!;
+      final total = result['discTotal'];
+      if (number.isNotEmpty && total != null && total.isNotEmpty) {
+        result['discNumber'] =
+            TagPropertyMapper.formatTrackNumber(number, total);
+      }
+    }
+
+    return result;
+  }
+
+  /// Maps an [AlbumArtType] enum value to the TagLib picture type string.
+  String _albumArtTypeToString(AlbumArtType type) {
+    switch (type) {
+      case AlbumArtType.other:
+        return 'Other';
+      case AlbumArtType.fileIcon:
+        return 'File Icon';
+      case AlbumArtType.otherFileIcon:
+        return 'Other File Icon';
+      case AlbumArtType.frontCover:
+        return 'Front Cover';
+      case AlbumArtType.backCover:
+        return 'Back Cover';
+      case AlbumArtType.leafletPage:
+        return 'Leaflet Page';
+      case AlbumArtType.media:
+        return 'Media';
+      case AlbumArtType.leadArtist:
+        return 'Lead Artist';
+      case AlbumArtType.artist:
+        return 'Artist';
+      case AlbumArtType.conductor:
+        return 'Conductor';
+      case AlbumArtType.band:
+        return 'Band';
+      case AlbumArtType.composer:
+        return 'Composer';
+      case AlbumArtType.lyricist:
+        return 'Lyricist';
+      case AlbumArtType.recordingLocation:
+        return 'Recording Location';
+      case AlbumArtType.duringRecording:
+        return 'During Recording';
+      case AlbumArtType.duringPerformance:
+        return 'During Performance';
+      case AlbumArtType.movieCapture:
+        return 'Movie Capture';
+      case AlbumArtType.brightColouredFish:
+        return 'Bright Coloured Fish';
+      case AlbumArtType.illustration:
+        return 'Illustration';
+      case AlbumArtType.bandLogo:
+        return 'Band Logo';
+      case AlbumArtType.publisherLogo:
+        return 'Publisher Logo';
+    }
+  }
+
+  /// Asserts that the file at [path] exists, throwing if not.
+  void _assertFileExists(String path) {
+    if (!File(path).existsSync()) {
+      throw TagWriteException('File does not exist', path);
+    }
+  }
+}
