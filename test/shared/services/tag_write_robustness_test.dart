@@ -1,8 +1,8 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:open_tag_editor/shared/services/id3_writer_service.dart';
+import 'fixtures/id3_writer_fixture.dart';
 import 'package:open_tag_editor/shared/services/tag_reader_service.dart';
 
 /// Generates a minimal valid MP3 file (MPEG frame with silence).
@@ -145,14 +145,14 @@ void main() {
       ]);
       return result.exitCode == 0;
     } catch (_) {
-      // ffprobe not available — skip external validation
+      // ffprobe not available â€” skip external validation
       return true;
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Non-visible characters
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('non-visible characters', () {
     test('null bytes in tag values do not corrupt file', () async {
@@ -205,17 +205,17 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Non-ASCII / Unicode characters
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('non-ASCII and Unicode characters', () {
     test('CJK characters (Chinese/Japanese/Korean)', () async {
       final path = createTempMp3();
       final tags = {
-        'title': '東京事変 - 群青日和',
-        'artist': '椎名林檎',
-        'album': '教育',
+        'title': 'æ±äº¬äº‹å¤‰ - ç¾¤é’æ—¥å’Œ',
+        'artist': 'æ¤Žåæž—æªŽ',
+        'album': 'æ•™è‚²',
       };
 
       await writer.writeTags(path, tags);
@@ -225,9 +225,9 @@ void main() {
     test('Arabic and Hebrew (RTL scripts)', () async {
       final path = createTempMp3();
       final tags = {
-        'title': 'مرحبا بالعالم',
-        'artist': 'שלום עולם',
-        'album': 'Mixed مختلط Album',
+        'title': 'Ù…Ø±Ø­Ø¨Ø§ Ø¨Ø§Ù„Ø¹Ø§Ù„Ù…',
+        'artist': '×©×œ×•× ×¢×•×œ×',
+        'album': 'Mixed Ù…Ø®ØªÙ„Ø· Album',
       };
 
       await writer.writeTags(path, tags);
@@ -237,9 +237,9 @@ void main() {
     test('Cyrillic characters', () async {
       final path = createTempMp3();
       final tags = {
-        'title': 'Калинка-Малинка',
-        'artist': 'Чайковский',
-        'album': 'Русская Классика',
+        'title': 'ÐšÐ°Ð»Ð¸Ð½ÐºÐ°-ÐœÐ°Ð»Ð¸Ð½ÐºÐ°',
+        'artist': 'Ð§Ð°Ð¹ÐºÐ¾Ð²ÑÐºÐ¸Ð¹',
+        'album': 'Ð ÑƒÑÑÐºÐ°Ñ ÐšÐ»Ð°ÑÑÐ¸ÐºÐ°',
       };
 
       await writer.writeTags(path, tags);
@@ -249,9 +249,9 @@ void main() {
     test('emoji and supplementary plane characters', () async {
       final path = createTempMp3();
       final tags = {
-        'title': '🎵 Music 🎶 Note 🎸',
-        'artist': '👨‍🎤 Rock Star',
-        'album': '💿 Greatest Hits 🏆',
+        'title': 'ðŸŽµ Music ðŸŽ¶ Note ðŸŽ¸',
+        'artist': 'ðŸ‘¨â€ðŸŽ¤ Rock Star',
+        'album': 'ðŸ’¿ Greatest Hits ðŸ†',
       };
 
       await writer.writeTags(path, tags);
@@ -262,9 +262,9 @@ void main() {
       final path = createTempMp3();
       final tags = {
         // Composed vs decomposed forms
-        'title': 'Ñoño Café Naïve', // precomposed
-        'artist': 'n\u0303 o\u0308', // decomposed: ñ ö
-        'album': 'Ångström Ü Ö Ä',
+        'title': 'Ã‘oÃ±o CafÃ© NaÃ¯ve', // precomposed
+        'artist': 'n\u0303 o\u0308', // decomposed: Ã± Ã¶
+        'album': 'Ã…ngstrÃ¶m Ãœ Ã– Ã„',
       };
 
       await writer.writeTags(path, tags);
@@ -274,9 +274,9 @@ void main() {
     test('Thai, Devanagari, and other complex scripts', () async {
       final path = createTempMp3();
       final tags = {
-        'title': 'สวัสดีครับ', // Thai
-        'artist': 'नमस्ते', // Devanagari
-        'album': 'ᚠᚢᚦᚨᚱᚲ', // Runic
+        'title': 'à¸ªà¸§à¸±à¸ªà¸”à¸µà¸„à¸£à¸±à¸š', // Thai
+        'artist': 'à¤¨à¤®à¤¸à¥à¤¤à¥‡', // Devanagari
+        'album': 'áš áš¢áš¦áš¨áš±áš²', // Runic
       };
 
       await writer.writeTags(path, tags);
@@ -286,8 +286,8 @@ void main() {
     test('full-width Latin characters', () async {
       final path = createTempMp3();
       final tags = {
-        'title': 'ＦＵＬＬ　ＷＩＤＴＨ',
-        'artist': 'Ｔｅｓｔ　Ａｒｔｉｓｔ',
+        'title': 'ï¼¦ï¼µï¼¬ï¼¬ã€€ï¼·ï¼©ï¼¤ï¼´ï¼¨',
+        'artist': 'ï¼´ï½…ï½“ï½”ã€€ï¼¡ï½’ï½”ï½‰ï½“ï½”',
       };
 
       await writer.writeTags(path, tags);
@@ -297,9 +297,9 @@ void main() {
     test('surrogate pair characters (astral plane)', () async {
       final path = createTempMp3();
       final tags = {
-        'title': '𝄞 Musical Symbol G Clef',
-        'artist': '𝕳𝖊𝖑𝖑𝖔', // Mathematical Fraktur
-        'album': '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Flag Sequence',
+        'title': 'ð„ž Musical Symbol G Clef',
+        'artist': 'ð•³ð–Šð–‘ð–‘ð–”', // Mathematical Fraktur
+        'album': 'ðŸ´ó §ó ¢ó ¥ó ®ó §ó ¿ Flag Sequence',
       };
 
       await writer.writeTags(path, tags);
@@ -307,9 +307,9 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Long strings
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('long strings', () {
     test('title with 1000 characters', () async {
@@ -359,7 +359,7 @@ void main() {
     test('long string with mixed Unicode (stress test)', () async {
       final path = createTempMp3();
       // Mix of ASCII, CJK, emoji, and combining marks repeated
-      const segment = 'Hello世界🎵ñ';
+      const segment = 'Helloä¸–ç•ŒðŸŽµÃ±';
       final longMixed = segment * 500; // ~5000 chars of multi-byte content
       final tags = {'title': longMixed, 'artist': 'Test'};
 
@@ -368,9 +368,9 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Edge-case values
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('edge-case values', () {
     test('empty string values do not corrupt file', () async {
@@ -478,9 +478,9 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Combinations of normal fields
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('normal field combinations', () {
     test('all standard fields populated', () async {
@@ -496,7 +496,7 @@ void main() {
         'comment': 'Classic rock masterpiece',
         'composer': 'Freddie Mercury',
         'publisher': 'EMI',
-        'copyright': '© 1975 EMI Records',
+        'copyright': 'Â© 1975 EMI Records',
         'bpm': '72',
       };
 
@@ -556,16 +556,16 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: FLAC format robustness
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('FLAC format robustness', () {
     test('CJK characters in FLAC Vorbis Comment', () async {
       final path = createTempFlac();
       final tags = {
-        'title': '東京事変 - 群青日和',
-        'artist': '椎名林檎',
+        'title': 'æ±äº¬äº‹å¤‰ - ç¾¤é’æ—¥å’Œ',
+        'artist': 'æ¤Žåæž—æªŽ',
       };
 
       await writer.writeTags(path, tags);
@@ -597,8 +597,8 @@ void main() {
     test('emoji in FLAC Vorbis Comment', () async {
       final path = createTempFlac();
       final tags = {
-        'title': '🎵 FLAC Music 🎶',
-        'artist': '👨‍🎤 FLAC Artist',
+        'title': 'ðŸŽµ FLAC Music ðŸŽ¶',
+        'artist': 'ðŸ‘¨â€ðŸŽ¤ FLAC Artist',
       };
 
       await writer.writeTags(path, tags);
@@ -637,14 +637,14 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Boundary and overflow conditions
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('boundary and overflow conditions', () {
     test('tag size near syncsafe integer max (2^28 - 1)', () async {
       final path = createTempMp3();
-      // 268 MB would be the max syncsafe size — we test a large but
+      // 268 MB would be the max syncsafe size â€” we test a large but
       // reasonable value that stresses the size calculation.
       // 1MB of tag data is extreme but should not corrupt.
       final megaString = 'M' * (1024 * 1024);
@@ -682,17 +682,17 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: External validation with ffprobe
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('external validation (ffprobe)', () {
     test('MP3 with Unicode tags passes ffprobe validation', () async {
       final path = createTempMp3();
       final tags = {
-        'title': '東京 🎵 Москва',
-        'artist': 'Ñoño & Ångström',
-        'album': 'مرحبا 世界',
+        'title': 'æ±äº¬ ðŸŽµ ÐœÐ¾ÑÐºÐ²Ð°',
+        'artist': 'Ã‘oÃ±o & Ã…ngstrÃ¶m',
+        'album': 'Ù…Ø±Ø­Ø¨Ø§ ä¸–ç•Œ',
       };
 
       await writer.writeTags(path, tags);
@@ -721,8 +721,8 @@ void main() {
 
       for (var i = 0; i < 10; i++) {
         await writer.writeTags(path, {
-          'title': 'Rewrite $i — 日本語テスト',
-          'artist': 'Artist $i 🎸',
+          'title': 'Rewrite $i â€” æ—¥æœ¬èªžãƒ†ã‚¹ãƒˆ',
+          'artist': 'Artist $i ðŸŽ¸',
         });
       }
 
@@ -734,8 +734,8 @@ void main() {
     test('FLAC with Unicode tags passes ffprobe validation', () async {
       final path = createTempFlac();
       final tags = {
-        'title': 'FLAC 東京 🎵',
-        'artist': 'Ñoño FLAC',
+        'title': 'FLAC æ±äº¬ ðŸŽµ',
+        'artist': 'Ã‘oÃ±o FLAC',
       };
 
       await writer.writeTags(path, tags);
@@ -746,9 +746,9 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Unsupported format handling
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('unsupported format handling', () {
     test('writing to unsupported extension throws TagWriteException', () async {
@@ -783,21 +783,21 @@ void main() {
         // If it succeeds, verify the file is at least not empty
         expect(File(path).lengthSync(), greaterThan(0));
       } on TagWriteException {
-        // Acceptable — clean failure
+        // Acceptable â€” clean failure
       }
     });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // GROUP: Mixed stress scenarios
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   group('mixed stress scenarios', () {
     test('Unicode + long + control chars combined', () async {
       final path = createTempMp3();
       final tags = {
-        'title': '${'🎵東京' * 200}\x00\x01\x02',
-        'artist': '${'\t' * 50}Ñoño${'Ω' * 300}',
+        'title': '${'ðŸŽµæ±äº¬' * 200}\x00\x01\x02',
+        'artist': '${'\t' * 50}Ã‘oÃ±o${'Î©' * 300}',
         'album': 'Normal Album Name',
       };
 
@@ -811,12 +811,12 @@ void main() {
 
       for (var i = 0; i < 10; i++) {
         await writer.writeTags(mp3Path, {
-          'title': 'MP3 Iteration $i 🎵',
-          'artist': '日本語 $i',
+          'title': 'MP3 Iteration $i ðŸŽµ',
+          'artist': 'æ—¥æœ¬èªž $i',
         });
         await writer.writeTags(flacPath, {
-          'title': 'FLAC Iteration $i 🎶',
-          'artist': 'Кириллица $i',
+          'title': 'FLAC Iteration $i ðŸŽ¶',
+          'artist': 'ÐšÐ¸Ñ€Ð¸Ð»Ð»Ð¸Ñ†Ð° $i',
         });
       }
 
@@ -836,8 +836,8 @@ void main() {
 
       // Write full
       await writer.writeTags(path, {
-        'title': 'Full Title 🎵 東京',
-        'artist': 'Full Artist Ñoño',
+        'title': 'Full Title ðŸŽµ æ±äº¬',
+        'artist': 'Full Artist Ã‘oÃ±o',
         'album': 'Full Album',
       });
       verifyFileIntegrity(path);
@@ -854,19 +854,19 @@ void main() {
     test('maximum field count with diverse content', () async {
       final path = createTempMp3();
       final tags = {
-        'title': 'Ñoño 東京 🎵',
-        'artist': 'Чайковский',
-        'albumArtist': 'مرحبا',
-        'album': 'สวัสดี',
+        'title': 'Ã‘oÃ±o æ±äº¬ ðŸŽµ',
+        'artist': 'Ð§Ð°Ð¹ÐºÐ¾Ð²ÑÐºÐ¸Ð¹',
+        'albumArtist': 'Ù…Ø±Ø­Ø¨Ø§',
+        'album': 'à¸ªà¸§à¸±à¸ªà¸”à¸µ',
         'year': '2024',
         'trackNumber': '1',
-        'genre': 'Wörld Müsic',
+        'genre': 'WÃ¶rld MÃ¼sic',
         'comment': 'A ${'long ' * 100}comment',
-        'composer': '作曲家',
-        'conductor': 'Дирижёр',
-        'lyricist': 'गीतकार',
-        'publisher': '出版社 📚',
-        'copyright': '© 2024 🌍',
+        'composer': 'ä½œæ›²å®¶',
+        'conductor': 'Ð”Ð¸Ñ€Ð¸Ð¶Ñ‘Ñ€',
+        'lyricist': 'à¤—à¥€à¤¤à¤•à¤¾à¤°',
+        'publisher': 'å‡ºç‰ˆç¤¾ ðŸ“š',
+        'copyright': 'Â© 2024 ðŸŒ',
         'bpm': '120',
       };
 

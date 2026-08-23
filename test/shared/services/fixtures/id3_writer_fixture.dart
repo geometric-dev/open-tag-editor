@@ -1,15 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:open_tag_editor/shared/models/audio_file.dart';
+import 'package:open_tag_editor/shared/services/tag_reader_service.dart';
 import 'package:path/path.dart' as p;
 
-import '../models/audio_file.dart';
-import 'tag_reader_service.dart';
-
-/// Pure Dart implementation of tag writing.
+/// Test fixture: pure Dart implementation of tag writing.
 ///
-/// Supports writing ID3v2.3 tags to MP3 files and Vorbis Comments to FLAC.
-/// For other formats, a more complete implementation (or FFI to TagLib) is needed.
+/// Lives under test/ because production writes go through the TagLib FFI
+/// writer (TagLibWriterService / DisabledWriterService fallback).
 class Id3WriterService implements TagWriterService {
   @override
   Future<void> writeTags(String path, Map<String, String> tags) async {

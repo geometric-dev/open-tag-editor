@@ -49,11 +49,17 @@ cd open-tag-editor
 # Install dependencies
 flutter pub get
 
-# Generate code (freezed models, riverpod providers)
-dart run build_runner build --delete-conflicting-outputs
-
 # Run the app
 flutter run -d windows   # or: -d macos, -d linux
+```
+
+> The generated TagLib FFI bindings (`lib/shared/services/taglib/taglib_bindings.g.dart`)
+> are produced with [ffigen](https://pub.dev/packages/ffigen) and gitignored.
+> They are only regenerated when `native/taglib_c.h` changes:
+>
+> ```bash
+> dart run ffigen --config native/ffigen.yaml
+> ```
 ```
 
 ### Release Build
@@ -88,7 +94,6 @@ lib/
 
 - **Flutter** — Desktop UI framework
 - **Riverpod** — Reactive state management
-- **Freezed** — Immutable data models with union types
 - **dart:ffi + TagLib** — Native C library for safe, cross-format tag I/O
 - **ffigen** — Generates Dart FFI bindings from C headers
 
@@ -140,7 +145,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 Quick start:
 1. Fork the repo and create a feature branch
-2. Run `flutter analyze` — no issues allowed
+2. Run `flutter analyze` — no analyzer errors allowed
 3. Run `flutter test` — all tests must pass
 4. Open a PR with a clear description
 

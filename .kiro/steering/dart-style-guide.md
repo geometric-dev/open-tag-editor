@@ -1,4 +1,4 @@
----
+﻿---
 inclusion: auto
 description: Dart and Flutter coding conventions including formatting, naming, architecture, and FFI rules
 ---
@@ -28,7 +28,7 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 ## File Organisation
 
 - One public class/mixin/extension per file (small helper types in the same file are fine).
-- File name matches the primary class: `AudioFile` → `audio_file.dart`.
+- File name matches the primary class: `AudioFile` â†’ `audio_file.dart`.
 - Import order (enforced by `directives_ordering` lint):
   1. `dart:` imports
   2. `package:` imports
@@ -47,7 +47,7 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 ## Immutability
 
 - Prefer `final` for local variables and fields (enforced by `prefer_final_locals` and `prefer_final_fields`).
-- Models should be immutable — all fields `final`, provide `copyWith`.
+- Models should be immutable â€” all fields `final`, provide `copyWith`.
 - Use `const` constructors and `const` collection literals where possible.
 
 ## Error Handling
@@ -69,7 +69,7 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 - Use `Provider` for services/singletons.
 - Use `StateNotifierProvider` or `NotifierProvider` for mutable state.
 - Keep providers in dedicated `*_provider.dart` files grouped by feature.
-- Avoid putting business logic in widgets — delegate to services/notifiers.
+- Avoid putting business logic in widgets â€” delegate to services/notifiers.
 
 ## Architecture
 
@@ -88,12 +88,12 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 
 ## Testing
 
-- Test files mirror source structure: `lib/shared/services/foo.dart` → `test/shared/services/foo_test.dart`.
+- Test files mirror source structure: `lib/shared/services/foo.dart` â†’ `test/shared/services/foo_test.dart`.
 - Use `group()` to organise related tests.
 - One assertion per test where practical (multiple assertions OK for property tests).
 - Name tests descriptively: `'returns empty tags for file with no metadata'`.
 - Use `setUp`/`tearDown` for shared fixtures.
-- Property-based tests use `package:fast_check` with minimum 100 iterations.
+- Property-based tests use a seeded PRNG (`Random(<fixed seed>)`) with a minimum of 100 iterations per property, and reference the spec requirement they validate.
 
 ## Window Management Rules
 
@@ -104,6 +104,6 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 
 - Null-check every pointer returned from native code before dereferencing.
 - Always free native resources in `try/finally`.
-- Use `toNativeUtf8()` for Dart→C strings, null-check before `toDartString()` for C→Dart.
-- Keep FFI calls in dedicated service classes — never call native functions from widgets or providers directly.
+- Use `toNativeUtf8()` for Dartâ†’C strings, null-check before `toDartString()` for Câ†’Dart.
+- Keep FFI calls in dedicated service classes â€” never call native functions from widgets or providers directly.
 - Generated bindings (`*.g.dart`) are excluded from analysis (see `analysis_options.yaml`).
