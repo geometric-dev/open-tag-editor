@@ -15,33 +15,31 @@ import '../models/track_file_match.dart';
 import '../musicbrainz_service.dart';
 import '../partial_match_applicator.dart';
 import '../track_matcher.dart';
+import 'service_providers.dart';
 
 /// Provider for the lookup workflow state.
 final lookupStateProvider =
     StateNotifierProvider<LookupStateNotifier, LookupState>((ref) {
-  return LookupStateNotifier();
+  return LookupStateNotifier(
+    musicBrainzService: ref.watch(musicBrainzServiceProvider),
+    discogsService: ref.watch(discogsServiceProvider),
+    acoustIdService: ref.watch(acoustIdServiceProvider),
+    fingerprintGenerator: ref.watch(fingerprintGeneratorProvider),
+    coverArtService: ref.watch(coverArtServiceProvider),
+    metadataApplicator: ref.watch(metadataApplicatorProvider),
+    partialMatchApplicator: ref.watch(partialMatchApplicatorProvider),
+    cache: ref.watch(lookupCacheProvider),
+  );
 });
 
 /// Manages the full lookup workflow state.
 ///
 /// Orchestrates search, track listing, fingerprinting, matching,
-/// cover art, and metadata application.
+/// cover art, and metadata application. All service dependencies are
+/// constructor-injected; the provider rebuilds the notifier (with fresh
+/// services and clean state) whenever lookup settings change.
 class LookupStateNotifier extends StateNotifier<LookupState> {
-  LookupStateNotifier() : super(const LookupState());
-
-  late MusicBrainzService _musicBrainzService;
-  DiscogsService? _discogsService;
-  late AcoustIDService _acoustIdService;
-  FingerprintGenerator? _fingerprintGenerator;
-  late CoverArtService _coverArtService;
-  late MetadataApplicator _metadataApplicator;
-  PartialMatchApplicator? _partialMatchApplicator;
-  late LookupCache _cache;
-  bool _configured = false;
-  bool _cancelled = false;
-
-  /// Injects service dependencies. Must be called before any workflow method.
-  void configure({
+  LookupStateNotifier({
     required MusicBrainzService musicBrainzService,
     DiscogsService? discogsService,
     required AcoustIDService acoustIdService,
@@ -50,22 +48,25 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     required MetadataApplicator metadataApplicator,
     PartialMatchApplicator? partialMatchApplicator,
     required LookupCache cache,
-  }) {
-    _musicBrainzService = musicBrainzService;
-    _discogsService = discogsService;
-    _acoustIdService = acoustIdService;
-    _fingerprintGenerator = fingerprintGenerator;
-    _coverArtService = coverArtService;
-    _metadataApplicator = metadataApplicator;
-    _partialMatchApplicator = partialMatchApplicator;
-    _cache = cache;
-    _configured = true;
-  }
+  })  : _musicBrainzService = musicBrainzService,
+        _discogsService = discogsService,
+        _acoustIdService = acoustIdService,
+        _fingerprintGenerator = fingerprintGenerator,
+        _coverArtService = coverArtService,
+        _metadataApplicator = metadataApplicator,
+        _partialMatchApplicator = partialMatchApplicator,
+        _cache = cache,
+        super(const LookupState());
 
-  /// Asserts that [configure] has been called.
-  void _assertConfigured() {
-    assert(_configured, 'LookupStateNotifier.configure() must be called first');
-  }
+  final MusicBrainzService _musicBrainzService;
+  final DiscogsService? _discogsService;
+  final AcoustIDService _acoustIdService;
+  final FingerprintGenerator? _fingerprintGenerator;
+  final CoverArtService _coverArtService;
+  final MetadataApplicator _metadataApplicator;
+  final PartialMatchApplicator? _partialMatchApplicator;
+  final LookupCache _cache;
+  bool _cancelled = false;
 
   /// Performs a search across selected sources.
   Future<void> search({
@@ -74,7 +75,6 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     String? year,
     required Set<SearchSource> sources,
   }) async {
-    _assertConfigured();
     _cancelled = false;
     state = state.copyWith(status: LookupStatus.searching, error: null);
 
@@ -105,14 +105,14 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
       if (_cancelled) return;
 
-      final discogsResults = sources.contains(SearchSource.discogs) &&
-              _discogsService != null
-          ? await _discogsService!.searchReleases(
-              artist: artist,
-              album: album,
-              year: year != null ? int.tryParse(year) : null,
-            )
-          : <SearchResult>[];
+      final discogsResults =
+          sources.contains(SearchSource.discogs) && _discogsService != null
+              ? await _discogsService.searchReleases(
+                  artist: artist,
+                  album: album,
+                  year: year != null ? int.tryParse(year) : null,
+                )
+              : <SearchResult>[];
 
       if (_cancelled) return;
 
@@ -133,7 +133,6 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
   /// Selects a result and fetches its track listing.
   Future<void> selectResult(SearchResult result) async {
-    _assertConfigured();
     _cancelled = false;
     state = state.copyWith(
       status: LookupStatus.loadingTracks,
@@ -154,7 +153,11 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         if (result.source == SearchSource.musicBrainz) {
           tracks = await _musicBrainzService.getReleaseTracks(result.id);
         } else {
-          tracks = await _discogsService!.getReleaseTracks(int.parse(result.id));
+          // Discogs-only result: the service was available when the search
+          // ran, otherwise no Discogs results could exist.
+          tracks = await _discogsService!.getReleaseTracks(
+            int.parse(result.id),
+          );
         }
 
         if (_cancelled) return;
@@ -274,7 +277,6 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     required Set<String> selectedFields,
     required bool applyCoverArt,
   }) async {
-    _assertConfigured();
     state = state.copyWith(status: LookupStatus.applying);
 
     try {
@@ -312,7 +314,6 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
   /// Triggers fingerprint identification for selected files.
   Future<void> identifyFiles(List<AudioFile> files) async {
-    _assertConfigured();
     if (_fingerprintGenerator == null) {
       state = state.copyWith(
         status: LookupStatus.error,
@@ -324,11 +325,12 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     _cancelled = false;
     state = state.copyWith(
       status: LookupStatus.fingerprinting,
-      fingerprintProgress: FingerprintProgress(completed: 0, total: files.length),
+      fingerprintProgress:
+          FingerprintProgress(completed: 0, total: files.length),
     );
 
     final filePaths = files.map((f) => f.path).toList();
-    final fingerprints = await _fingerprintGenerator!.generateBatch(
+    final fingerprints = await _fingerprintGenerator.generateBatch(
       filePaths,
       onProgress: (completed, total) {
         if (!_cancelled) {
@@ -353,12 +355,14 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
       );
       if (matches.isNotEmpty) {
         final best = matches.first;
-        results.add(SearchResult(
-          id: best.recordingId,
-          title: best.title ?? 'Unknown',
-          artist: best.artist,
-          source: SearchSource.musicBrainz,
-        ),);
+        results.add(
+          SearchResult(
+            id: best.recordingId,
+            title: best.title ?? 'Unknown',
+            artist: best.artist,
+            source: SearchSource.musicBrainz,
+          ),
+        );
       }
     }
 
@@ -374,7 +378,6 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     required Set<String> selectedFields,
     required bool applyCoverArt,
   }) async {
-    _assertConfigured();
     state = state.copyWith(status: LookupStatus.applying);
 
     try {

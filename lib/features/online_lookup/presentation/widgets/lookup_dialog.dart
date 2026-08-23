@@ -5,7 +5,6 @@ import '../../../../shared/models/audio_file.dart';
 import '../../../tag_editor/data/providers/editor_state_provider.dart';
 import '../../data/models/lookup_state.dart';
 import '../../data/providers/lookup_state_provider.dart';
-import '../../data/providers/service_providers.dart';
 import 'lookup_apply_panel.dart';
 import 'lookup_match_panel.dart';
 import 'lookup_results_panel.dart';
@@ -13,22 +12,11 @@ import 'lookup_search_panel.dart';
 
 /// Shows the online metadata lookup dialog.
 ///
-/// Pre-fills search fields from the currently selected files.
+/// Pre-fills search fields from the currently selected files. Services are
+/// constructor-injected via [lookupStateProvider]; no manual configuration
+/// is needed here.
 Future<void> showLookupDialog(BuildContext context, WidgetRef ref) {
   final selectedFiles = ref.read(selectedFilesProvider);
-
-  // Configure the state notifier with services
-  final notifier = ref.read(lookupStateProvider.notifier);
-  notifier.configure(
-    musicBrainzService: ref.read(musicBrainzServiceProvider),
-    discogsService: ref.read(discogsServiceProvider),
-    acoustIdService: ref.read(acoustIdServiceProvider),
-    fingerprintGenerator: ref.read(fingerprintGeneratorProvider),
-    coverArtService: ref.read(coverArtServiceProvider),
-    metadataApplicator: ref.read(metadataApplicatorProvider),
-    partialMatchApplicator: ref.read(partialMatchApplicatorProvider),
-    cache: ref.read(lookupCacheProvider),
-  );
 
   return showDialog(
     context: context,
