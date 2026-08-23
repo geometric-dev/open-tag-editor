@@ -73,7 +73,9 @@ class MusicBrainzService {
 
         final media = r['media'] as List<dynamic>?;
         final trackCount = media?.fold<int>(
-            0, (sum, m) => sum + ((m['track-count'] as int?) ?? 0));
+          0,
+          (sum, m) => sum + ((m['track-count'] as int?) ?? 0),
+        );
 
         return SearchResult(
           id: r['id'] as String,

@@ -74,6 +74,26 @@ class ErrorEntryFactory {
         .toList();
   }
 
+  /// Creates a single informational entry for a failed online lookup.
+  ///
+  /// These entries are not auto-retryable; they exist so network/API
+  /// failures are visible in the session log instead of surfacing only
+  /// inside the lookup dialog.
+  static ErrorEntry fromLookupFailure({
+    required String summary,
+    required String message,
+  }) {
+    return ErrorEntry(
+      id: _uuid.v4(),
+      filePath: summary,
+      fileName: summary,
+      operationType: OperationType.onlineLookup,
+      errorMessage: message,
+      timestamp: DateTime.now(),
+      operationContext: LookupOperationContext(description: summary),
+    );
+  }
+
   /// Creates [ErrorEntry] instances from file paths that failed tag reading.
   ///
   /// The [errorMessages] map provides the error message for each failed path.

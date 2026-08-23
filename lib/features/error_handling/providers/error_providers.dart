@@ -9,8 +9,7 @@ import '../notifiers/error_log_notifier.dart';
 /// Manages the session error log with bounded capacity. Entries persist
 /// across batch operations within a folder session and are cleared on
 /// folder change.
-final errorLogProvider =
-    StateNotifierProvider<ErrorLogNotifier, ErrorLogState>(
+final errorLogProvider = StateNotifierProvider<ErrorLogNotifier, ErrorLogState>(
   (ref) => ErrorLogNotifier(),
 );
 

@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../../features/error_handling/notifiers/error_log_notifier.dart';
+import '../../../../features/error_handling/providers/error_providers.dart';
+import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../acoustid_service.dart';
 import '../cover_art_service.dart';
@@ -29,6 +32,7 @@ final lookupStateProvider =
     metadataApplicator: ref.watch(metadataApplicatorProvider),
     partialMatchApplicator: ref.watch(partialMatchApplicatorProvider),
     cache: ref.watch(lookupCacheProvider),
+    errorLogNotifier: ref.read(errorLogProvider.notifier),
   );
 });
 
@@ -48,6 +52,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     required MetadataApplicator metadataApplicator,
     PartialMatchApplicator? partialMatchApplicator,
     required LookupCache cache,
+    ErrorLogNotifier? errorLogNotifier,
   })  : _musicBrainzService = musicBrainzService,
         _discogsService = discogsService,
         _acoustIdService = acoustIdService,
@@ -56,6 +61,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         _metadataApplicator = metadataApplicator,
         _partialMatchApplicator = partialMatchApplicator,
         _cache = cache,
+        _errorLogNotifier = errorLogNotifier,
         super(const LookupState());
 
   final MusicBrainzService _musicBrainzService;
@@ -66,7 +72,21 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
   final MetadataApplicator _metadataApplicator;
   final PartialMatchApplicator? _partialMatchApplicator;
   final LookupCache _cache;
+
+  /// Optional session error log; when present, service failures are
+  /// recorded as informational entries so they outlive the lookup dialog.
+  final ErrorLogNotifier? _errorLogNotifier;
   bool _cancelled = false;
+
+  /// Records an informational error-log entry for a failed lookup step.
+  void _logLookupFailure(String summary, Object error) {
+    _errorLogNotifier?.addEntries([
+      ErrorEntryFactory.fromLookupFailure(
+        summary: summary,
+        message: error.toString(),
+      ),
+    ]);
+  }
 
   /// Performs a search across selected sources.
   Future<void> search({
@@ -128,6 +148,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         status: LookupStatus.error,
         error: 'Search failed: $e',
       );
+      _logLookupFailure('online search', e);
     }
   }
 
@@ -172,6 +193,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
           status: LookupStatus.error,
           error: 'Failed to load tracks: $e',
         );
+        _logLookupFailure('track listing', e);
       }
     }
 
@@ -299,6 +321,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         status: LookupStatus.error,
         error: 'Apply failed: $e',
       );
+      _logLookupFailure('apply partial metadata', e);
       return ApplyResult(
         successCount: 0,
         failureCount: state.allSelectedFiles.length,
@@ -380,6 +403,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         error: 'Fingerprint lookup failed: $e',
         fingerprintProgress: null,
       );
+      _logLookupFailure('fingerprint lookup', e);
     }
   }
 
@@ -408,6 +432,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         status: LookupStatus.error,
         error: 'Apply failed: $e',
       );
+      _logLookupFailure('apply metadata', e);
       return ApplyResult(
         successCount: 0,
         failureCount: state.matches.length,

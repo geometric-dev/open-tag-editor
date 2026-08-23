@@ -67,8 +67,7 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
 
     // Build matched entries.
     for (final match in widget.matches) {
-      if (match.file != null &&
-          match.confidence != MatchConfidence.unmatched) {
+      if (match.file != null && match.confidence != MatchConfidence.unmatched) {
         matchedPaths.add(match.file!.path);
         entries.add(
           PartialMatchFileEntry(
@@ -112,11 +111,10 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
         });
       }
     } else {
-      final result =
-          await ref.read(lookupStateProvider.notifier).applyMetadata(
-                selectedFields: _selectedFields,
-                applyCoverArt: _applyCoverArt && widget.coverArt != null,
-              );
+      final result = await ref.read(lookupStateProvider.notifier).applyMetadata(
+            selectedFields: _selectedFields,
+            applyCoverArt: _applyCoverArt && widget.coverArt != null,
+          );
 
       if (mounted) {
         setState(() {
@@ -128,7 +126,8 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
   }
 
   bool get _canApply {
-    if (_selectedFields.isEmpty && !(_applyCoverArt && widget.coverArt != null)) {
+    if (_selectedFields.isEmpty &&
+        !(_applyCoverArt && widget.coverArt != null)) {
       return false;
     }
     return true;
@@ -147,8 +146,7 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
   Widget _buildFullMatchPanel(BuildContext context, bool isApplying) {
     final validMatches = widget.matches
         .where(
-          (m) =>
-              m.file != null && m.confidence != MatchConfidence.unmatched,
+          (m) => m.file != null && m.confidence != MatchConfidence.unmatched,
         )
         .toList();
 
@@ -540,7 +538,8 @@ class _ConfidenceBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -725,8 +724,7 @@ class _MatchPreviewTile extends StatelessWidget {
           children: [
             Text(
               file.filename,
-              style:
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
@@ -779,8 +777,7 @@ class _FieldPreview extends StatelessWidget {
             width: 50,
             child: Text(
               field,
-              style:
-                  const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
             ),
           ),
           if (isNoChange)

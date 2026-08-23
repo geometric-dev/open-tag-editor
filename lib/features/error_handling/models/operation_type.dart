@@ -8,4 +8,8 @@ enum OperationType {
 
   /// File rename operation.
   rename,
+
+  /// Online metadata lookup failure (informational, not auto-retryable:
+  /// replaying a web search is neither deterministic nor rate-limit-safe).
+  onlineLookup,
 }

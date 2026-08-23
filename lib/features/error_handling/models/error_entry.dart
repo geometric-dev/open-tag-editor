@@ -34,6 +34,13 @@ class ErrorEntry {
   /// Context needed to retry this operation.
   final OperationContext operationContext;
 
+  /// Whether this entry can be replayed automatically.
+  ///
+  /// Online-lookup failures are informational: re-issuing a web search is
+  /// neither deterministic nor rate-limit-safe, so they render without
+  /// retry affordances and are skipped by RetryService.
+  bool get isRetryable => operationType != OperationType.onlineLookup;
+
   /// Creates a copy with updated fields.
   ErrorEntry copyWith({
     String? id,

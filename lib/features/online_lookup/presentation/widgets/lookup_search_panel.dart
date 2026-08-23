@@ -175,8 +175,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
         ),
         const SizedBox(height: 16),
         // Status area
-        if (isSearching)
-          const Center(child: CircularProgressIndicator()),
+        if (isSearching) const Center(child: CircularProgressIndicator()),
         if (isFingerprinting && widget.fingerprintProgress != null)
           Column(
             children: [
@@ -217,9 +216,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
             ),
           ),
         // Empty state hint
-        if (!isSearching &&
-            !isFingerprinting &&
-            widget.error == null)
+        if (!isSearching && !isFingerprinting && widget.error == null)
           Expanded(
             child: Center(
               child: Text(

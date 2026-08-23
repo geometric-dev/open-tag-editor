@@ -43,8 +43,11 @@ class RetryService {
     isRetryingController.state = true;
     try {
       var successCount = 0;
-      final entries =
-          List<ErrorEntry>.from(errorLogNotifier.currentState.entries);
+      // Online-lookup entries are informational only (see isRetryable);
+      // they are skipped, not failed, so their log entries persist.
+      final entries = errorLogNotifier.currentState.entries
+          .where((e) => e.isRetryable)
+          .toList();
 
       for (final entry in entries) {
         try {
@@ -76,6 +79,9 @@ class RetryService {
         (e) => e.id == entryId,
       );
 
+      // Defensive: lookup entries have no retry button in the UI.
+      if (!entry.isRetryable) return false;
+
       try {
         await _retryEntry(entry);
         errorLogNotifier.removeEntry(entry.id);
@@ -103,6 +109,12 @@ class RetryService {
         await tagWriter.writeTags(context.filePath, context.tags);
       case RenameOperationContext():
         await File(context.filePath).rename(context.targetPath);
+      case LookupOperationContext():
+        // Unreachable: retryAll/retrySingle filter non-retryable entries
+        // via ErrorEntry.isRetryable before dispatching.
+        throw UnsupportedError(
+          'Online lookup failures cannot be auto-retried',
+        );
     }
   }
 }

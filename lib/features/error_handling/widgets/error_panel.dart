@@ -83,10 +83,11 @@ class ErrorPanel extends ConsumerWidget {
           ),
           const Spacer(),
           TextButton(
-            onPressed: isRetrying || entries.isEmpty
+            onPressed: isRetrying || !entries.any((e) => e.isRetryable)
                 ? null
                 : () => ref.read(retryServiceProvider).retryAll(),
-            child: const Text('Retry All Failed', style: TextStyle(fontSize: 11)),
+            child:
+                const Text('Retry All Failed', style: TextStyle(fontSize: 11)),
           ),
           TextButton(
             onPressed: entries.isEmpty
@@ -164,20 +165,24 @@ class _ErrorRow extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 4),
-          // Retry button
-          IconButton(
-            icon: const Icon(Icons.refresh, size: 16),
-            iconSize: 16,
-            constraints: const BoxConstraints(
-              minWidth: 28,
-              minHeight: 28,
-            ),
-            padding: EdgeInsets.zero,
-            onPressed: isRetrying
-                ? null
-                : () => ref.read(retryServiceProvider).retrySingle(entry.id),
-            tooltip: 'Retry',
-          ),
+          // Retry button (hidden for informational entries like online
+          // lookup failures, which cannot be safely replayed).
+          if (entry.isRetryable)
+            IconButton(
+              icon: const Icon(Icons.refresh, size: 16),
+              iconSize: 16,
+              constraints: const BoxConstraints(
+                minWidth: 28,
+                minHeight: 28,
+              ),
+              padding: EdgeInsets.zero,
+              onPressed: isRetrying
+                  ? null
+                  : () => ref.read(retryServiceProvider).retrySingle(entry.id),
+              tooltip: 'Retry',
+            )
+          else
+            const SizedBox(width: 28),
         ],
       ),
     );
