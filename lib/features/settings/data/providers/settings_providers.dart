@@ -17,7 +17,8 @@ final generalSettingsProvider =
 
 /// Provider for tag-writing settings.
 final tagWritingSettingsProvider =
-    StateNotifierProvider<TagWritingSettingsNotifier, TagWritingSettings>((ref) {
+    StateNotifierProvider<TagWritingSettingsNotifier, TagWritingSettings>(
+        (ref) {
   return TagWritingSettingsNotifier();
 });
 

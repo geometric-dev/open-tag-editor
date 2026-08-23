@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,26 +35,26 @@ class FileListPanel extends ConsumerWidget {
         child: ClipRect(
           child: Column(
             children: [
-            // Breadcrumb bar with folder path navigation
-            BreadcrumbBar(
-              onFolderSelected: (path) async {
-                // Guard against unsaved changes before loading a new folder.
-                final proceed = await UnsavedChangesGuard.check(
-                  context: context,
-                  ref: ref,
-                  clearUndoOnDiscard: true,
-                );
-                if (!proceed) return;
-                if (!context.mounted) return;
-                final service = FolderLoadingService(ref.read);
-                await service.loadFolder(context, path);
-              },
-            ),
-            // Filter bar with text filter and show-selected toggle
-            _FilterBar(),
-            // Data grid (column headers + virtualized rows)
-            const Expanded(child: DataGrid()),
-          ],
+              // Breadcrumb bar with folder path navigation
+              BreadcrumbBar(
+                onFolderSelected: (path) async {
+                  // Guard against unsaved changes before loading a new folder.
+                  final proceed = await UnsavedChangesGuard.check(
+                    context: context,
+                    ref: ref,
+                    clearUndoOnDiscard: true,
+                  );
+                  if (!proceed) return;
+                  if (!context.mounted) return;
+                  final service = FolderLoadingService(ref.read);
+                  await service.loadFolder(context, path);
+                },
+              ),
+              // Filter bar with text filter and show-selected toggle
+              _FilterBar(),
+              // Data grid (column headers + virtualized rows)
+              const Expanded(child: DataGrid()),
+            ],
           ),
         ),
       ),
@@ -67,6 +69,7 @@ class _FilterBar extends ConsumerStatefulWidget {
 
 class _FilterBarState extends ConsumerState<_FilterBar> {
   final _filterController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -76,8 +79,22 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _filterController.dispose();
     super.dispose();
+  }
+
+  /// Debounces filter updates so typing does not rescan the whole file
+  /// list (all tags of every file) on every keystroke.
+  void _onFilterChanged(String value) {
+    _debounce?.cancel();
+    if (value.isEmpty) {
+      ref.read(fileFilterProvider.notifier).state = '';
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 200), () {
+      ref.read(fileFilterProvider.notifier).state = value;
+    });
   }
 
   @override
@@ -110,9 +127,7 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 12),
-                onChanged: (value) {
-                  ref.read(fileFilterProvider.notifier).state = value;
-                },
+                onChanged: _onFilterChanged,
               ),
             ),
           ),
@@ -136,9 +151,7 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
             message: 'Show selected files only',
             child: IconButton(
               icon: Icon(
-                showSelectedOnly
-                    ? Icons.filter_alt
-                    : Icons.filter_alt_outlined,
+                showSelectedOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
                 size: 18,
                 color: showSelectedOnly
                     ? Theme.of(context).colorScheme.primary

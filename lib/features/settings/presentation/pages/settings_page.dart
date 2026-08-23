@@ -104,8 +104,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                           return _SidebarItem(
                             label: category.label,
                             isSelected: isSelected,
-                            onTap: () =>
-                                setState(() => _selected = category),
+                            onTap: () => setState(() => _selected = category),
                           );
                         }).toList(),
                       ),
@@ -169,9 +168,8 @@ class _SidebarItem extends StatelessWidget {
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurface,
+                  color:
+                      isSelected ? colorScheme.primary : colorScheme.onSurface,
                 ),
           ),
         ),
@@ -194,21 +192,20 @@ class _GeneralPane extends StatelessWidget {
 
     return _SettingsPane(
       title: 'General',
-      onReset: () => ref.read(generalSettingsProvider.notifier).resetToDefaults(),
+      onReset: () =>
+          ref.read(generalSettingsProvider.notifier).resetToDefaults(),
       children: [
         _CheckboxRow(
           label: 'Reopen last folder on startup',
           subtitle:
               'Automatically reload the most recent folder when the app launches',
           value: settings.reopenLastFolder,
-          onChanged: (v) => ref
-              .read(generalSettingsProvider.notifier)
-              .setReopenLastFolder(v),
+          onChanged: (v) =>
+              ref.read(generalSettingsProvider.notifier).setReopenLastFolder(v),
         ),
         _TextFieldRow(
           label: 'Large folder warning threshold',
-          subtitle:
-              'Show warning when scanning more than this many files',
+          subtitle: 'Show warning when scanning more than this many files',
           value: settings.fileCountThreshold.toString(),
           onChanged: (v) => ref
               .read(generalSettingsProvider.notifier)
@@ -233,8 +230,7 @@ class _FileProtectionPane extends StatelessWidget {
           label: 'Create backup before writing',
           subtitle: 'Saves a .bak copy of files before modifying tags',
           value: ref.watch(backupEnabledProvider),
-          onChanged: (v) =>
-              ref.read(backupEnabledProvider.notifier).state = v,
+          onChanged: (v) => ref.read(backupEnabledProvider.notifier).state = v,
         ),
       ],
     );
@@ -259,9 +255,8 @@ class _TagWritingPane extends StatelessWidget {
           value: settings.id3v2Version,
           items: Id3v2Version.values,
           itemLabel: (v) => v.displayName,
-          onChanged: (v) => ref
-              .read(tagWritingSettingsProvider.notifier)
-              .setId3v2Version(v),
+          onChanged: (v) =>
+              ref.read(tagWritingSettingsProvider.notifier).setId3v2Version(v),
         ),
         _CheckboxRow(
           label: 'Write ID3v1 tags',
@@ -275,9 +270,8 @@ class _TagWritingPane extends StatelessWidget {
           value: settings.encoding,
           items: TagEncoding.values,
           itemLabel: (v) => v.displayName,
-          onChanged: (v) => ref
-              .read(tagWritingSettingsProvider.notifier)
-              .setEncoding(v),
+          onChanged: (v) =>
+              ref.read(tagWritingSettingsProvider.notifier).setEncoding(v),
         ),
       ],
     );
@@ -300,9 +294,8 @@ class _RenamingPane extends StatelessWidget {
         _TextFieldRow(
           label: 'Default rename pattern',
           value: settings.defaultPattern,
-          onChanged: (v) => ref
-              .read(renamingSettingsProvider.notifier)
-              .setDefaultPattern(v),
+          onChanged: (v) =>
+              ref.read(renamingSettingsProvider.notifier).setDefaultPattern(v),
         ),
         _CheckboxRow(
           label: 'Preview before renaming',
@@ -348,9 +341,8 @@ class _OnlineLookupPane extends StatelessWidget {
           subtitle:
               'Automatically download cover art when a release is selected',
           value: settings.autoFetchCoverArt,
-          onChanged: (v) => ref
-              .read(lookupSettingsProvider.notifier)
-              .setAutoFetchCoverArt(v),
+          onChanged: (v) =>
+              ref.read(lookupSettingsProvider.notifier).setAutoFetchCoverArt(v),
         ),
       ],
     );

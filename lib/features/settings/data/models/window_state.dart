@@ -12,6 +12,7 @@ class WindowState extends Equatable {
     required this.windowY,
     required this.isTagPanelOpen,
     required this.tagPanelWidth,
+    this.errorPanelHeight = defaultErrorPanelHeight,
     this.lastFolderPath,
   });
 
@@ -46,8 +47,17 @@ class WindowState extends Equatable {
   /// Tag panel width in logical pixels.
   final double tagPanelWidth;
 
+  /// Error panel height in logical pixels.
+  final double errorPanelHeight;
+
   /// The last successfully loaded folder path, or null if none.
   final String? lastFolderPath;
+
+  /// Default error panel height.
+  static const double defaultErrorPanelHeight = 200.0;
+
+  /// Minimum allowed error panel height.
+  static const double minErrorPanelHeight = 100.0;
 
   /// Minimum allowed tag panel width.
   static const double minTagPanelWidth = 280.0;
@@ -63,6 +73,7 @@ class WindowState extends Equatable {
     int? windowY,
     bool? isTagPanelOpen,
     double? tagPanelWidth,
+    double? errorPanelHeight,
     String? Function()? lastFolderPath,
   }) {
     return WindowState(
@@ -72,6 +83,7 @@ class WindowState extends Equatable {
       windowY: windowY ?? this.windowY,
       isTagPanelOpen: isTagPanelOpen ?? this.isTagPanelOpen,
       tagPanelWidth: tagPanelWidth ?? this.tagPanelWidth,
+      errorPanelHeight: errorPanelHeight ?? this.errorPanelHeight,
       lastFolderPath:
           lastFolderPath != null ? lastFolderPath() : this.lastFolderPath,
     );
@@ -85,6 +97,7 @@ class WindowState extends Equatable {
         windowY,
         isTagPanelOpen,
         tagPanelWidth,
+        errorPanelHeight,
         lastFolderPath,
       ];
 }

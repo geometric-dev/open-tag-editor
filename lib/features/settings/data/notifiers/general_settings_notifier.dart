@@ -7,8 +7,7 @@ import '../models/general_settings.dart';
 class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
   GeneralSettingsNotifier() : super(const GeneralSettings());
 
-  static const _keyReopenLastFolder =
-      'settings_v1_general_reopen_last_folder';
+  static const _keyReopenLastFolder = 'settings_v1_general_reopen_last_folder';
   static const _keyFileCountThreshold =
       'settings_v1_general_file_count_threshold';
 
@@ -17,10 +16,8 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
     try {
       final prefs = await SharedPreferences.getInstance();
       state = GeneralSettings(
-        reopenLastFolder:
-            prefs.getBool(_keyReopenLastFolder) ?? false,
-        fileCountThreshold:
-            prefs.getInt(_keyFileCountThreshold) ?? 500,
+        reopenLastFolder: prefs.getBool(_keyReopenLastFolder) ?? false,
+        fileCountThreshold: prefs.getInt(_keyFileCountThreshold) ?? 500,
       );
     } catch (_) {
       // Keep defaults on error

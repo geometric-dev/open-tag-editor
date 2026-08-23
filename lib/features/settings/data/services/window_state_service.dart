@@ -16,6 +16,7 @@ class WindowStateService {
   static const _keyY = 'window_state_y';
   static const _keyTagPanelOpen = 'window_state_tag_panel_open';
   static const _keyTagPanelWidth = 'window_state_tag_panel_width';
+  static const _keyErrorPanelHeight = 'window_state_error_panel_height';
   static const _keyLastFolder = 'window_state_last_folder';
 
   /// Loads persisted window state. Returns null if no state is saved
@@ -41,6 +42,8 @@ class WindowStateService {
 
       final isTagPanelOpen = prefs.getBool(_keyTagPanelOpen) ?? false;
       final tagPanelWidth = prefs.getDouble(_keyTagPanelWidth) ?? 380.0;
+      final errorPanelHeight = prefs.getDouble(_keyErrorPanelHeight) ??
+          WindowState.defaultErrorPanelHeight;
       final lastFolderPath = prefs.getString(_keyLastFolder);
 
       // Clamp tag panel width to minimum (upper bound applied at runtime)
@@ -55,6 +58,7 @@ class WindowStateService {
         windowY: y,
         isTagPanelOpen: isTagPanelOpen,
         tagPanelWidth: clampedWidth,
+        errorPanelHeight: errorPanelHeight,
         lastFolderPath: lastFolderPath,
       );
     } catch (_) {
@@ -73,6 +77,7 @@ class WindowStateService {
       await prefs.setInt(_keyY, state.windowY);
       await prefs.setBool(_keyTagPanelOpen, state.isTagPanelOpen);
       await prefs.setDouble(_keyTagPanelWidth, state.tagPanelWidth);
+      await prefs.setDouble(_keyErrorPanelHeight, state.errorPanelHeight);
       if (state.lastFolderPath != null) {
         await prefs.setString(_keyLastFolder, state.lastFolderPath!);
       } else {
@@ -93,6 +98,7 @@ class WindowStateService {
       await prefs.remove(_keyY);
       await prefs.remove(_keyTagPanelOpen);
       await prefs.remove(_keyTagPanelWidth);
+      await prefs.remove(_keyErrorPanelHeight);
       await prefs.remove(_keyLastFolder);
     } catch (_) {
       // Best-effort

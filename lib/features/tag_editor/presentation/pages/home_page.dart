@@ -29,7 +29,6 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _isDragging = false;
-  double _errorPanelHeight = 200.0;
 
   Future<void> _handleDrop(List<String> paths) async {
     if (!mounted) return;
@@ -67,6 +66,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       windowStateProvider.select((s) => s.tagPanelWidth),
     );
     final isErrorPanelOpen = ref.watch(errorPanelVisibleProvider);
+    final errorPanelHeight = ref.watch(
+      windowStateProvider.select((s) => s.errorPanelHeight),
+    );
     final isFolderPanelVisible = ref.watch(folderPanelStateProvider);
 
     return Scaffold(
@@ -88,6 +90,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     isTagPanelOpen: isTagPanelOpen,
                     tagPanelWidth: tagPanelWidth,
                     isErrorPanelOpen: isErrorPanelOpen,
+                    errorPanelHeight: errorPanelHeight,
                     isFolderPanelVisible: isFolderPanelVisible,
                   ),
                 ),
@@ -146,6 +149,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     required bool isTagPanelOpen,
     required double tagPanelWidth,
     required bool isErrorPanelOpen,
+    required double errorPanelHeight,
     required bool isFolderPanelVisible,
   }) {
     final fileListContent = isTagPanelOpen
@@ -160,14 +164,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                     horizontal: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerLow,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     border: Border(
                       bottom: BorderSide(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outlineVariant,
+                        color: Theme.of(context).colorScheme.outlineVariant,
                       ),
                     ),
                   ),
@@ -175,9 +175,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     children: [
                       Text(
                         'Tag Editor',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const Spacer(),
                       IconButton(
@@ -198,9 +196,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             minRightWidth: 280.0,
             maxRightWidthFraction: 0.5,
             onWidthChanged: (width) {
-              ref
-                  .read(windowStateProvider.notifier)
-                  .setTagPanelWidth(width);
+              ref.read(windowStateProvider.notifier).setTagPanelWidth(width);
             },
             onDragEnd: () {
               // Persistence is already handled in
@@ -228,8 +224,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     return VerticalResizableSplitter(
       topChild: content,
       bottomChild: const ErrorPanel(),
-      bottomHeight: _errorPanelHeight,
-      onHeightChanged: (h) => setState(() => _errorPanelHeight = h),
+      bottomHeight: errorPanelHeight,
+      onHeightChanged: (h) =>
+          ref.read(windowStateProvider.notifier).setErrorPanelHeight(h),
     );
   }
 }

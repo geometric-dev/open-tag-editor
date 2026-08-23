@@ -7,8 +7,7 @@ import '../models/renaming_settings.dart';
 class RenamingSettingsNotifier extends StateNotifier<RenamingSettings> {
   RenamingSettingsNotifier() : super(const RenamingSettings());
 
-  static const _keyDefaultPattern =
-      'settings_v1_renaming_default_pattern';
+  static const _keyDefaultPattern = 'settings_v1_renaming_default_pattern';
   static const _keyPreviewBeforeRenaming =
       'settings_v1_renaming_preview_before_renaming';
 
@@ -19,8 +18,7 @@ class RenamingSettingsNotifier extends StateNotifier<RenamingSettings> {
       state = RenamingSettings(
         defaultPattern:
             prefs.getString(_keyDefaultPattern) ?? '%artist% - %title%',
-        previewBeforeRenaming:
-            prefs.getBool(_keyPreviewBeforeRenaming) ?? true,
+        previewBeforeRenaming: prefs.getBool(_keyPreviewBeforeRenaming) ?? true,
       );
     } catch (_) {
       // Keep defaults on error
@@ -50,7 +48,9 @@ class RenamingSettingsNotifier extends StateNotifier<RenamingSettings> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyDefaultPattern, state.defaultPattern);
       await prefs.setBool(
-          _keyPreviewBeforeRenaming, state.previewBeforeRenaming,);
+        _keyPreviewBeforeRenaming,
+        state.previewBeforeRenaming,
+      );
     } catch (_) {
       // Best-effort persistence
     }

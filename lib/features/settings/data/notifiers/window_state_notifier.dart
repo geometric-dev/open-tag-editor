@@ -36,6 +36,17 @@ class WindowStateNotifier extends StateNotifier<WindowState> {
     WindowStateService.save(state);
   }
 
+  /// Sets the error panel height. Called while the user drags the splitter.
+  void setErrorPanelHeight(double height) {
+    final clamped = height.clamp(
+      WindowState.minErrorPanelHeight,
+      state.windowHeight * 0.6,
+    );
+    if (state.errorPanelHeight == clamped) return;
+    state = state.copyWith(errorPanelHeight: clamped);
+    WindowStateService.save(state);
+  }
+
   /// Sets the last loaded folder path.
   void setLastFolderPath(String? path) {
     state = state.copyWith(lastFolderPath: () => path);
