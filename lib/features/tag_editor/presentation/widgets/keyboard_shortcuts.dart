@@ -57,7 +57,7 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
               clearUndoOnDiscard: true,
             );
             if (!proceed || !context.mounted) return;
-            final service = FolderLoadingService(ref);
+            final service = FolderLoadingService(ref.read);
             await service.loadFolder(context, path);
           });
         },

@@ -99,7 +99,7 @@ class SiblingNavigationService {
 
     // 8. Load folder via FolderLoadingService
     if (!context.mounted) return;
-    final loadingService = FolderLoadingService(_ref);
+    final loadingService = FolderLoadingService(_ref.read);
     await loadingService.loadFolder(context, targetPath);
   }
 }

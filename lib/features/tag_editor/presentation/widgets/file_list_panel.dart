@@ -44,7 +44,7 @@ class FileListPanel extends ConsumerWidget {
                 );
                 if (!proceed) return;
                 if (!context.mounted) return;
-                final service = FolderLoadingService(ref);
+                final service = FolderLoadingService(ref.read);
                 await service.loadFolder(context, path);
               },
             ),

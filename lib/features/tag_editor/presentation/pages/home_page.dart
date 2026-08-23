@@ -43,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (!proceed) return;
 
     if (!mounted) return;
-    final service = FolderLoadingService(ref);
+    final service = FolderLoadingService(ref.read);
     await service.loadFromDrop(context, paths);
   }
 
@@ -56,7 +56,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
     if (!proceed) return;
     if (!mounted) return;
-    final service = FolderLoadingService(ref);
+    final service = FolderLoadingService(ref.read);
     await service.loadFolder(context, path);
   }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import '../../../../core/utils/file_utils.dart';
 import '../../../../core/utils/format_utils.dart';
@@ -17,27 +17,32 @@ import 'service_providers.dart';
 
 /// Orchestrates folder loading with recursive toggle and threshold guard.
 ///
+/// Reads a provider value without depending on the widget layer.
+///
+/// Both `Ref.read` and `WidgetRef.read` satisfy this signature, so call
+/// sites pass `ref.read` as a tear-off.
+typedef ProviderReader = T Function<T>(ProviderListenable<T> provider);
+
 /// This is not a provider itself but a utility class that coordinates
 /// multiple providers during the folder loading process.
 class FolderLoadingService {
-  FolderLoadingService(this._ref);
+  FolderLoadingService(this._read);
 
-  final WidgetRef _ref;
+  final ProviderReader _read;
 
   /// Loads audio files from [folderPath] respecting recursive toggle
   /// and threshold guard settings.
   ///
   /// Requires a [BuildContext] for showing the threshold guard dialog.
   Future<void> loadFolder(BuildContext context, String folderPath) async {
-    final statusNotifier = _ref.read(statusMessageProvider.notifier);
-    final isRecursive = _ref.read(recursiveLoadingProvider);
+    final statusNotifier = _read(statusMessageProvider.notifier);
+    final isRecursive = _read(recursiveLoadingProvider);
 
     statusNotifier.state = 'Scanning folder...';
 
     // Check file count for threshold guard
     if (isRecursive) {
-      final threshold =
-          _ref.read(generalSettingsProvider).fileCountThreshold;
+      final threshold = _read(generalSettingsProvider).fileCountThreshold;
       final count = await FileUtils.countAudioFiles(
         folderPath,
         recursive: true,
@@ -76,13 +81,13 @@ class FolderLoadingService {
     BuildContext context,
     List<String> paths,
   ) async {
-    final statusNotifier = _ref.read(statusMessageProvider.notifier);
+    final statusNotifier = _read(statusMessageProvider.notifier);
     statusNotifier.state = 'Loading files...';
 
     // Clear previous state before loading new files
-    _ref.read(fileListProvider.notifier).clear();
-    _ref.read(selectionProvider.notifier).clear();
-    _ref.read(errorLogProvider.notifier).clear();
+    _read(fileListProvider.notifier).clear();
+    _read(selectionProvider.notifier).clear();
+    _read(errorLogProvider.notifier).clear();
 
     final audioPaths = <String>[];
 
@@ -91,7 +96,7 @@ class FolderLoadingService {
         audioPaths.add(path);
       } else {
         // Try as directory
-        final isRecursive = _ref.read(recursiveLoadingProvider);
+        final isRecursive = _read(recursiveLoadingProvider);
         final dirFiles = await FileUtils.listAudioFiles(
           path,
           recursive: isRecursive,
@@ -100,8 +105,8 @@ class FolderLoadingService {
 
         // If it's a single folder drop, treat it like loadFolder
         if (paths.length == 1 && audioPaths.isNotEmpty) {
-          _ref.read(loadedFolderPathProvider.notifier).state = path;
-          _ref.read(recentFoldersProvider.notifier).addFolder(path);
+          _read(loadedFolderPathProvider.notifier).state = path;
+          _read(recentFoldersProvider.notifier).addFolder(path);
         }
       }
     }
@@ -113,15 +118,14 @@ class FolderLoadingService {
 
     // Compute common parent for address bar if multiple files
     if (paths.length > 1 || FileUtils.isAudioFile(paths.first)) {
-      final commonParent =
-          FormatUtils.computeCommonParentDirectory(audioPaths);
+      final commonParent = FormatUtils.computeCommonParentDirectory(audioPaths);
       if (commonParent.isNotEmpty) {
-        _ref.read(loadedFolderPathProvider.notifier).state = commonParent;
+        _read(loadedFolderPathProvider.notifier).state = commonParent;
       }
     }
 
     // Read tags
-    final reader = _ref.read(tagReaderProvider);
+    final reader = _read(tagReaderProvider);
     statusNotifier.state = 'Reading tags for ${audioPaths.length} file(s)...';
     final files = await reader.readTagsBatch(audioPaths);
 
@@ -134,21 +138,21 @@ class FolderLoadingService {
       };
       final entries =
           ErrorEntryFactory.fromReadFailures(failedPaths, errorMessages);
-      _ref.read(errorLogProvider.notifier).addEntries(entries);
+      _read(errorLogProvider.notifier).addEntries(entries);
     }
 
-    _ref.read(fileListProvider.notifier).addFiles(files);
+    _read(fileListProvider.notifier).addFiles(files);
     statusNotifier.state = 'Loaded ${files.length} file(s)';
   }
 
   Future<void> _loadFiles(String folderPath, {required bool recursive}) async {
-    final statusNotifier = _ref.read(statusMessageProvider.notifier);
-    final reader = _ref.read(tagReaderProvider);
+    final statusNotifier = _read(statusMessageProvider.notifier);
+    final reader = _read(tagReaderProvider);
 
     // Clear previous state before loading new folder
-    _ref.read(fileListProvider.notifier).clear();
-    _ref.read(selectionProvider.notifier).clear();
-    _ref.read(errorLogProvider.notifier).clear();
+    _read(fileListProvider.notifier).clear();
+    _read(selectionProvider.notifier).clear();
+    _read(errorLogProvider.notifier).clear();
 
     final audioFiles = await FileUtils.listAudioFiles(
       folderPath,
@@ -173,13 +177,13 @@ class FolderLoadingService {
       };
       final entries =
           ErrorEntryFactory.fromReadFailures(failedPaths, errorMessages);
-      _ref.read(errorLogProvider.notifier).addEntries(entries);
+      _read(errorLogProvider.notifier).addEntries(entries);
     }
 
-    _ref.read(fileListProvider.notifier).addFiles(files);
-    _ref.read(loadedFolderPathProvider.notifier).state = folderPath;
-    _ref.read(recentFoldersProvider.notifier).addFolder(folderPath);
-    _ref.read(windowStateProvider.notifier).setLastFolderPath(folderPath);
+    _read(fileListProvider.notifier).addFiles(files);
+    _read(loadedFolderPathProvider.notifier).state = folderPath;
+    _read(recentFoldersProvider.notifier).addFolder(folderPath);
+    _read(windowStateProvider.notifier).setLastFolderPath(folderPath);
     statusNotifier.state = 'Loaded ${files.length} file(s)';
   }
 }

@@ -1,4 +1,3 @@
-import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/tag_reader_service.dart';
 import '../providers/file_list_provider.dart';
 

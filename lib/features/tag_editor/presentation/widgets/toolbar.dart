@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
-import '../../../../core/utils/file_utils.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
@@ -15,10 +14,8 @@ import '../../../settings/presentation/pages/settings_page.dart'
     show SettingsDialog;
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
-import '../../data/providers/recent_folders_provider.dart';
-import '../../data/providers/selection_provider.dart';
+import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/service_providers.dart';
-import 'address_bar.dart';
 
 /// Main toolbar with common actions.
 class EditorToolbar extends ConsumerWidget {
@@ -40,7 +37,11 @@ class EditorToolbar extends ConsumerWidget {
     );
     if (result == null) return;
 
-    await _loadFromPath(ref, result);
+    // Route through the shared loading service so the toolbar honours the
+    // recursive toggle, the threshold guard, and recent-folder persistence
+    // exactly like every other entry point.
+    final service = FolderLoadingService(ref.read);
+    await service.loadFolder(context, result);
   }
 
   Future<void> _openFiles(WidgetRef ref, BuildContext context) async {
@@ -58,57 +59,26 @@ class EditorToolbar extends ConsumerWidget {
       dialogTitle: 'Select Audio Files',
       type: FileType.custom,
       allowedExtensions: [
-        'mp3', 'flac', 'ogg', 'm4a', 'mp4', 'wma', 'wav', 'ape', 'opus',
+        'mp3',
+        'flac',
+        'ogg',
+        'm4a',
+        'mp4',
+        'wma',
+        'wav',
+        'ape',
+        'opus',
         'aac',
       ],
       allowMultiple: true,
     );
     if (result == null || result.files.isEmpty) return;
 
-    final paths = result.files
-        .where((f) => f.path != null)
-        .map((f) => f.path!)
-        .toList();
+    final paths =
+        result.files.where((f) => f.path != null).map((f) => f.path!).toList();
 
-    final reader = ref.read(tagReaderProvider);
-    final notifier = ref.read(fileListProvider.notifier);
-    final statusNotifier = ref.read(statusMessageProvider.notifier);
-
-    statusNotifier.state = 'Loading ${paths.length} file(s)...';
-    final files = await reader.readTagsBatch(paths);
-    notifier.clear();
-    ref.read(selectionProvider.notifier).clear();
-    ref.read(errorLogProvider.notifier).clear();
-    notifier.addFiles(files);
-    statusNotifier.state = 'Loaded ${files.length} file(s)';
-  }
-
-  Future<void> _loadFromPath(WidgetRef ref, String path) async {
-    final reader = ref.read(tagReaderProvider);
-    final notifier = ref.read(fileListProvider.notifier);
-    final statusNotifier = ref.read(statusMessageProvider.notifier);
-
-    statusNotifier.state = 'Scanning folder...';
-    final audioFiles = await FileUtils.listAudioFiles(path);
-
-    if (audioFiles.isEmpty) {
-      statusNotifier.state = 'No supported audio files found in folder';
-      return;
-    }
-
-    statusNotifier.state = 'Loading ${audioFiles.length} file(s)...';
-    final paths = audioFiles.map((f) => f.path).toList();
-    final files = await reader.readTagsBatch(paths);
-    notifier.clear();
-    ref.read(selectionProvider.notifier).clear();
-    ref.read(errorLogProvider.notifier).clear();
-    notifier.addFiles(files);
-
-    // Update address bar and recent folders
-    ref.read(loadedFolderPathProvider.notifier).state = path;
-    ref.read(recentFoldersProvider.notifier).addFolder(path);
-
-    statusNotifier.state = 'Loaded ${files.length} file(s)';
+    final service = FolderLoadingService(ref.read);
+    await service.loadFromDrop(context, paths);
   }
 
   Future<void> _saveChanges(WidgetRef ref, BuildContext context) async {
@@ -153,8 +123,7 @@ class EditorToolbar extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('${summary.successCount} file(s) saved successfully'),
+            content: Text('${summary.successCount} file(s) saved successfully'),
             duration: const Duration(seconds: 3),
           ),
         );

@@ -161,7 +161,7 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
     // Trigger folder loading after the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final service = FolderLoadingService(ref);
+      final service = FolderLoadingService(ref.read);
       service.loadFolder(context, lastFolder);
     });
   }
