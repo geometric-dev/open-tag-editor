@@ -28,6 +28,17 @@ An open-source, cross-platform music tag editor and file renamer built with Flut
 | WAV    | ✓    | ✓     | RIFF INFO, ID3v2 |
 | APE    | ✓    | ✓     | APEv2 |
 
+## Windows Prerequisites
+
+End-user machines need the [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe) installed (the TagLib native library links against it). A future installer will bundle these DLLs.
+
+After building, verify the bundle layout:
+
+```powershell
+flutter build windows --release
+powershell -ExecutionPolicy Bypass -File scripts/verify-release.ps1
+```
+
 ## Screenshots
 
 *Coming soon*
