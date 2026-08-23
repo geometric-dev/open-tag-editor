@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 /// Application theme configuration tuned for a desktop-native feel.
 ///
-/// Uses Segoe UI (Windows system font), compact density, small border radii,
+/// Uses each platform's default system font, compact density, small border radii,
 /// and restrained Material styling to avoid the "generic mobile app" look.
 class AppTheme {
   AppTheme._();
 
+  // No explicit fontFamily: Flutter maps to the platform default
+  // (Segoe UI on Windows, San Francisco on macOS, Roboto/Cantarell on
+  // Linux), keeping the desktop-native feel without a Windows-only font.
   static const _seedColor = Color(0xFF1565C0);
 
   /// Visual density for a compact desktop layout.
@@ -34,7 +37,6 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      fontFamily: 'Segoe UI',
       visualDensity: _density,
       // --- AppBar: flat, no elevation, system-like ---
       appBarTheme: AppBarTheme(
@@ -44,7 +46,6 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: TextStyle(
-          fontFamily: 'Segoe UI',
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: colorScheme.onSurface,
@@ -78,9 +79,8 @@ class AppTheme {
           vertical: 8,
         ),
         filled: true,
-        fillColor: isLight
-            ? colorScheme.surface
-            : colorScheme.surfaceContainerLowest,
+        fillColor:
+            isLight ? colorScheme.surface : colorScheme.surfaceContainerLowest,
       ),
       // --- Data table: compact rows ---
       dataTableTheme: DataTableThemeData(
@@ -108,7 +108,6 @@ class AppTheme {
             borderRadius: BorderRadius.circular(4),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Segoe UI',
             fontSize: 13,
           ),
         ),
@@ -121,7 +120,6 @@ class AppTheme {
             borderRadius: BorderRadius.circular(4),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Segoe UI',
             fontSize: 13,
           ),
         ),
@@ -134,7 +132,6 @@ class AppTheme {
             borderRadius: BorderRadius.circular(4),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Segoe UI',
             fontSize: 13,
           ),
         ),
@@ -152,7 +149,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
         ),
         titleTextStyle: TextStyle(
-          fontFamily: 'Segoe UI',
           fontSize: 15,
           fontWeight: FontWeight.w600,
           color: colorScheme.onSurface,
@@ -174,7 +170,6 @@ class AppTheme {
       // --- Tooltips: simple, no excessive padding ---
       tooltipTheme: TooltipThemeData(
         textStyle: TextStyle(
-          fontFamily: 'Segoe UI',
           fontSize: 12,
           color: isLight ? Colors.white : colorScheme.onSurface,
         ),
