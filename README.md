@@ -1,6 +1,6 @@
 # Open Tag Editor
 
-An open-source, cross-platform music tag editor and file renamer built with Flutter.
+An open-source music tag editor and file renamer built with Flutter (Windows today; macOS/Linux experimental).
 
 ## Features
 

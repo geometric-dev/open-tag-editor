@@ -6,10 +6,11 @@ on:
   pull_request:
 
 jobs:
-  analyze-and-test:
-    # Primary dev target first. Extend to a macos-latest/linux-latest
-    # matrix once platform-specific tests are validated there.
-    runs-on: windows-latest
+  analyze:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,6 +23,20 @@ jobs:
 
       - name: Analyze (no errors allowed)
         run: flutter analyze --no-fatal-infos
+
+  test:
+    # Primary dev target first. Extend to a macos-latest/linux-latest
+    # matrix once platform-specific tests are validated there.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Test
         run: flutter test
