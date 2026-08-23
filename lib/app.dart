@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'features/folder_panel/data/bookmarks_notifier.dart';
 import 'features/folder_panel/data/folder_panel_state_notifier.dart';
 import 'features/online_lookup/data/providers/lookup_settings_provider.dart';
+import 'features/settings/data/models/general_settings.dart';
 import 'features/settings/data/providers/settings_providers.dart';
 import 'features/tag_editor/data/providers/column_config_provider.dart';
 import 'features/tag_editor/data/providers/editor_state_provider.dart';
@@ -168,12 +169,20 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(
+      generalSettingsProvider.select((s) => s.themeMode),
+    );
+
     return MaterialApp(
       title: 'Open Tag Editor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: switch (themeMode) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      },
       home: const EditorKeyboardShortcuts(
         child: HomePage(),
       ),

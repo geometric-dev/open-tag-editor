@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../features/tag_editor/data/providers/service_providers.dart';
 import '../../../online_lookup/data/providers/lookup_settings_provider.dart';
+import '../../data/models/general_settings.dart';
 import '../../data/models/id3v2_version.dart';
 import '../../data/models/tag_encoding.dart';
 import '../../data/providers/settings_providers.dart';
@@ -211,6 +211,11 @@ class _GeneralPane extends StatelessWidget {
               .read(generalSettingsProvider.notifier)
               .setFileCountThreshold(int.tryParse(v) ?? 500),
         ),
+        _ThemeModeRow(
+          value: settings.themeMode,
+          onChanged: (mode) =>
+              ref.read(generalSettingsProvider.notifier).setThemeMode(mode),
+        ),
       ],
     );
   }
@@ -222,15 +227,19 @@ class _FileProtectionPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(generalSettingsProvider);
+
     return _SettingsPane(
       title: 'File Protection',
-      onReset: () => ref.read(backupEnabledProvider.notifier).state = true,
+      onReset: () =>
+          ref.read(generalSettingsProvider.notifier).setBackupEnabled(true),
       children: [
         _CheckboxRow(
           label: 'Create backup before writing',
           subtitle: 'Saves a .bak copy of files before modifying tags',
-          value: ref.watch(backupEnabledProvider),
-          onChanged: (v) => ref.read(backupEnabledProvider.notifier).state = v,
+          value: settings.backupEnabled,
+          onChanged: (v) =>
+              ref.read(generalSettingsProvider.notifier).setBackupEnabled(v),
         ),
       ],
     );
@@ -418,6 +427,72 @@ class _SettingsPane extends StatelessWidget {
     if (confirmed == true) {
       onReset!();
     }
+  }
+}
+
+/// A segmented control for choosing the application theme mode.
+class _ThemeModeRow extends StatelessWidget {
+  const _ThemeModeRow({required this.value, required this.onChanged});
+
+  final AppThemeMode value;
+  final ValueChanged<AppThemeMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 160,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Theme',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                Text(
+                  'Applies immediately',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: SegmentedButton<AppThemeMode>(
+              segments: const [
+                ButtonSegment(
+                  value: AppThemeMode.system,
+                  icon: Icon(Icons.settings_suggest_outlined, size: 16),
+                  label: Text('System', style: TextStyle(fontSize: 12)),
+                ),
+                ButtonSegment(
+                  value: AppThemeMode.light,
+                  icon: Icon(Icons.light_mode_outlined, size: 16),
+                  label: Text('Light', style: TextStyle(fontSize: 12)),
+                ),
+                ButtonSegment(
+                  value: AppThemeMode.dark,
+                  icon: Icon(Icons.dark_mode_outlined, size: 16),
+                  label: Text('Dark', style: TextStyle(fontSize: 12)),
+                ),
+              ],
+              selected: {value},
+              onSelectionChanged: (selection) => onChanged(selection.first),
+              showSelectedIcon: false,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

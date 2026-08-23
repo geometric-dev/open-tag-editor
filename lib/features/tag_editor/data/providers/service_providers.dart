@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../shared/services/rename_service.dart';
 import '../../../../shared/services/tag_reader_service.dart';
@@ -9,19 +8,13 @@ import '../../../../shared/services/taglib/isolate_tag_io.dart';
 import '../../../../shared/services/taglib/isolate_tag_reader_service.dart';
 import '../../../../shared/services/taglib/isolate_tag_writer_service.dart';
 import '../../../../shared/services/taglib/native_library_loader.dart';
+import '../../../../shared/services/taglib/taglib_bindings.g.dart';
 import '../../../../shared/services/taglib/taglib_writer_service.dart';
 import '../../../../shared/services/taglib/validation_engine.dart';
-import '../../../../shared/services/taglib/taglib_bindings.g.dart';
 import '../../../settings/data/models/tag_write_options.dart';
 import '../../../settings/data/providers/settings_providers.dart';
 import '../providers/file_list_provider.dart';
 import '../services/tag_save_service.dart';
-
-/// Provider for the backup enabled setting.
-///
-/// Defaults to true. Will be connected to shared_preferences in the
-/// settings page implementation.
-final backupEnabledProvider = StateProvider<bool>((ref) => true);
 
 /// Provider for the tag reader service.
 ///
@@ -52,14 +45,17 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
 
   return IsolateTagWriterService(
     getSnapshot: () => TagWriteSettingsSnapshot(
-      backupEnabled: ref.read(backupEnabledProvider),
+      backupEnabled: ref.read(generalSettingsProvider).backupEnabled,
       options: writeOptions(),
     ),
     createDirectWriter: () {
       final bindings = TagLibBindings(NativeLibraryLoader.load());
       return TagLibWriterService(
         bindings,
-        BackupManager(isBackupEnabled: () => ref.read(backupEnabledProvider)),
+        BackupManager(
+          isBackupEnabled: () =>
+              ref.read(generalSettingsProvider).backupEnabled,
+        ),
         ValidationEngine(ref.read(tagReaderProvider)),
         getWriteOptions: writeOptions,
       );
