@@ -65,7 +65,8 @@ void main() {
           expect(
             segments,
             isNotEmpty,
-            reason: 'splitSegments should return non-empty for valid path: $path',
+            reason:
+                'splitSegments should return non-empty for valid path: $path',
           );
 
           final reconstructed = parser.pathAtIndex(
@@ -80,8 +81,7 @@ void main() {
           expect(
             normalizedReconstructed,
             equals(normalizedOriginal),
-            reason:
-                'Reconstructed path should equal original.\n'
+            reason: 'Reconstructed path should equal original.\n'
                 '  Original: $path\n'
                 '  Normalized original: $normalizedOriginal\n'
                 '  Reconstructed: $reconstructed\n'
@@ -154,8 +154,7 @@ void main() {
           expect(
             atLast,
             equals(normalizedOriginal),
-            reason:
-                'pathAtIndex at last index should equal original path.\n'
+            reason: 'pathAtIndex at last index should equal original path.\n'
                 '  Path: $path\n'
                 '  At last index: $atLast\n'
                 '  Segments: $segments',
@@ -181,8 +180,7 @@ void main() {
               expect(
                 current.length > previousPath.length,
                 isTrue,
-                reason:
-                    'Each successive pathAtIndex should be longer.\n'
+                reason: 'Each successive pathAtIndex should be longer.\n'
                     '  Index $idx: $current (length ${current.length})\n'
                     '  Previous: $previousPath (length ${previousPath.length})\n'
                     '  Path: $path\n'

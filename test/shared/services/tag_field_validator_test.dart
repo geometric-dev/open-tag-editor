@@ -104,9 +104,8 @@ void main() {
         options: id3v1Options,
       );
       // Should have ID3v1 truncation warning (and possibly numeric warning)
-      final truncationIssues = issues
-          .where((i) => i.message.contains('truncated'))
-          .toList();
+      final truncationIssues =
+          issues.where((i) => i.message.contains('truncated')).toList();
       expect(truncationIssues, hasLength(1));
       expect(truncationIssues.first.message, contains('4'));
     });

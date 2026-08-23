@@ -149,8 +149,7 @@ void main() {
         expect(find.text('No matching folders'), findsOneWidget);
       });
 
-      testWidgets('does not show message when query is empty',
-          (tester) async {
+      testWidgets('does not show message when query is empty', (tester) async {
         await tester.pumpWidget(buildTestWidget(
           onFolderSelected: (_) {},
           onDismiss: () {},
@@ -186,8 +185,7 @@ void main() {
         expect(secondTile.tileColor, isNotNull);
       });
 
-      testWidgets('arrow up moves highlight to previous entry',
-          (tester) async {
+      testWidgets('arrow up moves highlight to previous entry', (tester) async {
         await tester.pumpWidget(buildTestWidget(
           onFolderSelected: (_) {},
           onDismiss: () {},

@@ -335,8 +335,7 @@ void main() {
         // Generate valid numeric values: plain integers or "N/M" format
         final n = random.nextInt(999) + 1;
         final useSlash = random.nextBool();
-        final value =
-            useSlash ? '$n/${random.nextInt(99) + 1}' : n.toString();
+        final value = useSlash ? '$n/${random.nextInt(99) + 1}' : n.toString();
 
         final issues = TagFieldValidator.validate(
           field: field,

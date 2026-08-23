@@ -155,8 +155,7 @@ void main() {
     });
 
     group('context menu', () {
-      testWidgets(
-          'right-click on bookmark shows Remove Bookmark context menu',
+      testWidgets('right-click on bookmark shows Remove Bookmark context menu',
           (tester) async {
         final musicDir =
             Directory('${tempDir.path}${Platform.pathSeparator}Music')
@@ -252,7 +251,8 @@ void main() {
     });
 
     group('drag-and-drop reorder', () {
-      testWidgets('bookmarks section uses ReorderableListView with drag handles',
+      testWidgets(
+          'bookmarks section uses ReorderableListView with drag handles',
           (tester) async {
         // Create two subdirectories so we have two valid bookmark paths.
         final dir1 = Directory('${tempDir.path}${Platform.pathSeparator}Alpha')

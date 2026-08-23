@@ -217,9 +217,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('Bug B: Toolbar file list clearing', () {
-    test(
-        'clear then addFiles replaces file list (validates fix)',
-        () {
+    test('clear then addFiles replaces file list (validates fix)', () {
       // This test validates the FIXED toolbar flow: clear() before addFiles().
       final notifier = FileListNotifier();
 
@@ -277,8 +275,7 @@ void main() {
       );
     });
 
-    test('clear then addFiles removes old file paths (validates fix)',
-        () {
+    test('clear then addFiles removes old file paths (validates fix)', () {
       final notifier = FileListNotifier();
 
       // Load initial files

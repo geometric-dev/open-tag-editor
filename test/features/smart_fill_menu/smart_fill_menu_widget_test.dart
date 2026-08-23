@@ -44,8 +44,8 @@ void main() {
     bool isModified = false,
     Set<String> selectedPaths = const {},
   }) {
-    final coord = coordinate ??
-        const CellCoordinate(columnId: 'genre', rowIndex: 0);
+    final coord =
+        coordinate ?? const CellCoordinate(columnId: 'genre', rowIndex: 0);
     return ProviderScope(
       overrides: [
         fileListProvider.overrideWith((ref) {
@@ -158,9 +158,9 @@ void main() {
         tester.element(find.byType(EditableCell)),
       );
       providerContainer.read(inlineCellEditProvider.notifier).enterEditMode(
-        const CellCoordinate(columnId: 'genre', rowIndex: 0),
-        prePopulate: true,
-      );
+            const CellCoordinate(columnId: 'genre', rowIndex: 0),
+            prePopulate: true,
+          );
       await tester.pump();
 
       // Hover over the cell.
@@ -366,9 +366,9 @@ void main() {
       // Enter edit mode on a different cell (artist column).
       // The _openSmartFillMenu method checks for active edits and cancels them.
       providerContainer.read(inlineCellEditProvider.notifier).enterEditMode(
-        const CellCoordinate(columnId: 'artist', rowIndex: 0),
-        prePopulate: true,
-      );
+            const CellCoordinate(columnId: 'artist', rowIndex: 0),
+            prePopulate: true,
+          );
       await tester.pump();
 
       // Verify we are in edit mode on the artist cell.

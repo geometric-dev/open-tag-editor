@@ -88,7 +88,8 @@ void main() {
               expect(
                 value.trim().isNotEmpty,
                 isTrue,
-                reason: 'Every element must be non-empty and non-whitespace-only, '
+                reason:
+                    'Every element must be non-empty and non-whitespace-only, '
                     'but got "$value" (iteration $i)',
               );
             }
@@ -150,7 +151,8 @@ void main() {
               expect(
                 firstAppearanceA < firstAppearanceB,
                 isTrue,
-                reason: 'Value "${result[j]}" (first at index $firstAppearanceA) '
+                reason:
+                    'Value "${result[j]}" (first at index $firstAppearanceA) '
                     'must appear before "${result[j + 1]}" (first at index '
                     '$firstAppearanceB) in the result (iteration $i)',
               );
@@ -189,7 +191,8 @@ void main() {
               expect(
                 resultSet.contains(expected),
                 isTrue,
-                reason: 'Value "$expected" is present in input files but missing '
+                reason:
+                    'Value "$expected" is present in input files but missing '
                     'from result (iteration $i)',
               );
             }

@@ -15,7 +15,9 @@ void main() {
   // Feature: smart-fill-menu, Property 2: buildFillMenuLabel scope determination
   // **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 7.3, 7.4, 7.5**
   group('Property 2: buildFillMenuLabel scope determination', () {
-    test('label contains "all" iff selectedCount == 0 or selectedCount == totalCount', () {
+    test(
+        'label contains "all" iff selectedCount == 0 or selectedCount == totalCount',
+        () {
       for (var i = 0; i < 100; i++) {
         final totalCount = 1 + random.nextInt(50);
         final selectedCount = random.nextInt(totalCount + 1);
@@ -33,13 +35,15 @@ void main() {
           expect(
             label.contains('all'),
             isTrue,
-            reason: 'Expected "all" in label when selectedCount=$selectedCount, '
+            reason:
+                'Expected "all" in label when selectedCount=$selectedCount, '
                 'totalCount=$totalCount, but got: $label',
           );
           expect(
             label.contains('selected'),
             isFalse,
-            reason: 'Expected no "selected" in label when selectedCount=$selectedCount, '
+            reason:
+                'Expected no "selected" in label when selectedCount=$selectedCount, '
                 'totalCount=$totalCount, but got: $label',
           );
         }
@@ -61,13 +65,15 @@ void main() {
         expect(
           label.contains('selected'),
           isTrue,
-          reason: 'Expected "selected" in label when selectedCount=$selectedCount, '
+          reason:
+              'Expected "selected" in label when selectedCount=$selectedCount, '
               'totalCount=$totalCount, but got: $label',
         );
         expect(
           label.contains('all'),
           isFalse,
-          reason: 'Expected no "all" in label when selectedCount=$selectedCount, '
+          reason:
+              'Expected no "all" in label when selectedCount=$selectedCount, '
               'totalCount=$totalCount, but got: $label',
         );
       }

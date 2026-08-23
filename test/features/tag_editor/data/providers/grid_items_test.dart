@@ -220,8 +220,7 @@ void main() {
         isSorted: false,
       );
 
-      final separators =
-          result.whereType<SeparatorGridItem>().toList();
+      final separators = result.whereType<SeparatorGridItem>().toList();
       expect(separators.length, equals(3));
       expect(separators[0].relativePath, equals('Music'));
       expect(separators[1].relativePath, equals('Alpha'));
@@ -324,8 +323,7 @@ void main() {
         isSorted: false,
       );
 
-      final separators =
-          result.whereType<SeparatorGridItem>().toList();
+      final separators = result.whereType<SeparatorGridItem>().toList();
       // Only one separator for 'Artist / Album', none for 'Artist' alone.
       expect(separators.length, equals(1));
       expect(separators[0].relativePath, equals('Artist / Album'));

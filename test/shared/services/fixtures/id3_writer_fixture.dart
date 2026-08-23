@@ -70,11 +70,13 @@ class Id3WriterService implements TagWriterService {
         await writeTags(entry.key, entry.value);
         results.add(TagWriteResult(path: entry.key, success: true));
       } catch (e) {
-        results.add(TagWriteResult(
-          path: entry.key,
-          success: false,
-          error: e.toString(),
-        ),);
+        results.add(
+          TagWriteResult(
+            path: entry.key,
+            success: false,
+            error: e.toString(),
+          ),
+        );
       }
     }
     return results;
@@ -151,9 +153,11 @@ class Id3WriterService implements TagWriterService {
       final existingFrames = _extractExistingFrames(bytes);
       // Remove existing APIC frames
       frames.addAll(
-        existingFrames.where((f) =>
-            f.length >= 4 &&
-            !(f[0] == 0x41 && f[1] == 0x50 && f[2] == 0x49 && f[3] == 0x43),),
+        existingFrames.where(
+          (f) =>
+              f.length >= 4 &&
+              !(f[0] == 0x41 && f[1] == 0x50 && f[2] == 0x49 && f[3] == 0x43),
+        ),
       );
     }
 
@@ -221,11 +225,13 @@ class Id3WriterService implements TagWriterService {
           (bytes[offset + 2] << 8) |
           bytes[offset + 3];
 
-      blocks.add(_FlacBlock(
-        type: blockType,
-        isLast: isLast,
-        data: bytes.sublist(offset + 4, offset + 4 + blockSize),
-      ),);
+      blocks.add(
+        _FlacBlock(
+          type: blockType,
+          isLast: isLast,
+          data: bytes.sublist(offset + 4, offset + 4 + blockSize),
+        ),
+      );
 
       if (blockType == 4) {
         vorbisBlockIndex = blocks.length - 1;
@@ -262,8 +268,7 @@ class Id3WriterService implements TagWriterService {
 
     for (var i = 0; i < blocks.length; i++) {
       final block = blocks[i];
-      final headerByte =
-          (block.isLast ? 0x80 : 0x00) | (block.type & 0x7F);
+      final headerByte = (block.isLast ? 0x80 : 0x00) | (block.type & 0x7F);
       output.addByte(headerByte);
       output.addByte((block.data.length >> 16) & 0xFF);
       output.addByte((block.data.length >> 8) & 0xFF);
@@ -392,9 +397,11 @@ class Id3WriterService implements TagWriterService {
 
       if (frameSize <= 0 || offset + 10 + frameSize > bytes.length) break;
 
-      frames.add(Uint8List.fromList(
-        bytes.sublist(offset, offset + 10 + frameSize),
-      ),);
+      frames.add(
+        Uint8List.fromList(
+          bytes.sublist(offset, offset + 10 + frameSize),
+        ),
+      );
 
       offset += 10 + frameSize;
     }

@@ -5,7 +5,8 @@ import 'package:open_tag_editor/features/folder_panel/data/sibling_resolver.dart
 
 /// Generates a random directory name (visible, not dot-prefixed).
 String _randomVisibleName(Random rng) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+  const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
   final length = rng.nextInt(10) + 1;
   return String.fromCharCodes(
     List.generate(length, (_) => chars.codeUnitAt(rng.nextInt(chars.length))),
@@ -34,7 +35,8 @@ void main() {
 
   final resolver = SiblingResolver();
 
-  group('Property 9: Sibling folder resolution with hidden folder exclusion', () {
+  group('Property 9: Sibling folder resolution with hidden folder exclusion',
+      () {
     test('filterAndSort excludes all hidden names (dot-prefixed)', () {
       final rng = Random(42);
 
@@ -92,7 +94,8 @@ void main() {
       }
     });
 
-    test('resolve next returns entry immediately after current in sorted order', () {
+    test('resolve next returns entry immediately after current in sorted order',
+        () {
       final rng = Random(99);
 
       for (var i = 0; i < 100; i++) {
@@ -128,7 +131,9 @@ void main() {
       }
     });
 
-    test('resolve previous returns entry immediately before current in sorted order', () {
+    test(
+        'resolve previous returns entry immediately before current in sorted order',
+        () {
       final rng = Random(256);
 
       for (var i = 0; i < 100; i++) {

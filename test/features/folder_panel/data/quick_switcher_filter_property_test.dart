@@ -28,14 +28,16 @@ void main() {
           'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_- ';
       final length = minLen + rng.nextInt(maxLen - minLen + 1);
       return String.fromCharCodes(
-        List.generate(length, (_) => chars.codeUnitAt(rng.nextInt(chars.length))),
+        List.generate(
+            length, (_) => chars.codeUnitAt(rng.nextInt(chars.length))),
       );
     }
 
     String randomPath(Random rng) {
       final drive = String.fromCharCode(65 + rng.nextInt(4)); // A-D
       final segmentCount = 1 + rng.nextInt(5);
-      final segments = List.generate(segmentCount, (_) => randomString(rng, 2, 10));
+      final segments =
+          List.generate(segmentCount, (_) => randomString(rng, 2, 10));
       return '$drive:\\${segments.join('\\')}';
     }
 
@@ -65,7 +67,9 @@ void main() {
       return randomString(rng, 1, 5);
     }
 
-    test('included entries contain query, excluded entries do not (100 iterations)', () {
+    test(
+        'included entries contain query, excluded entries do not (100 iterations)',
+        () {
       for (var i = 0; i < 100; i++) {
         final entryCount = random.nextInt(20);
         final entries = List.generate(entryCount, (_) => randomEntry(random));

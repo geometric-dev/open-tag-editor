@@ -30,8 +30,7 @@ void main() {
             expect(
               notifier.state.length,
               lessThanOrEqualTo(20),
-              reason:
-                  'List exceeded 20 entries after adding "$path" '
+              reason: 'List exceeded 20 entries after adding "$path" '
                   '(iteration $iteration, op $op). '
                   'Length: ${notifier.state.length}',
             );
@@ -60,8 +59,7 @@ void main() {
             expect(
               notifier.state.first,
               equals(path),
-              reason:
-                  'Most recently added folder "$path" is not first. '
+              reason: 'Most recently added folder "$path" is not first. '
                   'State: ${notifier.state.take(5).toList()} '
                   '(iteration $iteration, op $op)',
             );
@@ -96,8 +94,7 @@ void main() {
           expect(
             uniquePaths.length,
             equals(notifier.state.length),
-            reason:
-                'Duplicate entries found after adding "$path". '
+            reason: 'Duplicate entries found after adding "$path". '
                 'State: ${notifier.state} (iteration $iteration)',
           );
 
@@ -105,8 +102,7 @@ void main() {
           expect(
             notifier.state.first,
             equals(path),
-            reason:
-                'Added path "$path" is not first after duplicate add. '
+            reason: 'Added path "$path" is not first after duplicate add. '
                 'State: ${notifier.state.take(5).toList()} '
                 '(iteration $iteration)',
           );
@@ -144,8 +140,7 @@ void main() {
           expect(
             notifier.state.contains(pathToRemove),
             isTrue,
-            reason:
-                'Path "$pathToRemove" should be in list before removal '
+            reason: 'Path "$pathToRemove" should be in list before removal '
                 '(iteration $iteration)',
           );
 
@@ -154,16 +149,14 @@ void main() {
           expect(
             notifier.state.contains(pathToRemove),
             isFalse,
-            reason:
-                'Path "$pathToRemove" should not be in list after removal '
+            reason: 'Path "$pathToRemove" should not be in list after removal '
                 '(iteration $iteration). State: ${notifier.state}',
           );
 
           expect(
             notifier.state.length,
             equals(lengthBefore - 1),
-            reason:
-                'List should have one fewer element after removal. '
+            reason: 'List should have one fewer element after removal. '
                 'Before: $lengthBefore, After: ${notifier.state.length} '
                 '(iteration $iteration)',
           );

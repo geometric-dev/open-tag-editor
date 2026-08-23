@@ -4,14 +4,14 @@ import 'package:open_tag_editor/features/tag_editor/presentation/helpers/grid_na
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 FileGridItem _file(String name, int index) => FileGridItem(
-  file: AudioFile(
-    path: 'C:\\Music\\$name',
-    filename: name,
-    extension: '.mp3',
-    fileSize: 1000,
-  ),
-  fileIndex: index,
-);
+      file: AudioFile(
+        path: 'C:\\Music\\$name',
+        filename: name,
+        extension: '.mp3',
+        fileSize: 1000,
+      ),
+      fileIndex: index,
+    );
 
 SeparatorGridItem _sep(String path) => SeparatorGridItem(relativePath: path);
 

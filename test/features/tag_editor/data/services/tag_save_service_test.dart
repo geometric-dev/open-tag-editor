@@ -47,8 +47,7 @@ AudioFile fileWithTags(
     extension: '.mp3',
     fileSize: 1,
     tags: tags,
-    originalTags:
-        originalTags != null ? Map.unmodifiable(originalTags) : null,
+    originalTags: originalTags != null ? Map.unmodifiable(originalTags) : null,
     isModified: isModified,
   );
 }
@@ -133,8 +132,8 @@ void main() {
           isModified: true,
         ),
       ]);
-      final writer = FakeTagWriterService({'/good.mp3': true, '/bad.mp3':
-          false});
+      final writer =
+          FakeTagWriterService({'/good.mp3': true, '/bad.mp3': false});
       final service =
           TagSaveService(writer: writer, fileListNotifier: notifier);
 
@@ -143,11 +142,11 @@ void main() {
       expect(summary!.allSuccess, isFalse);
       expect(summary.successCount, 1);
       expect(summary.failureCount, 1);
-      expect(summary.attemptedTags.keys, containsAll(['/good.mp3',
-          '/bad.mp3']));
+      expect(
+          summary.attemptedTags.keys, containsAll(['/good.mp3', '/bad.mp3']));
 
-      final good = notifier.currentFiles
-          .singleWhere((f) => f.path == '/good.mp3');
+      final good =
+          notifier.currentFiles.singleWhere((f) => f.path == '/good.mp3');
       final bad =
           notifier.currentFiles.singleWhere((f) => f.path == '/bad.mp3');
       expect(good.isModified, isFalse);

@@ -102,7 +102,8 @@ String randomAsciiValue(Random random, int length) {
 String randomAsciiKey(Random random, int length) {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return String.fromCharCodes(
-    List.generate(length, (_) => letters.codeUnitAt(random.nextInt(letters.length))),
+    List.generate(
+        length, (_) => letters.codeUnitAt(random.nextInt(letters.length))),
   );
 }
 
@@ -227,7 +228,8 @@ void main() {
             expect(
               audioFile.tags[entry.key],
               equals(entry.value),
-              reason: 'Iteration $i: Tag "${entry.key}" should be "${entry.value}"',
+              reason:
+                  'Iteration $i: Tag "${entry.key}" should be "${entry.value}"',
             );
           }
         }
