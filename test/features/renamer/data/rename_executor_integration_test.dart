@@ -140,7 +140,10 @@ void main() {
 
       expect(result.renamedCount, 1);
       expect(result.errorCount, 1);
-      expect(result.errors.single.filePath, endsWith('ghost.mp3'));
+      expect(
+        result.errors.single.filePath,
+        endsWith('ghost.mp3'),
+      );
       expect(File(ok).existsSync(), isFalse,
           reason: 'second plan still executed');
       expect(
