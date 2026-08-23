@@ -5,7 +5,6 @@ import '../../core/undo/undo_redo_manager.dart';
 import '../../features/error_handling/providers/error_providers.dart';
 import '../../features/error_handling/utils/error_entry_factory.dart';
 import '../../features/tag_editor/data/providers/editor_state_provider.dart';
-import '../../features/tag_editor/data/providers/file_list_provider.dart';
 import '../../features/tag_editor/data/providers/service_providers.dart';
 import 'unsaved_changes_dialog.dart';
 
@@ -55,59 +54,32 @@ class UnsavedChangesGuard {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final files = ref.read(fileListProvider);
-    final writer = ref.read(tagWriterProvider);
-    final notifier = ref.read(fileListProvider.notifier);
+    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
+    if (summary == null) return true;
+    if (summary.allSuccess) return true;
 
-    final modifiedFiles = files.where((f) => f.isModified).toList();
-    if (modifiedFiles.isEmpty) return true;
-
-    final fileTagsMap = <String, Map<String, String>>{};
-    for (final file in modifiedFiles) {
-      final changed = file.modifiedTags;
-      if (changed.isNotEmpty) {
-        fileTagsMap[file.path] = changed;
-      }
-    }
-
-    if (fileTagsMap.isEmpty) return true;
-
-    final results = await writer.writeTagsBatch(fileTagsMap);
-    final failCount = results.where((r) => !r.success).length;
-
-    // Mark successful files as no longer modified.
-    final updatedFiles = modifiedFiles
-        .where((f) => results.any((r) => r.path == f.path && r.success))
-        .map((f) => f.copyWith(
-              isModified: false,
-              originalTags: Map<String, String>.unmodifiable(f.tags),
-            ),)
-        .toList();
-    notifier.updateFiles(updatedFiles);
-
-    if (failCount > 0) {
-      // Report failures to error log
-      final entries = ErrorEntryFactory.fromWriteResults(results, fileTagsMap);
-      ref.read(errorLogProvider.notifier).addEntries(entries);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$failCount file(s) failed to save'),
-            duration: const Duration(seconds: 30),
-            showCloseIcon: true,
-            action: SnackBarAction(
-              label: 'View Details',
-              onPressed: () {
-                ref.read(errorPanelVisibleProvider.notifier).state = true;
-              },
-            ),
+    // Report failures to error log
+    final entries = ErrorEntryFactory.fromWriteResults(
+      summary.results,
+      summary.attemptedTags,
+    );
+    ref.read(errorLogProvider.notifier).addEntries(entries);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${summary.failureCount} file(s) failed to save'),
+          duration: const Duration(seconds: 30),
+          showCloseIcon: true,
+          action: SnackBarAction(
+            label: 'View Details',
+            onPressed: () {
+              ref.read(errorPanelVisibleProvider.notifier).state = true;
+            },
           ),
-        );
-      }
-      return false;
+        ),
+      );
     }
-
-    return true;
+    return false;
   }
 }

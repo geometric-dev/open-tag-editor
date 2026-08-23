@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/tag_edit_command.dart';
 import '../../../../core/undo/undo_redo_manager.dart';
+import '../../../../features/error_handling/providers/error_providers.dart';
+import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/providers/tag_field_validation_provider.dart';
 import '../../../../shared/services/taglib/taglib_types.dart';
@@ -21,7 +23,7 @@ import '../../../album_art/presentation/widgets/image_preview_modal.dart';
 import '../../data/providers/editor_state_provider.dart'
     show TagPanelTab, selectedFilesProvider, statusMessageProvider, tagPanelActiveTabProvider;
 import '../../data/providers/file_list_provider.dart' show fileListProvider;
-import '../../data/providers/service_providers.dart' show tagWriterProvider;
+import '../../data/providers/service_providers.dart' show tagSaveServiceProvider;
 
 /// Panel for editing tag fields of the selected file(s).
 ///
@@ -36,44 +38,28 @@ class TagEditPanel extends ConsumerStatefulWidget {
 
 class _TagEditPanelState extends ConsumerState<TagEditPanel> {
   Future<void> _saveChanges(BuildContext context, WidgetRef ref) async {
-    final files = ref.read(selectedFilesProvider);
-    final writer = ref.read(tagWriterProvider);
-    final notifier = ref.read(fileListProvider.notifier);
     final statusNotifier = ref.read(statusMessageProvider.notifier);
 
-    final modifiedFiles = files.where((f) => f.isModified).toList();
-    if (modifiedFiles.isEmpty) return;
+    statusNotifier.state = 'Saving...';
 
-    statusNotifier.state = 'Saving ${modifiedFiles.length} file(s)...';
+    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
 
-    final fileTagsMap = <String, Map<String, String>>{};
-    for (final file in modifiedFiles) {
-      final changed = file.modifiedTags;
-      if (changed.isNotEmpty) {
-        fileTagsMap[file.path] = changed;
-      }
+    if (summary == null) {
+      statusNotifier.state = 'No changes to save';
+      return;
     }
 
-    if (fileTagsMap.isEmpty) return;
-
-    final results = await writer.writeTagsBatch(fileTagsMap);
-    final successCount = results.where((r) => r.success).length;
-    final failCount = results.where((r) => !r.success).length;
-
-    final updatedFiles = modifiedFiles
-        .where((f) => results.any((r) => r.path == f.path && r.success))
-        .map((f) => f.copyWith(
-              isModified: false,
-              originalTags: Map<String, String>.unmodifiable(f.tags),
-            ),)
-        .toList();
-    notifier.updateFiles(updatedFiles);
-
-    if (failCount > 0) {
+    if (summary.failureCount > 0) {
+      // Surface failures in the error log (parity with toolbar/Ctrl+S).
+      final entries = ErrorEntryFactory.fromWriteResults(
+        summary.results,
+        summary.attemptedTags,
+      );
+      ref.read(errorLogProvider.notifier).addEntries(entries);
       statusNotifier.state =
-          'Saved $successCount file(s), $failCount failed';
+          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
     } else {
-      statusNotifier.state = 'Saved $successCount file(s)';
+      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
     }
   }
 

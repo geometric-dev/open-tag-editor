@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
+import '../../../../features/error_handling/providers/error_providers.dart';
+import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/sibling_navigation_service.dart';
 import '../../../../features/folder_panel/data/sibling_resolver.dart';
 import '../../../../features/folder_panel/presentation/quick_switcher_overlay.dart';
@@ -76,44 +78,28 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
   }
 
   Future<void> _saveAll(BuildContext context, WidgetRef ref) async {
-    final files = ref.read(fileListProvider);
-    final writer = ref.read(tagWriterProvider);
-    final notifier = ref.read(fileListProvider.notifier);
     final statusNotifier = ref.read(statusMessageProvider.notifier);
 
-    final modifiedFiles = files.where((f) => f.isModified).toList();
-    if (modifiedFiles.isEmpty) {
+    statusNotifier.state = 'Saving...';
+
+    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
+
+    if (summary == null) {
       statusNotifier.state = 'No changes to save';
       return;
     }
 
-    statusNotifier.state = 'Saving ${modifiedFiles.length} file(s)...';
-
-    final fileTagsMap = <String, Map<String, String>>{};
-    for (final file in modifiedFiles) {
-      final changed = file.modifiedTags;
-      if (changed.isNotEmpty) {
-        fileTagsMap[file.path] = changed;
-      }
+    if (!summary.allSuccess) {
+      // Report failures to error log (parity with the toolbar save path).
+      final entries = ErrorEntryFactory.fromWriteResults(
+        summary.results,
+        summary.attemptedTags,
+      );
+      ref.read(errorLogProvider.notifier).addEntries(entries);
+      statusNotifier.state =
+          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
+    } else {
+      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
     }
-
-    if (fileTagsMap.isEmpty) {
-      statusNotifier.state = 'No changes to save';
-      return;
-    }
-
-    final results = await writer.writeTagsBatch(fileTagsMap);
-    final successCount = results.where((r) => r.success).length;
-
-    final updatedFiles = modifiedFiles
-        .where((f) => results.any((r) => r.path == f.path && r.success))
-        .map((f) => f.copyWith(
-              isModified: false,
-              originalTags: Map<String, String>.unmodifiable(f.tags),
-            ),)
-        .toList();
-    notifier.updateFiles(updatedFiles);
-
-    statusNotifier.state = 'Saved $successCount file(s)';
   }
 }

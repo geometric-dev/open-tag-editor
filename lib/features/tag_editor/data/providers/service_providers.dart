@@ -13,6 +13,8 @@ import '../../../../shared/services/taglib/taglib_writer_service.dart';
 import '../../../../shared/services/taglib/validation_engine.dart';
 import '../../../settings/data/models/tag_write_options.dart';
 import '../../../settings/data/providers/settings_providers.dart';
+import '../providers/file_list_provider.dart';
+import '../services/tag_save_service.dart';
 
 /// Provider for the backup enabled setting.
 ///
@@ -61,4 +63,15 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
 /// Provider for the rename service.
 final renameServiceProvider = Provider<RenameService>((ref) {
   return RenameService();
+});
+
+/// Provider for the batch tag-save service.
+///
+/// Single save flow shared by the toolbar, Ctrl+S shortcut, the tag
+/// panel's Save button, and the unsaved-changes guard.
+final tagSaveServiceProvider = Provider<TagSaveService>((ref) {
+  return TagSaveService(
+    writer: ref.watch(tagWriterProvider),
+    fileListNotifier: ref.read(fileListProvider.notifier),
+  );
 });

@@ -112,57 +112,31 @@ class EditorToolbar extends ConsumerWidget {
   }
 
   Future<void> _saveChanges(WidgetRef ref, BuildContext context) async {
-    final files = ref.read(fileListProvider);
-    final writer = ref.read(tagWriterProvider);
-    final notifier = ref.read(fileListProvider.notifier);
     final statusNotifier = ref.read(statusMessageProvider.notifier);
 
-    final modifiedFiles = files.where((f) => f.isModified).toList();
-    if (modifiedFiles.isEmpty) {
+    statusNotifier.state = 'Saving...';
+
+    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
+
+    if (summary == null) {
       statusNotifier.state = 'No changes to save';
       return;
     }
 
-    statusNotifier.state = 'Saving ${modifiedFiles.length} file(s)...';
-
-    final fileTagsMap = <String, Map<String, String>>{};
-    for (final file in modifiedFiles) {
-      final changed = file.modifiedTags;
-      if (changed.isNotEmpty) {
-        fileTagsMap[file.path] = changed;
-      }
-    }
-
-    if (fileTagsMap.isEmpty) {
-      statusNotifier.state = 'No changes to save';
-      return;
-    }
-
-    final results = await writer.writeTagsBatch(fileTagsMap);
-    final successCount = results.where((r) => r.success).length;
-    final failCount = results.where((r) => !r.success).length;
-
-    // Mark successful files as no longer modified
-    final updatedFiles = modifiedFiles
-        .where((f) => results.any((r) => r.path == f.path && r.success))
-        .map((f) => f.copyWith(
-              isModified: false,
-              originalTags: Map<String, String>.unmodifiable(f.tags),
-            ),)
-        .toList();
-    notifier.updateFiles(updatedFiles);
-
-    if (failCount > 0) {
+    if (!summary.allSuccess) {
       // Report failures to error log
-      final entries = ErrorEntryFactory.fromWriteResults(results, fileTagsMap);
+      final entries = ErrorEntryFactory.fromWriteResults(
+        summary.results,
+        summary.attemptedTags,
+      );
       ref.read(errorLogProvider.notifier).addEntries(entries);
       statusNotifier.state =
-          'Saved $successCount file(s), $failCount failed';
+          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
       if (context.mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$failCount file(s) failed to save'),
+            content: Text('${summary.failureCount} file(s) failed to save'),
             duration: const Duration(seconds: 30),
             showCloseIcon: true,
             action: SnackBarAction(
@@ -175,11 +149,12 @@ class EditorToolbar extends ConsumerWidget {
         );
       }
     } else {
-      statusNotifier.state = 'Saved $successCount file(s)';
+      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$successCount file(s) saved successfully'),
+            content:
+                Text('${summary.successCount} file(s) saved successfully'),
             duration: const Duration(seconds: 3),
           ),
         );
