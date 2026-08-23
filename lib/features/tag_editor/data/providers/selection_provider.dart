@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../models/selection_state.dart';
 
@@ -20,6 +20,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     state = SelectionState(
       selectedPaths: {path},
       anchorPath: path,
+      activePath: path,
     );
   }
 
@@ -63,6 +64,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     state = SelectionState(
       selectedPaths: rangePaths,
       anchorPath: anchor,
+      activePath: path,
     );
   }
 
@@ -85,13 +87,17 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
   /// No-op if already at the last row or list is empty.
   void moveDown(List<String> orderedPaths) {
     if (orderedPaths.isEmpty) return;
-    final anchor = state.anchorPath;
-    if (anchor == null) {
+    final current = state.activePath ?? state.anchorPath;
+    if (current == null) {
       select(orderedPaths.first);
       return;
     }
-    final currentIndex = orderedPaths.indexOf(anchor);
-    if (currentIndex < 0 || currentIndex >= orderedPaths.length - 1) return;
+    final currentIndex = orderedPaths.indexOf(current);
+    if (currentIndex < 0) {
+      select(orderedPaths.first);
+      return;
+    }
+    if (currentIndex >= orderedPaths.length - 1) return;
     select(orderedPaths[currentIndex + 1]);
   }
 
@@ -101,26 +107,32 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
   /// No-op if already at the first row or list is empty.
   void moveUp(List<String> orderedPaths) {
     if (orderedPaths.isEmpty) return;
-    final anchor = state.anchorPath;
-    if (anchor == null) {
-      select(orderedPaths.last);
+    final current = state.activePath ?? state.anchorPath;
+    if (current == null) {
+      select(orderedPaths.first);
       return;
     }
-    final currentIndex = orderedPaths.indexOf(anchor);
+    final currentIndex = orderedPaths.indexOf(current);
+    if (currentIndex < 0) {
+      select(orderedPaths.first);
+      return;
+    }
     if (currentIndex <= 0) return;
     select(orderedPaths[currentIndex - 1]);
   }
 
   /// Extend selection one row down (Shift+Down).
   ///
-  /// Adds the row below the current selection edge without changing the anchor.
+  /// Extends the selection edge away from the anchor downward, or contracts
+  /// it if the edge is above the anchor.
   void extendDown(List<String> orderedPaths) {
     _extendSelection(orderedPaths, 1);
   }
 
   /// Extend selection one row up (Shift+Up).
   ///
-  /// Adds the row above the current selection edge without changing the anchor.
+  /// Extends the selection edge away from the anchor upward, or contracts
+  /// it if the edge is below the anchor.
   void extendUp(List<String> orderedPaths) {
     _extendSelection(orderedPaths, -1);
   }
@@ -136,6 +148,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     state = SelectionState(
       selectedPaths: rangePaths,
       anchorPath: anchor,
+      activePath: orderedPaths.first,
     );
   }
 
@@ -150,6 +163,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     state = SelectionState(
       selectedPaths: rangePaths,
       anchorPath: anchor,
+      activePath: orderedPaths.last,
     );
   }
 
@@ -196,25 +210,26 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     final anchor = state.anchorPath;
     if (anchor == null || orderedPaths.isEmpty) return;
 
-    final selectedIndices = state.selectedPaths
-        .map((p) => orderedPaths.indexOf(p))
-        .where((i) => i >= 0)
-        .toList()
-      ..sort();
+    final anchorIndex = orderedPaths.indexOf(anchor);
+    if (anchorIndex < 0) return;
 
-    if (selectedIndices.isEmpty) return;
+    // The active end is where the selection extends from
+    final active = state.activePath ?? anchor;
+    final activeIndex = orderedPaths.indexOf(active);
+    if (activeIndex < 0) return;
 
-    final edgeIndex =
-        direction > 0 ? selectedIndices.last : selectedIndices.first;
-    final newIndex = edgeIndex + direction;
-    if (newIndex < 0 || newIndex >= orderedPaths.length) return;
+    final newActiveIndex = activeIndex + direction;
+    if (newActiveIndex < 0 || newActiveIndex >= orderedPaths.length) return;
 
-    final newPaths = Set<String>.from(state.selectedPaths)
-      ..add(orderedPaths[newIndex]);
+    // Build the range from anchor to new active
+    final start = min(anchorIndex, newActiveIndex);
+    final end = max(anchorIndex, newActiveIndex);
+    final rangePaths = orderedPaths.sublist(start, end + 1).toSet();
 
     state = SelectionState(
-      selectedPaths: newPaths,
+      selectedPaths: rangePaths,
       anchorPath: anchor,
+      activePath: orderedPaths[newActiveIndex],
     );
   }
 }

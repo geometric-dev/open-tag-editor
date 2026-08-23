@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../data/providers/column_config_provider.dart';
@@ -73,9 +74,13 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
   /// Confirms the current edit and applies the value.
   ///
   /// [batchMode] forces batch application without prompt (Ctrl+Enter).
+  /// [clearFocus] clears the focused cell state (used on focus loss).
   /// Returns true if the edit was applied (value changed), false otherwise.
-  bool confirmEdit({bool batchMode = false}) {
-    return _confirmEditInternal(batchMode: batchMode);
+  bool confirmEdit({bool batchMode = false, bool clearFocus = false}) {
+    return _confirmEditInternal(
+      batchMode: batchMode,
+      clearFocus: clearFocus,
+    );
   }
 
   /// Cancels the current edit, restoring the original value.
@@ -98,11 +103,26 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
   }
 
   /// Moves focus to the given cell (without entering edit mode).
-  void moveFocus(CellCoordinate cell) {
+  ///
+  /// [showBorder] controls whether the focus border is rendered.
+  /// Keyboard navigation sets this to true; mouse clicks set it to false.
+  void moveFocus(CellCoordinate cell, {bool showBorder = true}) {
     if (state.isEditing) {
       _confirmEditInternal();
     }
-    state = InlineCellEditState(focusedCell: cell);
+    state = InlineCellEditState(
+      focusedCell: cell,
+      showFocusBorder: showBorder,
+    );
+  }
+
+  /// Clears the focused cell state (removes focus border).
+  void clearFocus() {
+    if (state.isEditing) {
+      _confirmEditInternal(clearFocus: true);
+    } else {
+      state = const InlineCellEditState();
+    }
   }
 
   /// Navigates to the next editable cell (Tab).
@@ -161,14 +181,14 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
   }
 
   /// Internal confirm logic. Returns true if a command was executed.
-  bool _confirmEditInternal({bool batchMode = false}) {
+  bool _confirmEditInternal({bool batchMode = false, bool clearFocus = false}) {
     if (!state.isEditing) return false;
 
     final newValue = state.currentValue ?? '';
     final editingCell = state.editingCell!;
 
     // Exit edit mode first
-    final focusedCell = state.focusedCell;
+    final focusedCell = clearFocus ? null : state.focusedCell;
     state = InlineCellEditState(focusedCell: focusedCell);
 
     // No-op check for single file

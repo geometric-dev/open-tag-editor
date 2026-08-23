@@ -104,10 +104,16 @@ class DiscogsService {
 
       final tracks = <TrackInfo>[];
       var position = 1;
+      var discNumber = 1;
 
       for (final track in tracklist) {
         final type = track['type_'] as String?;
-        if (type == 'heading') continue; // Skip disc headers
+        if (type == 'heading') {
+          // Disc separator — increment disc number and reset position
+          discNumber++;
+          position = 1;
+          continue;
+        }
 
         final title = track['title'] as String? ?? '';
         final durationStr = track['duration'] as String?;
@@ -116,6 +122,7 @@ class DiscogsService {
         tracks.add(TrackInfo(
           title: title,
           position: position,
+          discNumber: discNumber,
           durationMs: durationMs,
           artist: track['artists'] != null
               ? (track['artists'] as List).map((a) => a['name']).join(', ')

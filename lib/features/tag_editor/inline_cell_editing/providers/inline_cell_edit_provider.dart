@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../models/inline_cell_edit_state.dart';
 import '../notifiers/inline_cell_edit_notifier.dart';

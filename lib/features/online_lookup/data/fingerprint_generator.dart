@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'models/acoustid_models.dart';
@@ -88,27 +89,29 @@ class FingerprintGenerator {
 
   /// Parses fpcalc JSON output into a [FingerprintResult].
   FingerprintResult _parseOutput(String output, String filePath) {
-    // fpcalc -json outputs: {"duration": 123.45, "fingerprint": "AQADtM..."}
-    // Simple parsing without importing a JSON package dependency
-    final durationMatch = RegExp(r'"duration":\s*([\d.]+)').firstMatch(output);
-    final fingerprintMatch =
-        RegExp(r'"fingerprint":\s*"([^"]+)"').firstMatch(output);
+    try {
+      final json = jsonDecode(output) as Map<String, dynamic>;
+      final duration = (json['duration'] as num?)?.toDouble();
+      final fingerprint = json['fingerprint'] as String?;
 
-    if (durationMatch == null || fingerprintMatch == null) {
+      if (duration == null || fingerprint == null) {
+        throw FingerprintException(
+          'Missing duration or fingerprint in fpcalc output',
+          filePath,
+        );
+      }
+
+      return FingerprintResult(
+        filePath: filePath,
+        fingerprint: fingerprint,
+        durationSeconds: duration.round(),
+      );
+    } on FormatException catch (e) {
       throw FingerprintException(
-        'Failed to parse fpcalc output: $output',
+        'Failed to parse fpcalc JSON output: $e',
         filePath,
       );
     }
-
-    final duration = double.parse(durationMatch.group(1)!).round();
-    final fingerprint = fingerprintMatch.group(1)!;
-
-    return FingerprintResult(
-      filePath: filePath,
-      fingerprint: fingerprint,
-      durationSeconds: duration,
-    );
   }
 
   /// Checks if fpcalc is available in the system PATH.

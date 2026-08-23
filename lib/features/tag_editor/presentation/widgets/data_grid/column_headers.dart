@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/column_width_resolver.dart';
 import '../../../data/models/column_definition.dart';
 import '../../../data/models/sort_state.dart';
 import '../../../data/providers/column_config_provider.dart';
@@ -10,17 +9,30 @@ import 'resize_handle.dart';
 
 /// Column header row for the data grid.
 ///
-/// Supports click-to-sort, right-click context menu for show/hide,
-/// drag-to-resize columns, and double-click to auto-fit.
+/// Supports click-to-sort with visible sort indicators, hover feedback,
+/// tooltips, right-click context menu for show/hide, drag-to-resize columns,
+/// and double-click to auto-fit.
 class ColumnHeaders extends ConsumerWidget {
   const ColumnHeaders({
     super.key,
+    required this.effectiveWidths,
     this.onAutoFit,
+    this.hasSelection = false,
+    this.onRemoveSelected,
   });
+
+  /// Pre-computed widths for each visible column, in display order.
+  final List<double> effectiveWidths;
 
   /// Callback to auto-fit a column to its content width.
   /// Called with the column ID when the resize handle is double-clicked.
   final void Function(String columnId)? onAutoFit;
+
+  /// Whether any files are currently selected.
+  final bool hasSelection;
+
+  /// Callback to remove selected files from the list.
+  final VoidCallback? onRemoveSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,10 +41,12 @@ class ColumnHeaders extends ConsumerWidget {
 
     // Get visible column definitions in order
     final visibleColumns = config.visibleColumnIds
-        .map((id) => defaultColumns.firstWhere(
-              (c) => c.id == id,
-              orElse: () => defaultColumns.first,
-            ),)
+        .map(
+          (id) => defaultColumns.firstWhere(
+            (c) => c.id == id,
+            orElse: () => defaultColumns.first,
+          ),
+        )
         .toList();
 
     return Container(
@@ -46,22 +60,23 @@ class ColumnHeaders extends ConsumerWidget {
         ),
       ),
       child: Row(
-        children: visibleColumns.map((column) {
-          final effectiveWidth = resolveEffectiveWidth(
-            column.id,
-            config.widthOverrides,
-            visibleColumns,
-          );
+        children: List.generate(visibleColumns.length, (i) {
+          final column = visibleColumns[i];
+          final width = i < effectiveWidths.length
+              ? effectiveWidths[i]
+              : column.defaultWidth;
           return _ColumnHeaderCell(
             column: column,
-            effectiveWidth: effectiveWidth,
+            effectiveWidth: width,
             sortState: sortState,
             onSort: () =>
                 ref.read(sortStateProvider.notifier).toggleSort(column.id),
-            onToggleVisibility: (columnId) =>
-                ref.read(columnConfigProvider.notifier).toggleVisibility(columnId),
-            onResize: (newWidth) =>
-                ref.read(columnConfigProvider.notifier).setColumnWidth(column.id, newWidth),
+            onToggleVisibility: (columnId) => ref
+                .read(columnConfigProvider.notifier)
+                .toggleVisibility(columnId),
+            onResize: (newWidth) => ref
+                .read(columnConfigProvider.notifier)
+                .setColumnWidth(column.id, newWidth),
             onResizeEnd: () =>
                 ref.read(columnConfigProvider.notifier).persistWidths(),
             onAutoFit: () => onAutoFit?.call(column.id),
@@ -69,14 +84,18 @@ class ColumnHeaders extends ConsumerWidget {
                 ref.read(columnConfigProvider.notifier).resetColumnWidths(),
             allColumns: defaultColumns,
             visibleColumnIds: config.visibleColumnIds,
+            hasSelection: hasSelection,
+            onRemoveSelected: onRemoveSelected,
           );
-        }).toList(),
+        }),
       ),
     );
   }
 }
 
-class _ColumnHeaderCell extends StatelessWidget {
+/// A single column header cell with hover feedback, sort indicator,
+/// tooltip, resize handle, and context menu.
+class _ColumnHeaderCell extends StatefulWidget {
   const _ColumnHeaderCell({
     required this.column,
     required this.effectiveWidth,
@@ -89,6 +108,8 @@ class _ColumnHeaderCell extends StatelessWidget {
     required this.onResetWidths,
     required this.allColumns,
     required this.visibleColumnIds,
+    this.hasSelection = false,
+    this.onRemoveSelected,
   });
 
   final ColumnDefinition column;
@@ -102,43 +123,81 @@ class _ColumnHeaderCell extends StatelessWidget {
   final VoidCallback onResetWidths;
   final List<ColumnDefinition> allColumns;
   final List<String> visibleColumnIds;
+  final bool hasSelection;
+  final VoidCallback? onRemoveSelected;
+
+  @override
+  State<_ColumnHeaderCell> createState() => _ColumnHeaderCellState();
+}
+
+class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    final isSorted = sortState.columnId == column.id;
-    final isResizable = column.id != 'tagIndicator';
+    final isSorted = widget.sortState.columnId == widget.column.id;
+    final isResizable = widget.column.id != 'tagIndicator';
+    final isSortable = widget.column.id != 'tagIndicator';
+
+    // Determine background colour: sorted tint > hover tint > none
+    Color? backgroundColor;
+    if (isSorted) {
+      backgroundColor =
+          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
+    } else if (_isHovered && isSortable) {
+      backgroundColor =
+          Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05);
+    }
 
     return SizedBox(
-      width: effectiveWidth,
+      width: widget.effectiveWidth,
       child: Stack(
         children: [
-          GestureDetector(
-            onTap: column.id != 'tagIndicator' ? onSort : null,
-            onSecondaryTapUp: (details) {
-              _showContextMenu(context, details.globalPosition);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      column.label,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+          MouseRegion(
+            onEnter: isSortable ? (_) => setState(() => _isHovered = true) : null,
+            onExit: isSortable ? (_) => setState(() => _isHovered = false) : null,
+            child: GestureDetector(
+              onTap: isSortable ? widget.onSort : null,
+              onSecondaryTapUp: (details) {
+                _showContextMenu(context, details.globalPosition);
+              },
+              child: Container(
+                decoration: BoxDecoration(color: backgroundColor),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: isSortable
+                          ? Tooltip(
+                              message: widget.column.label,
+                              child: Text(
+                                widget.column.label,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          : Text(
+                              widget.column.label,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                    ),
+                    if (isSorted)
+                      Icon(
+                        widget.sortState.direction == SortDirection.ascending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (isSorted)
-                    Icon(
-                      sortState.direction == SortDirection.ascending
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      size: 12,
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -148,11 +207,11 @@ class _ColumnHeaderCell extends StatelessWidget {
               top: 0,
               bottom: 0,
               child: ResizeHandle(
-                columnId: column.id,
-                currentWidth: effectiveWidth,
-                onDragUpdate: onResize,
-                onDragEnd: onResizeEnd,
-                onDoubleTap: onAutoFit,
+                columnId: widget.column.id,
+                currentWidth: widget.effectiveWidth,
+                onDragUpdate: widget.onResize,
+                onDragEnd: widget.onResizeEnd,
+                onDoubleTap: widget.onAutoFit,
               ),
             ),
         ],
@@ -164,12 +223,12 @@ class _ColumnHeaderCell extends StatelessWidget {
     final items = <PopupMenuEntry<String>>[];
 
     // Column visibility toggles
-    for (final col in allColumns) {
+    for (final col in widget.allColumns) {
       if (col.isFixed) continue; // Can't toggle fixed columns
       items.add(
         CheckedPopupMenuItem<String>(
           value: col.id,
-          checked: visibleColumnIds.contains(col.id),
+          checked: widget.visibleColumnIds.contains(col.id),
           child: Text(col.label, style: const TextStyle(fontSize: 12)),
         ),
       );
@@ -184,6 +243,20 @@ class _ColumnHeaderCell extends StatelessWidget {
       ),
     );
 
+    // Remove selected files option (only when selection is non-empty)
+    if (widget.hasSelection) {
+      items.add(const PopupMenuDivider());
+      items.add(
+        const PopupMenuItem<String>(
+          value: '__remove_selected__',
+          child: Text(
+            'Remove Selected from List',
+            style: TextStyle(fontSize: 12),
+          ),
+        ),
+      );
+    }
+
     showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -195,9 +268,11 @@ class _ColumnHeaderCell extends StatelessWidget {
       items: items,
     ).then((value) {
       if (value == '__reset_widths__') {
-        onResetWidths();
+        widget.onResetWidths();
+      } else if (value == '__remove_selected__') {
+        widget.onRemoveSelected?.call();
       } else if (value != null) {
-        onToggleVisibility(value);
+        widget.onToggleVisibility(value);
       }
     });
   }

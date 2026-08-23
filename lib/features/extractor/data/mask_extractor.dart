@@ -41,6 +41,9 @@ class MaskExtractor {
   ///
   /// The [path] should already have the file extension stripped and the
   /// appropriate scope applied (filename only, relative, or absolute).
+  ///
+  /// Backslashes in literal tokens are normalized to forward slashes to match
+  /// the path normalization performed by [PathScopeResolver].
   ExtractionResult extract(List<MaskToken> tokens, String path) {
     if (tokens.isEmpty) {
       return ExtractionResult(filePath: path, matched: false);
@@ -52,13 +55,23 @@ class MaskExtractor {
       return ExtractionResult(filePath: path, matched: false);
     }
 
+    // Normalize literal tokens: replace backslashes with forward slashes so
+    // masks like "%artist\%album\%track. %title" match paths that have been
+    // normalized to use forward slashes.
+    final normalizedTokens = tokens.map((token) {
+      if (token is LiteralToken && token.text.contains('\\')) {
+        return LiteralToken(token.text.replaceAll('\\', '/'));
+      }
+      return token;
+    }).toList();
+
     // Handle leading literal: if the mask starts with a literal, the path
     // must start with that literal. Strip it before proceeding.
     var workingPath = path;
     var tokenStart = 0;
 
-    if (tokens.first is LiteralToken) {
-      final leadingLiteral = (tokens.first as LiteralToken).text;
+    if (normalizedTokens.first is LiteralToken) {
+      final leadingLiteral = (normalizedTokens.first as LiteralToken).text;
       if (!workingPath.startsWith(leadingLiteral)) {
         return ExtractionResult(filePath: path, matched: false);
       }
@@ -68,10 +81,10 @@ class MaskExtractor {
 
     // Handle trailing literal: if the mask ends with a literal, the path
     // must end with that literal. Strip it before proceeding.
-    var tokenEnd = tokens.length;
+    var tokenEnd = normalizedTokens.length;
 
-    if (tokenEnd > tokenStart && tokens.last is LiteralToken) {
-      final trailingLiteral = (tokens.last as LiteralToken).text;
+    if (tokenEnd > tokenStart && normalizedTokens.last is LiteralToken) {
+      final trailingLiteral = (normalizedTokens.last as LiteralToken).text;
       if (!workingPath.endsWith(trailingLiteral)) {
         return ExtractionResult(filePath: path, matched: false);
       }
@@ -86,7 +99,7 @@ class MaskExtractor {
     final delimiters = <String>[];
 
     for (var i = tokenStart; i < tokenEnd; i++) {
-      final token = tokens[i];
+      final token = normalizedTokens[i];
       if (_isVariableOrIgnore(token)) {
         slots.add(token);
       } else if (token is LiteralToken) {

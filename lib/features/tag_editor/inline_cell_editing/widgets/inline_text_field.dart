@@ -2,28 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/providers/tag_field_validation_provider.dart';
+import '../../../../shared/services/taglib/taglib_types.dart';
+import '../../../../shared/widgets/validation_indicator.dart';
+import '../../data/providers/filtered_sorted_file_list_provider.dart';
+import '../../data/providers/selection_provider.dart';
 import '../providers/inline_cell_edit_provider.dart';
 
-/// The text input field displayed inside a cell during edit mode.
+/// Inline text field for cell editing.
 ///
-/// Matches the font size and padding of the static cell text.
-/// Handles Enter, Escape, Tab, Shift+Tab, and Ctrl+Enter key events.
+/// Handles Escape (cancel), Tab/Shift+Tab (navigate), Enter (confirm+down),
+/// Ctrl+Enter (batch apply), and arrow up/down (confirm+move selection).
+/// Confirms on focus loss.
 class InlineTextField extends ConsumerStatefulWidget {
   const InlineTextField({
     super.key,
     required this.initialValue,
     required this.selectAll,
     required this.width,
+    required this.field,
+    this.tagFormat,
   });
 
-  /// The initial text value to display.
   final String initialValue;
-
-  /// Whether to select all text on mount (F2 entry).
   final bool selectAll;
-
-  /// The width of the text field.
   final double width;
+  final String field;
+  final TagFormat? tagFormat;
 
   @override
   ConsumerState<InlineTextField> createState() => _InlineTextFieldState();
@@ -37,9 +42,9 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
-    _focusNode = FocusNode();
+    _focusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+    _focusNode.addListener(_onFocusChange);
 
-    // Auto-focus and optionally select all
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _focusNode.requestFocus();
@@ -49,7 +54,6 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
             extentOffset: _controller.text.length,
           );
         } else {
-          // Place cursor at end
           _controller.selection = TextSelection.collapsed(
             offset: _controller.text.length,
           );
@@ -60,71 +64,109 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _focusNode.removeListener(_onFocusChange);
     _focusNode.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: FocusNode(),
-      onKeyEvent: _handleKeyEvent,
-      child: SizedBox(
-        width: widget.width,
-        child: TextField(
-          controller: _controller,
-          focusNode: _focusNode,
-          style: const TextStyle(fontSize: 12),
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            border: InputBorder.none,
-          ),
-          onChanged: (value) {
-            ref.read(inlineCellEditProvider.notifier).updateValue(value);
-          },
-          onEditingComplete: () {
-            // Enter key — confirm and navigate down
-            ref.read(inlineCellEditProvider.notifier).confirmEdit();
-            ref.read(inlineCellEditProvider.notifier).navigateDown();
-          },
-        ),
-      ),
-    );
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus && mounted) {
+      final editState = ref.read(inlineCellEditProvider);
+      if (editState.isEditing) {
+        ref.read(inlineCellEditProvider.notifier).confirmEdit(
+          clearFocus: true,
+        );
+      }
+    }
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return;
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final notifier = ref.read(inlineCellEditProvider.notifier);
 
+    final isShift = HardwareKeyboard.instance.logicalKeysPressed.any(
+      (k) =>
+          k == LogicalKeyboardKey.shiftLeft ||
+          k == LogicalKeyboardKey.shiftRight,
+    );
+
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       notifier.cancelEdit();
+      return KeyEventResult.handled;
     } else if (event.logicalKey == LogicalKeyboardKey.tab) {
-      final isShift = HardwareKeyboard.instance.logicalKeysPressed.any(
-        (k) =>
-            k == LogicalKeyboardKey.shiftLeft ||
-            k == LogicalKeyboardKey.shiftRight,
-      );
       if (isShift) {
         notifier.navigatePrevious();
       } else {
         notifier.navigateNext();
       }
-    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-      final isCtrl = HardwareKeyboard.instance.logicalKeysPressed.any(
-        (k) =>
-            k == LogicalKeyboardKey.controlLeft ||
-            k == LogicalKeyboardKey.controlRight,
-      );
-      if (isCtrl) {
-        // Ctrl+Enter: batch apply without prompt
-        notifier.confirmEdit(batchMode: true);
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+        event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      notifier.confirmEdit();
+
+      final files = ref.read(filteredSortedFileListProvider);
+      final orderedPaths = files.map((f) => f.path).toList();
+      final selNotifier = ref.read(selectionProvider.notifier);
+
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        if (isShift) {
+          selNotifier.extendUp(orderedPaths);
+        } else {
+          selNotifier.moveUp(orderedPaths);
+        }
       } else {
-        notifier.confirmEdit();
-        notifier.navigateDown();
+        if (isShift) {
+          selNotifier.extendDown(orderedPaths);
+        } else {
+          selNotifier.moveDown(orderedPaths);
+        }
       }
+      return KeyEventResult.handled;
     }
+
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentValue = _controller.text;
+    final validate = ref.watch(tagFieldValidationProvider);
+    final issues = validate(
+      field: widget.field,
+      value: currentValue,
+      tagFormat: widget.tagFormat,
+    );
+
+    final indicator = ValidationIndicator(issues: issues, iconSize: 14);
+    final hasIssues = issues.isNotEmpty;
+
+    return SizedBox(
+      width: widget.width,
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        style: const TextStyle(fontSize: 12),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          border: InputBorder.none,
+          suffixIcon: hasIssues ? indicator : null,
+          suffixIconConstraints: hasIssues
+              ? const BoxConstraints(maxWidth: 20, maxHeight: 16)
+              : null,
+        ),
+        onChanged: (value) {
+          ref.read(inlineCellEditProvider.notifier).updateValue(value);
+          setState(() {});
+        },
+        onSubmitted: (_) {
+          ref.read(inlineCellEditProvider.notifier).confirmEdit();
+          ref.read(inlineCellEditProvider.notifier).navigateDown();
+        },
+      ),
+    );
   }
 }

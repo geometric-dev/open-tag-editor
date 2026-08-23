@@ -10,6 +10,7 @@ import '../fingerprint_generator.dart';
 import '../lookup_cache.dart';
 import '../metadata_applicator.dart';
 import '../musicbrainz_service.dart';
+import '../partial_match_applicator.dart';
 import '../rate_limiter.dart';
 import 'lookup_settings_provider.dart';
 
@@ -86,6 +87,15 @@ final lookupCacheProvider = Provider<LookupCache>((ref) {
 /// Metadata applicator provider.
 final metadataApplicatorProvider = Provider<MetadataApplicator>((ref) {
   return MetadataApplicator(
+    tagWriter: ref.read(tagWriterProvider),
+    fileListNotifier: ref.read(fileListProvider.notifier),
+  );
+});
+
+/// Partial match applicator provider.
+final partialMatchApplicatorProvider =
+    Provider<PartialMatchApplicator>((ref) {
+  return PartialMatchApplicator(
     tagWriter: ref.read(tagWriterProvider),
     fileListNotifier: ref.read(fileListProvider.notifier),
   );

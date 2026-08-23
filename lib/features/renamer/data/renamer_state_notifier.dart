@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../core/undo/undo_redo_manager.dart';
 import '../../../shared/models/audio_file.dart';
@@ -179,14 +180,58 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
         replaceUnderscores: state.replaceUnderscores,
       );
 
-      // Sanitize the filename portion.
-      final sanitizeResult = _sanitizer.sanitize(cased);
-      final sanitizedName = sanitizeResult.sanitized;
+      // Split on directory separators, sanitize each segment individually,
+      // then reassemble. This preserves intentional path structure from the
+      // mask while sanitizing illegal characters within each segment.
+      final isAbsolute = _isAbsolutePath(cased);
+      final separatorPattern = RegExp(r'[/\\]');
+      final segments = cased.split(separatorPattern);
 
-      // Build the full target path (same directory as original).
-      final directory = _directoryOf(file.path);
+      // Sanitize each segment, but skip the drive letter (e.g. "C:") on
+      // Windows absolute paths since the colon is valid there. Also preserve
+      // navigation segments ("." and "..") as-is.
+      final sanitizedSegments = <String>[];
+      for (var i = 0; i < segments.length; i++) {
+        final segment = segments[i];
+        if (segment == '.' || segment == '..') {
+          sanitizedSegments.add(segment);
+        } else if (i == 0 && isAbsolute && Platform.isWindows) {
+          // Preserve drive letter as-is (e.g. "C:")
+          sanitizedSegments.add(segment);
+        } else {
+          sanitizedSegments.add(_sanitizer.sanitize(segment).sanitized);
+        }
+      }
+
+      // The last segment is the filename; preceding segments form the
+      // relative directory path.
+      final sanitizedName = sanitizedSegments.last;
+      final relativeDirs = sanitizedSegments.length > 1
+          ? sanitizedSegments.sublist(0, sanitizedSegments.length - 1)
+          : <String>[];
+
+      // Build the full target path. If the mask produced an absolute path
+      // (e.g. "C:\Music\Artist\..."), use it directly. Otherwise treat it
+      // as relative to the file's current directory.
+      final baseDirectory = _directoryOf(file.path);
+      final String targetDir;
+      if (relativeDirs.isEmpty) {
+        targetDir = isAbsolute ? '' : baseDirectory;
+      } else if (isAbsolute) {
+        targetDir =
+            '${relativeDirs.join(Platform.pathSeparator)}${Platform.pathSeparator}';
+      } else {
+        targetDir =
+            '$baseDirectory${relativeDirs.join(Platform.pathSeparator)}${Platform.pathSeparator}';
+      }
       final newFilename = '$sanitizedName${file.extension}';
-      final newPath = '$directory$newFilename';
+      // For the preview display, show the full mask-produced path (including
+      // any subdirectories) so the user can see where the file will end up.
+      final newDisplayName = relativeDirs.isEmpty
+          ? newFilename
+          : '${relativeDirs.join(Platform.pathSeparator)}${Platform.pathSeparator}$newFilename';
+      // Normalize the path to resolve ".." and "." segments.
+      final newPath = p.normalize('$targetDir$newFilename');
 
       // Determine preview status.
       RenamePreviewStatus status;
@@ -207,7 +252,7 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
           originalPath: file.path,
           originalFilename: file.filename,
           newPath: newPath,
-          newFilename: newFilename,
+          newFilename: newDisplayName,
           status: status,
           errorMessage: errorMessage,
         ),
@@ -244,5 +289,17 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
     final lastSep = path.lastIndexOf(Platform.pathSeparator);
     if (lastSep == -1) return '';
     return path.substring(0, lastSep + 1);
+  }
+
+  /// Returns true if [path] is an absolute path (e.g. "C:\..." on Windows,
+  /// or "/" on Unix).
+  bool _isAbsolutePath(String path) {
+    if (path.isEmpty) return false;
+    if (Platform.isWindows) {
+      // Matches drive letter patterns like "C:\" or "C:/"
+      return path.length >= 3 &&
+          RegExp(r'^[a-zA-Z]:[/\\]').hasMatch(path);
+    }
+    return path.startsWith('/');
   }
 }

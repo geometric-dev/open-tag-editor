@@ -30,9 +30,17 @@ class ValidationEngine {
           mismatches.add('$field expected empty got \'$actual\'');
         }
       } else {
-        // Expect an exact match.
-        if (actual != expected) {
-          mismatches.add('$field expected \'$expected\' got \'$actual\'');
+        // For track/disc number fields, the reader splits "3/16" into
+        // trackNumber="3" + trackTotal="16". Compare against just the
+        // number portion when the expected value contains a slash.
+        final effectiveExpected =
+            (field == 'trackNumber' || field == 'discNumber') &&
+                    expected.contains('/')
+                ? expected.split('/').first
+                : expected;
+
+        if (actual != effectiveExpected) {
+          mismatches.add('$field expected \'$effectiveExpected\' got \'$actual\'');
         }
       }
     }

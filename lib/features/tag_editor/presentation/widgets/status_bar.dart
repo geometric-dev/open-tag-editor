@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/format_utils.dart';
+import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
@@ -17,6 +18,8 @@ class EnhancedStatusBar extends ConsumerWidget {
     final selection = ref.watch(selectionProvider);
     final modifiedCount = ref.watch(modifiedFileCountProvider);
     final status = ref.watch(statusMessageProvider);
+    final errorCount = ref.watch(errorCountProvider);
+    final errorPanelVisible = ref.watch(errorPanelVisibleProvider);
 
     final selectedFiles = files
         .where((f) => selection.selectedPaths.contains(f.path))
@@ -25,31 +28,58 @@ class EnhancedStatusBar extends ConsumerWidget {
     final totalDuration = _sumDuration(files);
     final selectedDuration = _sumDuration(selectedFiles);
     final totalSize = files.fold<int>(0, (sum, f) => sum + f.fileSize);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: colorScheme.surfaceContainerHighest,
       ),
       child: Row(
         children: [
           // Status message
           Text(status, style: const TextStyle(fontSize: 11)),
           const Spacer(),
+          // Error count indicator
+          if (errorCount > 0) ...[
+            GestureDetector(
+              onTap: () => ref.read(errorPanelVisibleProvider.notifier).state =
+                  !errorPanelVisible,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 12,
+                    color: colorScheme.error,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$errorCount ${errorCount == 1 ? 'error' : 'errors'}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
           // Modified count
           if (modifiedCount > 0) ...[
             Icon(
               Icons.edit,
               size: 12,
-              color: Theme.of(context).colorScheme.primary,
+              color: colorScheme.primary,
             ),
             const SizedBox(width: 4),
             Text(
               '$modifiedCount modified',
               style: TextStyle(
                 fontSize: 11,
-                color: Theme.of(context).colorScheme.primary,
+                color: colorScheme.primary,
               ),
             ),
             const SizedBox(width: 12),

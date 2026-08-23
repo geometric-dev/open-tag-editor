@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -104,12 +105,14 @@ class Id3ReaderService implements TagReaderService {
         extension: extension,
         fileSize: stat.size,
         tags: tags,
+        originalTags: Map<String, String>.unmodifiable(tags),
         albumArt: albumArt,
         bitrate: bitrate,
         sampleRate: sampleRate,
         channels: channels,
         duration: duration,
         tagFormat: tagFormat,
+        isReadOnly: _isFileReadOnly(file),
       );
     } catch (e) {
       if (e is TagReadException) rethrow;
@@ -124,14 +127,16 @@ class Id3ReaderService implements TagReaderService {
       try {
         results.add(await readTags(path));
       } catch (e) {
-        // Return file with empty tags on failure
+        // Return file with empty tags and readError on failure
         final filename = p.basename(path);
+        final file = File(path);
         results.add(AudioFile(
           path: path,
           filename: filename,
           extension: p.extension(path).toLowerCase(),
           fileSize: 0,
-          tags: const {},
+          isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+          readError: e.toString(),
         ),);
       }
     }
@@ -382,7 +387,7 @@ class Id3ReaderService implements TagReaderService {
 
       if (pos + commentLen > bytes.length) break;
 
-      final comment = String.fromCharCodes(bytes.sublist(pos, pos + commentLen));
+      final comment = utf8.decode(bytes.sublist(pos, pos + commentLen), allowMalformed: true);
       final eqIndex = comment.indexOf('=');
       if (eqIndex > 0) {
         final key = comment.substring(0, eqIndex).toLowerCase();
@@ -784,6 +789,17 @@ class Id3ReaderService implements TagReaderService {
     'Acid Punk', 'Acid Jazz', 'Polka', 'Retro', 'Musical', 'Rock & Roll',
     'Hard Rock',
   ];
+
+  /// Checks whether a file is read-only on the filesystem.
+  static bool _isFileReadOnly(File file) {
+    try {
+      final raf = file.openSync(mode: FileMode.writeOnlyAppend);
+      raf.closeSync();
+      return false;
+    } catch (_) {
+      return true;
+    }
+  }
 }
 
 // --- Internal result types ---

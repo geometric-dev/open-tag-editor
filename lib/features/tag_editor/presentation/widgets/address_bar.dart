@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../data/providers/recent_folders_provider.dart';
 import '../../data/providers/recursive_loading_provider.dart';
@@ -56,8 +57,13 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     }
   }
 
-  void _cancelEditing() {
+  void _submitOrCancel() {
+    final path = _controller.text.trim();
+    final currentPath = ref.read(loadedFolderPathProvider) ?? '';
     setState(() => _isEditing = false);
+    if (path.isNotEmpty && path != currentPath) {
+      widget.onFolderSelected?.call(path);
+    }
   }
 
   @override
@@ -67,7 +73,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
     final isRecursive = ref.watch(recursiveLoadingProvider);
 
     return Container(
-      height: 36,
+      height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -96,7 +102,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                       hintText: 'Enter folder path...',
                     ),
                     onSubmitted: (_) => _submitPath(),
-                    onTapOutside: (_) => _cancelEditing(),
+                    onTapOutside: (_) => _submitOrCancel(),
                   )
                 : GestureDetector(
                     onTap: _startEditing,

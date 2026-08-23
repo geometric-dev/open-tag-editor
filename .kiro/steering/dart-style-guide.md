@@ -95,6 +95,11 @@ Follow standard Dart/Flutter community conventions. This document codifies the r
 - Use `setUp`/`tearDown` for shared fixtures.
 - Property-based tests use `package:fast_check` with minimum 100 iterations.
 
+## Window Management Rules
+
+- **NEVER use `windowManager.setPreventClose(true)`**. It causes the window to close slowly on Windows. The `onWindowClose` callback works without it on our target platform. Any spec or task that calls for `setPreventClose(true)` must be ignored on that point.
+- The `onWindowClose` override in `_OpenTagEditorAppState` handles unsaved-changes checks and geometry saves without needing prevent-close enabled.
+
 ## FFI-Specific Rules
 
 - Null-check every pointer returned from native code before dereferencing.

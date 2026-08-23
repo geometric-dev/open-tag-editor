@@ -14,6 +14,7 @@ class LookupMatchPanel extends StatelessWidget {
     required this.selectedFiles,
     required this.onMatch,
     required this.onBack,
+    this.onPartialMatch,
   });
 
   final List<TrackInfo> trackListing;
@@ -22,6 +23,7 @@ class LookupMatchPanel extends StatelessWidget {
   final List<AudioFile> selectedFiles;
   final VoidCallback onMatch;
   final VoidCallback onBack;
+  final VoidCallback? onPartialMatch;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,14 @@ class LookupMatchPanel extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const Spacer(),
+            if (trackListing.length < selectedFiles.length) ...[
+              OutlinedButton.icon(
+                onPressed: onPartialMatch,
+                icon: const Icon(Icons.auto_fix_high, size: 16),
+                label: const Text('Apply as Partial Match'),
+              ),
+              const SizedBox(width: 8),
+            ],
             FilledButton.icon(
               onPressed: onMatch,
               icon: const Icon(Icons.compare_arrows, size: 16),

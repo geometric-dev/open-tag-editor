@@ -7,6 +7,7 @@ class TrackFileMatch {
     required this.track,
     this.file,
     required this.confidence,
+    this.score,
   });
 
   /// The album track from the online source.
@@ -17,6 +18,9 @@ class TrackFileMatch {
 
   /// How confident the match is.
   final MatchConfidence confidence;
+
+  /// The composite match score in [0.0, 1.0], null for order-based matches.
+  final double? score;
 }
 
 /// Confidence level of a track-to-file match.
@@ -24,7 +28,16 @@ enum MatchConfidence {
   /// Matched by track number order (file count == track count).
   exact,
 
-  /// Matched by duration similarity (within ±3 seconds).
+  /// High confidence multi-signal match (score ≥ 0.7).
+  high,
+
+  /// Medium confidence multi-signal match (score ≥ 0.4).
+  medium,
+
+  /// Low confidence multi-signal match (score < 0.4).
+  low,
+
+  /// Matched by duration similarity only (legacy, ±3 seconds).
   duration,
 
   /// No match found.

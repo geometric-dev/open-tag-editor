@@ -49,5 +49,6 @@ class FingerprintException implements Exception {
   final String filePath;
 
   @override
+  @override
   String toString() => 'FingerprintException: $message (file: $filePath)';
 }

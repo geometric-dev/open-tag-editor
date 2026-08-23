@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'models/mask_preset.dart';
 import 'preset_storage.dart';
@@ -54,11 +54,13 @@ class PresetNotifier extends StateNotifier<List<MaskPreset>> {
     await _storage.save(state);
   }
 
-  /// Deletes a user-created preset by [name].
-  /// Built-in presets cannot be deleted.
-  Future<void> delete(String name) async {
-    if (isBuiltIn(name)) return;
-    state = state.where((p) => p.name != name).toList();
+  /// Deletes the preset at [index].
+  ///
+  /// No-op if [index] is out of range or refers to a built-in preset.
+  Future<void> delete(int index) async {
+    if (index < 0 || index >= state.length) return;
+    if (state[index].isBuiltIn) return;
+    state = [...state]..removeAt(index);
     await _storage.save(state);
   }
 

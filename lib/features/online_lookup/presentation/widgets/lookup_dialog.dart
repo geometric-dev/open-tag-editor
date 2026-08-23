@@ -26,6 +26,7 @@ Future<void> showLookupDialog(BuildContext context, WidgetRef ref) {
     fingerprintGenerator: ref.read(fingerprintGeneratorProvider),
     coverArtService: ref.read(coverArtServiceProvider),
     metadataApplicator: ref.read(metadataApplicatorProvider),
+    partialMatchApplicator: ref.read(partialMatchApplicatorProvider),
     cache: ref.read(lookupCacheProvider),
   );
 
@@ -52,9 +53,49 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
     super.dispose();
   }
 
+  int _currentStep(LookupState state) {
+    if (state.matches.isNotEmpty) return 4;
+    if (state.trackListing.isNotEmpty) return 3;
+    if (state.searchResults.isNotEmpty) return 2;
+    return 1;
+  }
+
+  Widget _buildStepIndicator(BuildContext context, int currentStep) {
+    const steps = ['Search', 'Results', 'Tracks', 'Apply'];
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < steps.length; i++) ...[
+          if (i > 0)
+            Text(
+              ' › ',
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          Text(
+            steps[i],
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight:
+                  i + 1 == currentStep ? FontWeight.bold : FontWeight.normal,
+              color: i + 1 == currentStep
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(lookupStateProvider);
+    final step = _currentStep(state);
 
     return Dialog(
       child: ConstrainedBox(
@@ -74,6 +115,8 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
                     'Online Metadata Lookup',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+                  const SizedBox(width: 16),
+                  _buildStepIndicator(context, step),
                   const Spacer(),
                   if (state.queueLength > 0)
                     Chip(
@@ -86,6 +129,7 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
                     ),
                   IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Close',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -109,6 +153,10 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
         matches: state.matches,
         coverArt: state.coverArt,
         status: state.status,
+        isPartialMatch: state.isPartialMatch,
+        allSelectedFiles: state.allSelectedFiles,
+        optedOutPaths: state.optedOutPaths,
+        trackListing: state.trackListing,
         onBack: () {
           ref.read(lookupStateProvider.notifier).updateMatching([]);
         },
@@ -129,6 +177,11 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
         },
         onBack: () {
           ref.read(lookupStateProvider.notifier).deselectResult();
+        },
+        onPartialMatch: () {
+          ref.read(lookupStateProvider.notifier).matchFilesPartial(
+                widget.selectedFiles,
+              );
         },
       );
     }

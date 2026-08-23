@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/services/rename_service.dart';
+import '../../../error_handling/providers/error_providers.dart';
+import '../../../error_handling/utils/error_entry_factory.dart';
+import '../../../settings/data/providers/settings_providers.dart';
 import '../../data/models/case_option.dart';
 import '../../data/models/conflict_strategy.dart';
 import '../../data/models/rename_preview.dart';
@@ -23,17 +27,17 @@ class RenameDialog extends ConsumerStatefulWidget {
 class _RenameDialogState extends ConsumerState<RenameDialog> {
   final _patternController = TextEditingController();
   bool _showTagHelper = false;
+  int? _selectedPresetIndex;
 
   @override
   void initState() {
     super.initState();
-    final presets = ref.read(presetProvider);
-    if (presets.isNotEmpty) {
-      _patternController.text = presets.first.pattern;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(renamerStateProvider.notifier).setPattern(presets.first.pattern);
-      });
-    }
+    final defaultPattern = ref.read(renamingSettingsProvider).defaultPattern;
+    _patternController.text = defaultPattern;
+    _selectedPresetIndex = ref.read(presetProvider).isNotEmpty ? 0 : null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(renamerStateProvider.notifier).setPattern(defaultPattern);
+    });
   }
 
   @override
@@ -56,15 +60,57 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
 
   Future<void> _executeRename() async {
     final notifier = ref.read(renamerStateProvider.notifier);
+    final state = ref.read(renamerStateProvider);
     final result = await notifier.executeRename();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${result.renamedCount} renamed, ${result.skippedCount} skipped, ${result.errorCount} errors',
+      if (result.errorCount > 0) {
+        // Convert RenameErrors to RenameResults for the error entry factory.
+        final renameResults = result.errors
+            .map(
+              (e) {
+                // Look up the target path from previews.
+                final preview = state.previews.cast<RenamePreview?>().firstWhere(
+                  (p) => p!.originalPath == e.filePath,
+                  orElse: () => null,
+                );
+                return RenameResult(
+                  originalPath: e.filePath,
+                  newPath: preview?.newPath ?? '',
+                  success: false,
+                  error: e.message,
+                );
+              },
+            )
+            .toList();
+        final entries = ErrorEntryFactory.fromRenameResults(renameResults);
+        ref.read(errorLogProvider.notifier).addEntries(entries);
+
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.renamedCount} renamed, ${result.errorCount} failed',
+            ),
+            duration: const Duration(seconds: 30),
+            showCloseIcon: true,
+            action: SnackBarAction(
+              label: 'View Details',
+              onPressed: () {
+                ref.read(errorPanelVisibleProvider.notifier).state = true;
+              },
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.renamedCount} renamed, ${result.skippedCount} skipped',
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
       Navigator.of(context).pop();
     }
   }
@@ -104,6 +150,40 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     }
   }
 
+  Future<void> _confirmDeletePreset(String presetName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Preset'),
+          content: Text("Delete preset '$presetName'?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && _selectedPresetIndex != null) {
+      await ref.read(presetProvider.notifier).delete(_selectedPresetIndex!);
+      setState(() {
+        final presets = ref.read(presetProvider);
+        if (presets.isEmpty) {
+          _selectedPresetIndex = null;
+        } else if (_selectedPresetIndex! >= presets.length) {
+          _selectedPresetIndex = presets.length - 1;
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(renamerStateProvider);
@@ -112,6 +192,9 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
 
     final hasOkPreviews =
         state.previews.any((p) => p.status == RenamePreviewStatus.ok);
+    final previewRequired =
+        ref.watch(renamingSettingsProvider).previewBeforeRenaming;
+    final canExecute = previewRequired ? hasOkPreviews : state.pattern.isNotEmpty;
 
     return AlertDialog(
       title: const Text('Rename Files'),
@@ -122,25 +205,43 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Preset selector row
-            DropdownButtonFormField<int>(
-              initialValue: presets.isNotEmpty ? 0 : null,
-              decoration: const InputDecoration(
-                labelText: 'Preset',
-              ),
-              items: [
-                for (var i = 0; i < presets.length; i++)
-                  DropdownMenuItem(
-                    value: i,
-                    child: Text(presets[i].name),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    key: ValueKey(presets.length),
+                    initialValue: _selectedPresetIndex,
+                    decoration: const InputDecoration(
+                      labelText: 'Preset',
+                    ),
+                    items: [
+                      for (var i = 0; i < presets.length; i++)
+                        DropdownMenuItem(
+                          value: i,
+                          child: Text(presets[i].name),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null && value < presets.length) {
+                        final pattern = presets[value].pattern;
+                        _patternController.text = pattern;
+                        ref.read(renamerStateProvider.notifier).setPattern(pattern);
+                        setState(() => _selectedPresetIndex = value);
+                      }
+                    },
                   ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Delete preset',
+                  onPressed: _selectedPresetIndex == null ||
+                          presets.isEmpty ||
+                          presets[_selectedPresetIndex!].isBuiltIn
+                      ? null
+                      : () => _confirmDeletePreset(presets[_selectedPresetIndex!].name),
+                ),
               ],
-              onChanged: (value) {
-                if (value != null && value < presets.length) {
-                  final pattern = presets[value].pattern;
-                  _patternController.text = pattern;
-                  ref.read(renamerStateProvider.notifier).setPattern(pattern);
-                }
-              },
             ),
             const SizedBox(height: 12),
 
@@ -305,7 +406,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
           child: const Text('Save Preset'),
         ),
         FilledButton(
-          onPressed: state.isExecuting || !hasOkPreviews
+          onPressed: state.isExecuting || !canExecute
               ? null
               : _executeRename,
           child: state.isExecuting

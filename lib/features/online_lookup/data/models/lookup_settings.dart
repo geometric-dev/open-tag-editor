@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 import '../models/search_result.dart';
 
 /// Persisted settings for online metadata lookup.
-class LookupSettings {
+class LookupSettings extends Equatable {
   const LookupSettings({
     this.discogsToken = '',
     this.fpcalcPath = '',
@@ -23,6 +25,14 @@ class LookupSettings {
 
   /// Whether Discogs is configured (token is non-empty).
   bool get isDiscogsConfigured => discogsToken.isNotEmpty;
+
+  @override
+  List<Object?> get props => [
+        discogsToken,
+        fpcalcPath,
+        defaultSource,
+        autoFetchCoverArt,
+      ];
 
   /// Creates a copy with updated fields.
   LookupSettings copyWith({

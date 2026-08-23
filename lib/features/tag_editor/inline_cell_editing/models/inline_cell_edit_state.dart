@@ -9,6 +9,7 @@ class InlineCellEditState {
     this.originalValue,
     this.currentValue,
     this.selectAll = false,
+    this.showFocusBorder = false,
   });
 
   /// The cell that currently has keyboard focus (highlight shown).
@@ -26,6 +27,12 @@ class InlineCellEditState {
   /// Whether all text should be selected on edit mode entry (F2).
   final bool selectAll;
 
+  /// Whether the focus border should be rendered.
+  ///
+  /// True when focus was set via keyboard navigation (arrows, Tab).
+  /// False when focus was set implicitly by row click selection.
+  final bool showFocusBorder;
+
   /// Whether a cell is actively being edited.
   bool get isEditing => editingCell != null;
 
@@ -38,6 +45,7 @@ class InlineCellEditState {
     String? originalValue,
     String? currentValue,
     bool? selectAll,
+    bool? showFocusBorder,
     bool clearEditing = false,
   }) {
     return InlineCellEditState(
@@ -47,6 +55,7 @@ class InlineCellEditState {
           clearEditing ? null : (originalValue ?? this.originalValue),
       currentValue: clearEditing ? null : (currentValue ?? this.currentValue),
       selectAll: clearEditing ? false : (selectAll ?? this.selectAll),
+      showFocusBorder: showFocusBorder ?? this.showFocusBorder,
     );
   }
 }

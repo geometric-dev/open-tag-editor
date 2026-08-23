@@ -2,32 +2,32 @@
 
 ## Summary
 
-The app has a solid foundation with PRD 00 (TagLib FFI), PRD 01 (Folder Loading & File Display), and PRD 04 (Online Metadata Lookup) fully implemented. PRD 02 (File Renaming) has a partial implementation, and PRD 03 (Tags from Filename) is not started. Beyond those, this review identifies several UX gaps that would meaningfully improve the user experience.
+The app has a solid foundation with PRD 00 (TagLib FFI), PRD 01 (Folder Loading & File Display), and PRD 04 (Online Metadata Lookup) fully implemented. PRD 02 (File Renaming) and PRD 03 (Tags from Filename) are now fully implemented. Several UX gaps identified in this review have also been addressed. Below is the updated status.
 
 ---
 
-## Status of PRD 02: File Renaming via Mask
+## Status of PRD 02: File Renaming via Mask — ✅ DONE
 
-The current implementation covers basic rename-by-pattern with a preset selector, custom pattern input, live preview, and batch execution. However, the following PRD 02 requirements are **not yet implemented**:
+Fully reimplemented with a token-based mask engine. All core features are complete:
+- ✅ Full-path masks with folder creation
+- ✅ Mask Editor dialog with variable insertion
+- ✅ Saved mask presets (user-defined + built-in)
+- ✅ Conflict handling UI (skip/overwrite/auto-increment)
+- ✅ Case transformation options (lowercase, UPPERCASE, Capitalize First, sentence case, replace underscores)
+- ✅ Undo support via UndoRedoManager
+- ✅ Path length validation (FilenameSanitizer)
+- ✅ Dry-run validation
+- ✅ Conflict highlighting in preview
 
-### Missing from PRD 02
-
-1. **Full-path masks with folder creation** — The `RenameService` supports subdirectory creation from patterns, but the UI (`RenameDialog`) doesn't expose this clearly or let users build full-path masks (e.g., `D:\Music\%artist\%year - %album\%track - %title`).
-2. **Mask Editor helper dialog** — No visual mask builder exists.
-3. **Saved mask presets (user-defined)** — Only built-in presets exist; users cannot save/name/recall custom masks.
-4. **Conflict handling UI** — The service throws `RenameConflictException` but the dialog doesn't offer skip/overwrite/auto-increment options to the user.
-5. **Case transformation options** — No UI for replace-underscores, lowercase, UPPERCASE, Capitalize First Letter, sentence case.
-6. **Undo support** — Rename operations are not registered with the `UndoRedoManager`.
-7. **Path length validation** — No check for OS path length limits.
-8. **Warning when target is outside loaded folder** — Not implemented.
-9. **Dry-run validation** — No pre-execution validation pass.
-10. **Conflict highlighting in preview** — Duplicate target filenames are not flagged in the preview list.
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
-## Status of PRD 03: Tags from Filename
+## Status of PRD 03: Tags from Filename — ✅ DONE
 
-**Not implemented.** No UI, service, or model exists for parsing filenames/paths into tag fields. This is a completely new feature to build.
+Fully implemented with MaskExtractor, PathScopeResolver, value transformation pipeline, WriteTagsCommand (with undo), ExtractorStateNotifier, and the ExtractorDialog UI with preview panel.
+
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
@@ -35,82 +35,100 @@ The current implementation covers basic rename-by-pattern with a preset selector
 
 ### P1 — Critical User Impact
 
-#### PRD 06: Album Art Management (P1)
+#### PRD 06: Album Art Management (P1) — ✅ DONE
 
-The Album Art tab in the Tag Edit Panel has placeholder TODOs for core functionality:
-- "Add" button opens a file picker but doesn't write the art to the file (`// TODO: Write album art to file via service`)
-- "Remove" button is wired but does nothing (`// TODO: Remove album art`)
-- No batch album art operations (apply same art to multiple selected files)
-- No drag-and-drop of images onto the art panel
-- No paste from clipboard support
+Fully implemented:
+- ✅ Add button writes album art via FFI (writeAlbumArt with complex property attributes)
+- ✅ Remove button with confirmation for multi-file
+- ✅ Batch album art operations (apply/remove across multiple selected files)
+- ✅ Drag-and-drop of images onto the art panel (desktop_drop)
+- ✅ Paste from clipboard support (Ctrl+V)
+- ✅ Undo/redo support (AlbumArtCommand)
+- ✅ Image preview modal with zoom/pan
+- ✅ Batch progress overlay
+- ✅ Mixed art detection (shared/mixed/none states)
+- ✅ Size warning for images > 5 MB
 
-This is P1 because album art management is a core workflow for any tag editor and the UI suggests it works but doesn't.
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
-#### PRD 07: Unsaved Changes Protection (P1)
+#### PRD 07: Unsaved Changes Protection (P1) — ⚠️ PARTIALLY DONE
 
-- No "are you sure?" prompt when closing the app with unsaved modifications
-- No "are you sure?" prompt when loading a new folder with unsaved modifications
-- The "Confirm before saving" setting in Settings is a TODO (`// TODO: Implement setting`)
-- No visual indicator on the window title showing unsaved state (e.g., `* Open Tag Editor`)
+- ✅ "Confirm before saving" setting is now wired and functional (via Settings Completeness spec)
+- ❌ No "are you sure?" prompt when closing the app with unsaved modifications
+- ❌ No "are you sure?" prompt when loading a new folder with unsaved modifications
+- ❌ No visual indicator on the window title showing unsaved state (e.g., `* Open Tag Editor`)
 
-This is P1 because users can silently lose work.
+The confirmation dialog gates the *save* action, but there's no protection against *losing* unsaved edits on close/folder-switch.
 
 ---
 
 ### P2 — Significant User Impact
 
-#### PRD 08: Column Resize (P2)
+#### PRD 08: Column Resize (P2) — ✅ DONE
 
-Columns use fixed `defaultWidth` values and cannot be resized by the user. For a data-heavy grid with 17 possible columns, this is a significant usability gap:
-- Long values (paths, titles) get truncated with no way to see them
-- Short columns (Track #, Disc #) waste space
-- No drag-to-resize on column header borders
-- Column widths should persist across sessions
+Fully implemented:
+- ✅ Drag-to-resize on column header borders
+- ✅ Double-click to auto-fit column width
+- ✅ Column widths persist across sessions
+- ✅ Minimum width constraint (40px)
+- ✅ Context menu with "Reset Column Widths"
+- ✅ Tag indicator column excluded from resize
 
----
-
-#### PRD 09: Inline Cell Editing (P2)
-
-Currently, editing tags requires the side panel. Users of tag editors (Mp3tag, Tag&Rename) expect to double-click a cell in the grid and edit inline:
-- Double-click a cell to enter edit mode
-- Tab to move to next cell
-- Enter to confirm, Escape to cancel
-- Multi-select + inline edit applies to all selected rows (batch)
-- Changes register with undo system
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
-#### PRD 10: Keyboard Navigation (P2)
+#### PRD 09: Inline Cell Editing (P2) — ✅ DONE
 
-The data grid lacks keyboard navigation:
-- Arrow keys to move selection up/down
-- Home/End to jump to first/last file
-- Page Up/Page Down for scrolling
-- Enter to open tag panel for selected file
-- Delete to clear selected tag fields
-- F2 to start inline editing (if PRD 09 is implemented)
+Fully implemented:
+- ✅ Double-click a cell to enter edit mode
+- ✅ Tab/Shift+Tab to navigate between editable cells
+- ✅ Enter to confirm (+ navigate down), Escape to cancel
+- ✅ Multi-select + inline edit applies to all selected rows (batch with confirmation dialog)
+- ✅ Changes register with undo system
+- ✅ F2 to start editing, printable character to start with that character
+- ✅ Read-only columns protected (filename, bitrate, duration, relativePath, tagIndicator)
+- ✅ Modified cell indicator (corner triangle)
+- ✅ Row selection guard (must select row before editing)
+- ✅ Marquee (rubber-band) drag selection
+- ✅ Full Ctrl/Shift/Ctrl+Shift multi-selection with keyboard support
+
+Only optional tests remain unwritten (marked `*` in spec).
+
+---
+
+#### PRD 10: Keyboard Navigation (P2) — ✅ DONE (via Cell Edit Row Selection Guard spec)
+
+Implemented as part of the inline editing and selection guard work:
+- ✅ Arrow keys to move selection up/down
+- ✅ Shift+Arrow to extend selection
+- ✅ Ctrl+Shift+Home/End to extend to start/end
+- ✅ Ctrl+A to select all
+- ✅ F2 to start inline editing
 
 ---
 
 ### P3 — Moderate User Impact
 
-#### PRD 11: Settings Persistence & Completeness (P3)
+#### PRD 11: Settings Persistence & Completeness (P3) — ✅ DONE
 
-Several settings are stubbed with TODOs:
-- "Confirm before saving" — not implemented
-- "Default ID3v2 version" — not implemented
-- "Write ID3v1 tags" — not implemented
-- "Default encoding" — not implemented
-- "Default rename pattern" — not implemented
-- "Preview before renaming" — not implemented
+Fully implemented:
+- ✅ "Confirm before saving" — wired to GeneralSettingsNotifier
+- ✅ "Default ID3v2 version" — wired to TagWritingSettingsNotifier
+- ✅ "Write ID3v1 tags" — wired to TagWritingSettingsNotifier
+- ✅ "Default encoding" — wired to TagWritingSettingsNotifier (with v2.3+UTF-8 fallback)
+- ✅ "Default rename pattern" — wired to RenamingSettingsNotifier
+- ✅ "Preview before renaming" — wired to RenamingSettingsNotifier
+- ✅ TagWriteOptions integrated into TagLibWriterService
+- ✅ Confirmation dialog gates save action
 
-The settings page needs a pass to wire all controls to actual persisted preferences.
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
-#### PRD 12: Error Handling & User Feedback (P3)
+#### PRD 12: Error Handling & User Feedback (P3) — ❌ NOT STARTED
 
 - No toast/snackbar system for transient messages (only the status bar, which is easy to miss)
 - No error log or history panel for reviewing past failures
@@ -120,7 +138,7 @@ The settings page needs a pass to wire all controls to actual persisted preferen
 
 ---
 
-#### PRD 13: Empty State & Onboarding (P3)
+#### PRD 13: Empty State & Onboarding (P3) — ❌ NOT STARTED
 
 - The empty state ("Drop files or folders here or use the toolbar to open") is minimal
 - No first-run guidance or feature discovery
@@ -132,16 +150,21 @@ The settings page needs a pass to wire all controls to actual persisted preferen
 
 ### P4 — Nice to Have
 
-#### PRD 14: Window State Persistence (P4)
+#### PRD 14: Window State Persistence (P4) — ✅ DONE
 
-- Tag editor panel open/closed state doesn't persist across sessions
-- Panel width (380px fixed) is not adjustable or persisted
-- Window size and position don't persist
-- Splitter between file list and tag panel would be more flexible than fixed width
+Fully implemented:
+- ✅ Window size and position persist across sessions
+- ✅ Tag editor panel open/closed state persists
+- ✅ Panel width is adjustable via resizable splitter and persisted
+- ✅ Splitter between file list and tag panel (ResizableSplitter widget)
+- ✅ Last folder reopening (with setting toggle)
+- ✅ Off-screen/display-bounds clamping on restore
+
+Only optional tests remain unwritten (marked `*` in spec).
 
 ---
 
-#### PRD 15: Accessibility & Theming (P4)
+#### PRD 15: Accessibility & Theming (P4) — ❌ NOT STARTED
 
 - No high-contrast theme option
 - Font size is hardcoded (11-13px throughout) with no user scaling
@@ -151,7 +174,7 @@ The settings page needs a pass to wire all controls to actual persisted preferen
 
 ---
 
-#### PRD 16: Drag-and-Drop Enhancements (P4)
+#### PRD 16: Drag-and-Drop Enhancements (P4) — ❌ NOT STARTED
 
 - Column reorder via drag is defined in the spec but the `ColumnHeaders` widget uses `GestureDetector` without actual drag-and-drop implementation (only click-to-sort and right-click menu)
 - No drag-and-drop reorder for track matching in the lookup dialog (spec says "manual reordering via drag-and-drop" but implementation uses a simple list)
@@ -159,9 +182,16 @@ The settings page needs a pass to wire all controls to actual persisted preferen
 
 ---
 
-## Recommendations
+## Recommendations (Updated)
 
-1. **Immediate focus**: PRD 06 (Album Art) and PRD 07 (Unsaved Changes Protection) — these are broken promises in the current UI.
-2. **Complete PRD 02 and 03** as planned — the rename feature is half-done and tags-from-filename is a key differentiator.
-3. **Next tier**: PRD 08 (Column Resize) and PRD 09 (Inline Editing) would bring the grid up to parity with established tag editors.
-4. **Polish pass**: PRDs 11-16 can be addressed incrementally as the app matures.
+### Remaining work worth tackling next
+
+1. **PRD 07: Unsaved Changes Protection (remaining)** — The "confirm before saving" piece is done, but the app still doesn't warn on close/folder-switch with dirty state. This is the last P1 gap and relatively small scope: a dirty-state tracker + two guard dialogs + optional window title indicator.
+
+2. **PRD 12: Error Handling & User Feedback** — Now that all the core editing features are in place (inline editing, album art, renaming, extraction), users will hit errors more often. A proper toast/notification system and per-file error reporting would significantly improve the experience.
+
+3. **PRD 13: Empty State & Onboarding** — Low effort, high polish. A better empty state with format info and settings links would help first-time users.
+
+4. **PRD 15: Accessibility & Theming** — Important for broader adoption but can be incremental.
+
+5. **PRD 16: Drag-and-Drop Enhancements** — Nice-to-have polish, lowest priority.

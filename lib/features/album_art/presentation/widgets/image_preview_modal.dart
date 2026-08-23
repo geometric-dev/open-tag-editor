@@ -25,14 +25,15 @@ class ImagePreviewModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: FocusNode()..requestFocus(),
+    return Focus(
       autofocus: true,
-      onKeyEvent: (event) {
+      onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.escape) {
           Navigator.of(context).pop();
+          return KeyEventResult.handled;
         }
+        return KeyEventResult.ignored;
       },
       child: GestureDetector(
         onTap: () => Navigator.of(context).pop(),

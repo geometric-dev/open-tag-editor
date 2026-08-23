@@ -35,6 +35,12 @@ class TagEditCommand implements UndoableCommand {
 
     for (final file in currentFiles) {
       if (filePaths.contains(file.path)) {
+        final currentValue = file.tags[fieldName] ?? '';
+        // Skip files where the value is already the same.
+        if (currentValue == newValue ||
+            (currentValue.isEmpty && newValue.isEmpty)) {
+          continue;
+        }
         final newTags = Map<String, String>.from(file.tags);
         if (newValue.isEmpty) {
           newTags.remove(fieldName);
@@ -45,7 +51,9 @@ class TagEditCommand implements UndoableCommand {
       }
     }
 
-    fileListNotifier.updateFiles(updatedFiles);
+    if (updatedFiles.isNotEmpty) {
+      fileListNotifier.updateFiles(updatedFiles);
+    }
   }
 
   @override
@@ -62,11 +70,27 @@ class TagEditCommand implements UndoableCommand {
         } else {
           newTags[fieldName] = previousValue;
         }
-        updatedFiles.add(file.copyWith(tags: newTags, isModified: true));
+        // Determine if the file is still modified compared to on-disk state.
+        final original = file.originalTags;
+        final stillModified = original == null ||
+            !_mapsEqual(newTags, original);
+        updatedFiles.add(
+          file.copyWith(tags: newTags, isModified: stillModified),
+        );
       }
     }
 
-    fileListNotifier.updateFiles(updatedFiles);
+    if (updatedFiles.isNotEmpty) {
+      fileListNotifier.updateFiles(updatedFiles);
+    }
+  }
+
+  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
   }
 }
 
@@ -99,18 +123,26 @@ class BatchTagEditCommand implements UndoableCommand {
     for (final file in currentFiles) {
       if (filePaths.contains(file.path)) {
         final newTags = Map<String, String>.from(file.tags);
+        var changed = false;
         for (final entry in newValues.entries) {
+          final currentValue = newTags[entry.key] ?? '';
+          if (currentValue == entry.value) continue;
+          changed = true;
           if (entry.value.isEmpty) {
             newTags.remove(entry.key);
           } else {
             newTags[entry.key] = entry.value;
           }
         }
-        updatedFiles.add(file.copyWith(tags: newTags, isModified: true));
+        if (changed) {
+          updatedFiles.add(file.copyWith(tags: newTags, isModified: true));
+        }
       }
     }
 
-    fileListNotifier.updateFiles(updatedFiles);
+    if (updatedFiles.isNotEmpty) {
+      fileListNotifier.updateFiles(updatedFiles);
+    }
   }
 
   @override
@@ -121,13 +153,26 @@ class BatchTagEditCommand implements UndoableCommand {
     for (final file in currentFiles) {
       if (filePaths.contains(file.path)) {
         final prevTags = previousValues[file.path] ?? {};
+        final original = file.originalTags;
+        final stillModified = original == null ||
+            !_mapsEqual(prevTags, original);
         updatedFiles.add(file.copyWith(
           tags: Map<String, String>.from(prevTags),
-          isModified: true,
+          isModified: stillModified,
         ),);
       }
     }
 
-    fileListNotifier.updateFiles(updatedFiles);
+    if (updatedFiles.isNotEmpty) {
+      fileListNotifier.updateFiles(updatedFiles);
+    }
+  }
+
+  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
   }
 }

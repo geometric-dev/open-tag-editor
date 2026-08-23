@@ -31,9 +31,13 @@ class RateLimiter {
   /// Stream that emits queue length changes for UI binding.
   Stream<int> get queueLengthStream => _queueController.stream;
 
+  /// Maximum number of retry attempts on HTTP 429 responses.
+  static const _maxRetries = 3;
+
   /// Sends a request, waiting if necessary to respect rate limits.
   ///
-  /// Automatically retries on HTTP 429 using the Retry-After header.
+  /// Automatically retries on HTTP 429 using the Retry-After header,
+  /// up to [_maxRetries] attempts.
   Future<http.Response> send(http.BaseRequest request) async {
     _queueLength++;
     _queueController.add(_queueLength);
@@ -41,16 +45,19 @@ class RateLimiter {
     try {
       await _waitForSlot();
 
-      final response = await _client.send(request).then(http.Response.fromStream);
+      var response =
+          await _client.send(request).then(http.Response.fromStream);
 
-      // Handle rate limit response
-      if (response.statusCode == 429) {
+      var retries = 0;
+      while (response.statusCode == 429 && retries < _maxRetries) {
+        retries++;
         final retryAfter = _parseRetryAfter(response.headers['retry-after']);
         await Future<void>.delayed(retryAfter);
 
-        // Retry the request (create a new copy since the original is consumed)
         final retryRequest = _copyRequest(request);
-        return _client.send(retryRequest).then(http.Response.fromStream);
+        response = await _client
+            .send(retryRequest)
+            .then(http.Response.fromStream);
       }
 
       return response;

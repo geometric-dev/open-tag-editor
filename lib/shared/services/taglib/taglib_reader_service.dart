@@ -10,6 +10,7 @@ import '../tag_reader_service.dart';
 import 'tag_property_mapper.dart';
 import 'taglib_bindings.g.dart';
 import 'taglib_types.dart';
+import 'win32_short_path.dart';
 
 /// Reads audio file tags using TagLib via FFI bindings.
 ///
@@ -17,7 +18,9 @@ import 'taglib_types.dart';
 /// in a format-agnostic way, and the Complex Properties API for album art.
 class TagLibReaderService implements TagReaderService {
   /// Creates a [TagLibReaderService] with the given [bindings].
-  TagLibReaderService(this._bindings);
+  TagLibReaderService(this._bindings) {
+    _bindings.taglib_set_strings_unicode(1);
+  }
 
   final TagLibBindings _bindings;
 
@@ -28,7 +31,10 @@ class TagLibReaderService implements TagReaderService {
       throw TagReadException('File does not exist', path);
     }
 
-    final nativePath = path.toNativeUtf8();
+    // On Windows, paths with non-ASCII characters (emoji, CJK, etc.) can't
+    // be opened by TagLib's fopen-based API. Use the 8.3 short path instead.
+    final effectivePath = _resolveNativePath(path);
+    final nativePath = effectivePath.toNativeUtf8();
     Pointer<TagLib_File> tagFile = nullptr;
 
     try {
@@ -45,9 +51,14 @@ class TagLibReaderService implements TagReaderService {
       final tags = _readProperties(tagFile);
       final audioProps = _readAudioProperties(tagFile);
       final albumArt = _readAlbumArt(tagFile);
-      final tagFormat = _detectTagFormat(p.extension(path).toLowerCase(), tags);
+      final tagFormat = _detectTagFormat(
+        p.extension(path).toLowerCase(),
+        tags,
+        file,
+      );
 
       final stat = file.statSync();
+      final isReadOnly = _isFileReadOnly(file);
 
       return AudioFile(
         path: path,
@@ -55,18 +66,45 @@ class TagLibReaderService implements TagReaderService {
         extension: p.extension(path).toLowerCase(),
         fileSize: stat.size,
         tags: tags,
+        originalTags: Map<String, String>.unmodifiable(tags),
         albumArt: albumArt,
         duration: audioProps.duration,
         bitrate: audioProps.bitrate,
         sampleRate: audioProps.sampleRate,
         channels: audioProps.channels,
         tagFormat: tagFormat,
+        isReadOnly: isReadOnly,
       );
     } finally {
       malloc.free(nativePath);
       if (tagFile != nullptr) {
         _bindings.taglib_file_free(tagFile);
       }
+    }
+  }
+
+  /// Resolves a file path to one that TagLib's C API can open.
+  ///
+  /// On Windows, if the path contains non-ASCII characters, converts it
+  /// to the 8.3 short path format (which is always ASCII). Falls back to
+  /// the original path if short path conversion fails.
+  String _resolveNativePath(String path) {
+    if (!Platform.isWindows) return path;
+    if (!Win32ShortPath.hasNonAsciiChars(path)) return path;
+    return Win32ShortPath.getShortPath(path) ?? path;
+  }
+
+  /// Checks whether a file is read-only on the filesystem.
+  ///
+  /// Attempts to open the file for append access without modifying it.
+  /// If the open fails, the file is considered read-only.
+  static bool _isFileReadOnly(File file) {
+    try {
+      final raf = file.openSync(mode: FileMode.writeOnlyAppend);
+      raf.closeSync();
+      return false;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -78,14 +116,16 @@ class TagLibReaderService implements TagReaderService {
       try {
         final audioFile = await readTags(path);
         results.add(audioFile);
-      } catch (_) {
-        // On failure, include file with empty tags
+      } catch (e) {
+        // On failure, include file with empty tags and readError
         final file = File(path);
         results.add(AudioFile(
           path: path,
           filename: p.basename(path),
           extension: p.extension(path).toLowerCase(),
           fileSize: file.existsSync() ? file.statSync().size : 0,
+          isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+          readError: e.toString(),
         ),);
       }
     }
@@ -293,10 +333,18 @@ class TagLibReaderService implements TagReaderService {
   /// For formats with a single tag container type (FLAC, OGG, M4A, etc.),
   /// the format is known from the container spec — not a guess.
   /// Returns null if tags are empty or format can't be determined.
-  TagFormat? _detectTagFormat(String extension, Map<String, String> tags) {
+  TagFormat? _detectTagFormat(
+    String extension,
+    Map<String, String> tags,
+    File file,
+  ) {
     if (tags.isEmpty) return null;
 
     switch (extension) {
+      case '.mp3':
+        // Read the first 10 bytes to check for an ID3v2 header.
+        // ID3v2 header: "ID3" (3 bytes) + version major (1 byte) + ...
+        return _detectMp3TagFormat(file);
       case '.flac':
       case '.ogg':
       case '.opus':
@@ -315,11 +363,34 @@ class TagLibReaderService implements TagReaderService {
         // APE files exclusively use APE tags.
         return TagFormat.apeTag;
       default:
-        // For MP3, WAV, and others where multiple tag formats are possible,
-        // we can't determine the version without reading the header.
-        // Return unknown — the Id3ReaderService fallback does header detection.
         return TagFormat.unknown;
     }
+  }
+
+  /// Detects the ID3 tag version for an MP3 file by reading the header.
+  ///
+  /// Checks for an ID3v2 header ("ID3" magic bytes) and reads the version
+  /// byte. Falls back to ID3v1 if no ID3v2 header is found but tags exist.
+  TagFormat _detectMp3TagFormat(File file) {
+    try {
+      final raf = file.openSync(mode: FileMode.read);
+      try {
+        final header = raf.readSync(10);
+        if (header.length >= 4 &&
+            header[0] == 0x49 && // 'I'
+            header[1] == 0x44 && // 'D'
+            header[2] == 0x33) { // '3'
+          final version = header[3];
+          return version == 4 ? TagFormat.id3v2_4 : TagFormat.id3v2_3;
+        }
+      } finally {
+        raf.closeSync();
+      }
+    } catch (_) {
+      // If we can't read the header, fall back gracefully.
+    }
+    // No ID3v2 header found but tags were read — must be ID3v1.
+    return TagFormat.id3v1;
   }
 
   /// Reads a NULL-terminated array of UTF-8 string pointers into a Dart list.

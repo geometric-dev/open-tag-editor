@@ -39,7 +39,7 @@ class ThresholdGuardDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      icon: const Icon(Icons.warning_amber_rounded, size: 48),
+      icon: const Icon(Icons.warning_amber_rounded, size: 32),
       title: const Text('Large Directory'),
       content: Text(
         'Found $fileCount audio files in subfolders.\n\n'

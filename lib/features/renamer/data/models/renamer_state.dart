@@ -50,29 +50,38 @@ class RenamerState {
   final RenameExecutionResult? executionResult;
 
   /// Creates a copy with updated fields.
+  ///
+  /// For nullable fields ([parseError], [executionResult]), pass the
+  /// sentinel [_absent] via the wrapper parameters [clearParseError] and
+  /// [clearExecutionResult] to explicitly set them to null.
   RenamerState copyWith({
     String? pattern,
     List<MaskToken>? tokens,
-    String? parseError,
+    Object? parseError = _absent,
     CaseOption? caseOption,
     bool? replaceUnderscores,
     ConflictStrategy? conflictStrategy,
     List<RenamePreview>? previews,
     Map<String, List<String>>? conflicts,
     bool? isExecuting,
-    RenameExecutionResult? executionResult,
+    Object? executionResult = _absent,
   }) {
     return RenamerState(
       pattern: pattern ?? this.pattern,
       tokens: tokens ?? this.tokens,
-      parseError: parseError ?? this.parseError,
+      parseError:
+          parseError == _absent ? this.parseError : parseError as String?,
       caseOption: caseOption ?? this.caseOption,
       replaceUnderscores: replaceUnderscores ?? this.replaceUnderscores,
       conflictStrategy: conflictStrategy ?? this.conflictStrategy,
       previews: previews ?? this.previews,
       conflicts: conflicts ?? this.conflicts,
       isExecuting: isExecuting ?? this.isExecuting,
-      executionResult: executionResult ?? this.executionResult,
+      executionResult: executionResult == _absent
+          ? this.executionResult
+          : executionResult as RenameExecutionResult?,
     );
   }
 }
+
+const _absent = Object();

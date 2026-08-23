@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../shared/services/id3_reader_service.dart';
 import '../../../../shared/services/rename_service.dart';
@@ -10,6 +11,8 @@ import '../../../../shared/services/taglib/taglib_bindings.g.dart';
 import '../../../../shared/services/taglib/taglib_reader_service.dart';
 import '../../../../shared/services/taglib/taglib_writer_service.dart';
 import '../../../../shared/services/taglib/validation_engine.dart';
+import '../../../settings/data/models/tag_write_options.dart';
+import '../../../settings/data/providers/settings_providers.dart';
 
 /// Provider for the backup enabled setting.
 ///
@@ -41,7 +44,16 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
     );
     final reader = ref.read(tagReaderProvider);
     final validator = ValidationEngine(reader);
-    return TagLibWriterService(bindings, backupManager, validator);
+    return TagLibWriterService(
+      bindings,
+      backupManager,
+      validator,
+      getWriteOptions: () => TagWriteOptions(
+        id3v2Version: ref.read(tagWritingSettingsProvider).id3v2Version,
+        writeId3v1: ref.read(tagWritingSettingsProvider).writeId3v1,
+        encoding: ref.read(tagWritingSettingsProvider).encoding,
+      ),
+    );
   }
   return DisabledWriterService();
 });

@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/lookup_settings.dart';
@@ -29,8 +29,13 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
         defaultSource: _parseSource(prefs.getString(_keyDefaultSource)),
         autoFetchCoverArt: prefs.getBool(_keyAutoFetchArt) ?? true,
       );
-    } catch (_) {
-      // Keep defaults on error
+    } catch (e) {
+      // Keep defaults on error — log for debugging
+      assert(() {
+        // ignore: avoid_print
+        print('LookupSettingsNotifier.loadFromPrefs failed: $e');
+        return true;
+      }());
     }
   }
 
@@ -55,6 +60,12 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
   /// Updates the auto-fetch cover art setting.
   void setAutoFetchCoverArt(bool enabled) {
     state = state.copyWith(autoFetchCoverArt: enabled);
+    _persist();
+  }
+
+  /// Resets all lookup settings to their factory defaults and persists.
+  void resetToDefaults() {
+    state = const LookupSettings();
     _persist();
   }
 

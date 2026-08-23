@@ -7,6 +7,7 @@ class SelectionState {
   const SelectionState({
     this.selectedPaths = const {},
     this.anchorPath,
+    this.activePath,
   });
 
   /// The set of currently selected file paths.
@@ -14,6 +15,11 @@ class SelectionState {
 
   /// The last single-clicked path, used as the anchor for Shift+click range selection.
   final String? anchorPath;
+
+  /// The current active end of the selection range (moves with Shift+arrow).
+  ///
+  /// When null, defaults to [anchorPath] for range calculations.
+  final String? activePath;
 
   /// Whether any files are selected.
   bool get hasSelection => selectedPaths.isNotEmpty;
@@ -28,10 +34,13 @@ class SelectionState {
   SelectionState copyWith({
     Set<String>? selectedPaths,
     String? anchorPath,
+    String? activePath,
+    bool clearActivePath = false,
   }) {
     return SelectionState(
       selectedPaths: selectedPaths ?? this.selectedPaths,
       anchorPath: anchorPath ?? this.anchorPath,
+      activePath: clearActivePath ? null : (activePath ?? this.activePath),
     );
   }
 }

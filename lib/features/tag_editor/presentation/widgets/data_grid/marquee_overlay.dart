@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/models/grid_item.dart';
 import '../../../data/providers/selection_provider.dart';
 import '../../../inline_cell_editing/providers/inline_cell_edit_provider.dart';
 import 'marquee_utils.dart';
@@ -30,6 +31,7 @@ class MarqueeOverlay extends ConsumerStatefulWidget {
     required this.child,
     required this.rowHeight,
     required this.scrollController,
+    required this.gridItems,
     required this.orderedPaths,
   });
 
@@ -42,7 +44,10 @@ class MarqueeOverlay extends ConsumerStatefulWidget {
   /// The vertical scroll controller of the list.
   final ScrollController scrollController;
 
-  /// Ordered list of file paths corresponding to row indices.
+  /// The full grid items list (files + separators) for row-to-file mapping.
+  final List<GridItem> gridItems;
+
+  /// Ordered list of file paths corresponding to file rows only.
   final List<String> orderedPaths;
 
   @override
@@ -140,17 +145,24 @@ class _MarqueeOverlayState extends ConsumerState<MarqueeOverlay> {
     final marqueeTop = _startPosition.dy + scrollOffset;
     final marqueeBottom = _currentPosition.dy + scrollOffset;
 
+    // Compute intersected visual row indices (includes separators)
     final intersectedRows = computeMarqueeIntersectedRows(
       marqueeTop: marqueeTop,
       marqueeBottom: marqueeBottom,
       rowHeight: widget.rowHeight,
-      totalRows: widget.orderedPaths.length,
+      totalRows: widget.gridItems.length,
     );
 
-    final intersectedPaths = intersectedRows
-        .where((i) => i < widget.orderedPaths.length)
-        .map((i) => widget.orderedPaths[i])
-        .toSet();
+    // Filter to only file rows, extracting their paths
+    final intersectedPaths = <String>{};
+    for (final i in intersectedRows) {
+      if (i < widget.gridItems.length) {
+        final item = widget.gridItems[i];
+        if (item is FileGridItem) {
+          intersectedPaths.add(item.file.path);
+        }
+      }
+    }
 
     final selNotifier = ref.read(selectionProvider.notifier);
 

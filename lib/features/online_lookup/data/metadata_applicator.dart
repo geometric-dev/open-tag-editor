@@ -22,12 +22,17 @@ class MetadataApplicator {
   /// Applies selected fields from matched tracks to files.
   ///
   /// Only writes fields that are in [selectedFields].
+  /// [albumTitle], [albumArtist], and [year] are album-level fields from the
+  /// selected release — they apply uniformly to all matched files.
   /// Returns [ApplyResult] with per-file success/failure info.
   Future<ApplyResult> apply({
     required List<TrackFileMatch> matches,
     required Set<String> selectedFields,
     CoverArtResult? coverArt,
     bool applyCoverArt = false,
+    String? albumTitle,
+    String? albumArtist,
+    String? year,
   }) async {
     final fileResults = <ApplyFileResult>[];
     var successCount = 0;
@@ -39,7 +44,13 @@ class MetadataApplicator {
       }
 
       final file = match.file!;
-      final tags = _buildTagMap(match, selectedFields);
+      final tags = _buildTagMap(
+        match,
+        selectedFields,
+        albumTitle: albumTitle,
+        albumArtist: albumArtist,
+        year: year,
+      );
 
       if (tags.isEmpty && !(applyCoverArt && coverArt != null)) {
         continue;
@@ -62,10 +73,15 @@ class MetadataApplicator {
           );
         }
 
-        // Update file in the list as modified
+        // Update file in the list — tags are now on disk so update
+        // originalTags to reflect the new on-disk state.
         final updatedTags = Map<String, String>.from(file.tags)..addAll(tags);
         _fileListNotifier.updateFile(
-          file.copyWith(tags: updatedTags, isModified: false),
+          file.copyWith(
+            tags: updatedTags,
+            originalTags: Map<String, String>.unmodifiable(updatedTags),
+            isModified: false,
+          ),
         );
 
         fileResults.add(ApplyFileResult(path: file.path, success: true));
@@ -86,10 +102,16 @@ class MetadataApplicator {
   }
 
   /// Builds a tag map from the track info, including only selected fields.
+  ///
+  /// Album-level fields ([albumTitle], [albumArtist], [year]) come from the
+  /// selected release and are applied uniformly to all files.
   Map<String, String> _buildTagMap(
     TrackFileMatch match,
-    Set<String> selectedFields,
-  ) {
+    Set<String> selectedFields, {
+    String? albumTitle,
+    String? albumArtist,
+    String? year,
+  }) {
     final track = match.track;
     final tags = <String, String>{};
 
@@ -98,6 +120,21 @@ class MetadataApplicator {
     }
     if (selectedFields.contains('artist') && track.artist != null) {
       tags['artist'] = track.artist!;
+    }
+    if (selectedFields.contains('album') &&
+        albumTitle != null &&
+        albumTitle.isNotEmpty) {
+      tags['album'] = albumTitle;
+    }
+    if (selectedFields.contains('albumArtist') &&
+        albumArtist != null &&
+        albumArtist.isNotEmpty) {
+      tags['albumArtist'] = albumArtist;
+    }
+    if (selectedFields.contains('year') &&
+        year != null &&
+        year.isNotEmpty) {
+      tags['year'] = year;
     }
     if (selectedFields.contains('trackNumber')) {
       tags['trackNumber'] = track.position.toString();

@@ -89,6 +89,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
                   labelText: 'Artist',
                   isDense: true,
                 ),
+                onSubmitted: (_) => _search(),
               ),
             ),
             const SizedBox(width: 12),
@@ -99,6 +100,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
                   labelText: 'Album',
                   isDense: true,
                 ),
+                onSubmitted: (_) => _search(),
               ),
             ),
             const SizedBox(width: 12),
@@ -110,6 +112,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
                   labelText: 'Year',
                   isDense: true,
                 ),
+                onSubmitted: (_) => _search(),
               ),
             ),
           ],
@@ -143,9 +146,16 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
                         }
                       })
                   : null,
+              avatar: settings.isDiscogsConfigured
+                  ? null
+                  : Icon(
+                      Icons.link_off,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               tooltip: settings.isDiscogsConfigured
                   ? null
-                  : 'Configure Discogs token in Settings',
+                  : 'Configure Discogs token in Settings → Online Lookup',
             ),
             const Spacer(),
             // Identify button

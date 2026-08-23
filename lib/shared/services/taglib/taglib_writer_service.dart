@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
+import '../../../features/settings/data/models/tag_write_options.dart';
 import '../../models/audio_file.dart';
 import '../tag_reader_service.dart';
 import 'atomic_write_manager.dart';
@@ -10,6 +11,7 @@ import 'backup_manager.dart';
 import 'tag_property_mapper.dart';
 import 'taglib_bindings.g.dart';
 import 'validation_engine.dart';
+import 'win32_short_path.dart';
 
 /// Writes audio file tags using TagLib via FFI bindings.
 ///
@@ -17,20 +19,36 @@ import 'validation_engine.dart';
 /// and post-write validation to ensure data integrity.
 class TagLibWriterService implements TagWriterService {
   /// Creates a [TagLibWriterService] with the given dependencies.
-  TagLibWriterService(this._bindings, this._backupManager, this._validator);
+  TagLibWriterService(
+    this._bindings,
+    this._backupManager,
+    this._validator, {
+    required TagWriteOptions Function() getWriteOptions,
+  }) : _getWriteOptions = getWriteOptions;
 
   final TagLibBindings _bindings;
   final BackupManager _backupManager;
   final ValidationEngine _validator;
+  final TagWriteOptions Function() _getWriteOptions;
   final AtomicWriteManager _atomicWriteManager = AtomicWriteManager();
 
   @override
   Future<void> writeTags(String path, Map<String, String> tags) async {
     _assertFileExists(path);
     await _backupManager.createBackupIfEnabled(path);
+    final options = _getWriteOptions();
+
+    // Set the default text encoding for ID3v2 frames before writing.
+    // Handle v2.3 + UTF-8 incompatibility by falling back to UTF-16.
+    final encodingByte = (options.id3v2Version.numericVersion == 3 &&
+            options.encoding.id3v2EncodingByte == 3)
+        ? 1 // Fall back to UTF-16 for ID3v2.3
+        : options.encoding.id3v2EncodingByte;
+    _bindings.taglib_id3v2_set_default_text_encoding(encodingByte);
 
     await _atomicWriteManager.writeAtomic(path, (tempPath) async {
-      final nativePath = tempPath.toNativeUtf8();
+      final effectivePath = _resolveNativePath(tempPath);
+      final nativePath = effectivePath.toNativeUtf8();
       Pointer<TagLib_File> file = nullptr;
 
       try {
@@ -63,7 +81,8 @@ class TagLibWriterService implements TagWriterService {
     await _backupManager.createBackupIfEnabled(path);
 
     await _atomicWriteManager.writeAtomic(path, (tempPath) async {
-      final nativePath = tempPath.toNativeUtf8();
+      final effectivePath = _resolveNativePath(tempPath);
+      final nativePath = effectivePath.toNativeUtf8();
       Pointer<TagLib_File> file = nullptr;
       PictureAttributes? attrs;
 
@@ -118,7 +137,8 @@ class TagLibWriterService implements TagWriterService {
     await _backupManager.createBackupIfEnabled(path);
 
     await _atomicWriteManager.writeAtomic(path, (tempPath) async {
-      final nativePath = tempPath.toNativeUtf8();
+      final effectivePath = _resolveNativePath(tempPath);
+      final nativePath = effectivePath.toNativeUtf8();
       Pointer<TagLib_File> file = nullptr;
 
       try {
@@ -302,5 +322,16 @@ class TagLibWriterService implements TagWriterService {
     if (!File(path).existsSync()) {
       throw TagWriteException('File does not exist', path);
     }
+  }
+
+  /// Resolves a file path to one that TagLib's C API can open.
+  ///
+  /// On Windows, if the path contains non-ASCII characters, converts it
+  /// to the 8.3 short path format (which is always ASCII). Falls back to
+  /// the original path if short path conversion fails.
+  String _resolveNativePath(String path) {
+    if (!Platform.isWindows) return path;
+    if (!Win32ShortPath.hasNonAsciiChars(path)) return path;
+    return Win32ShortPath.getShortPath(path) ?? path;
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Provider for the recent folders list.
@@ -9,14 +9,14 @@ final recentFoldersProvider =
   return RecentFoldersNotifier();
 });
 
-/// Manages a bounded list of recently loaded folder paths (max 10).
+/// Manages a bounded list of recently loaded folder paths (max 20).
 ///
 /// Persists to SharedPreferences for cross-session access.
 class RecentFoldersNotifier extends StateNotifier<List<String>> {
   RecentFoldersNotifier() : super([]);
 
   static const _prefsKey = 'recent_folders_v1';
-  static const _maxEntries = 10;
+  static const _maxEntries = 20;
 
   /// Loads persisted recent folders from SharedPreferences.
   Future<void> loadFromPrefs() async {

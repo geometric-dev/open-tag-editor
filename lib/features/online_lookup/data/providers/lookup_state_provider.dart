@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../shared/models/audio_file.dart';
 import '../acoustid_service.dart';
@@ -13,6 +13,7 @@ import '../models/lookup_state.dart';
 import '../models/search_result.dart';
 import '../models/track_file_match.dart';
 import '../musicbrainz_service.dart';
+import '../partial_match_applicator.dart';
 import '../track_matcher.dart';
 
 /// Provider for the lookup workflow state.
@@ -28,16 +29,18 @@ final lookupStateProvider =
 class LookupStateNotifier extends StateNotifier<LookupState> {
   LookupStateNotifier() : super(const LookupState());
 
-  MusicBrainzService? _musicBrainzService;
+  late MusicBrainzService _musicBrainzService;
   DiscogsService? _discogsService;
-  AcoustIDService? _acoustIdService;
+  late AcoustIDService _acoustIdService;
   FingerprintGenerator? _fingerprintGenerator;
-  CoverArtService? _coverArtService;
-  MetadataApplicator? _metadataApplicator;
-  LookupCache? _cache;
+  late CoverArtService _coverArtService;
+  late MetadataApplicator _metadataApplicator;
+  PartialMatchApplicator? _partialMatchApplicator;
+  late LookupCache _cache;
+  bool _configured = false;
   bool _cancelled = false;
 
-  /// Injects service dependencies.
+  /// Injects service dependencies. Must be called before any workflow method.
   void configure({
     required MusicBrainzService musicBrainzService,
     DiscogsService? discogsService,
@@ -45,6 +48,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     FingerprintGenerator? fingerprintGenerator,
     required CoverArtService coverArtService,
     required MetadataApplicator metadataApplicator,
+    PartialMatchApplicator? partialMatchApplicator,
     required LookupCache cache,
   }) {
     _musicBrainzService = musicBrainzService;
@@ -53,7 +57,14 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     _fingerprintGenerator = fingerprintGenerator;
     _coverArtService = coverArtService;
     _metadataApplicator = metadataApplicator;
+    _partialMatchApplicator = partialMatchApplicator;
     _cache = cache;
+    _configured = true;
+  }
+
+  /// Asserts that [configure] has been called.
+  void _assertConfigured() {
+    assert(_configured, 'LookupStateNotifier.configure() must be called first');
   }
 
   /// Performs a search across selected sources.
@@ -63,6 +74,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     String? year,
     required Set<SearchSource> sources,
   }) async {
+    _assertConfigured();
     _cancelled = false;
     state = state.copyWith(status: LookupStatus.searching, error: null);
 
@@ -73,7 +85,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
       year: year,
       sources: sources,
     );
-    final cached = _cache?.getSearchResults(cacheKey);
+    final cached = _cache.getSearchResults(cacheKey);
     if (cached != null) {
       state = state.copyWith(
         status: LookupStatus.idle,
@@ -84,7 +96,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
     try {
       final mbResults = sources.contains(SearchSource.musicBrainz)
-          ? await _musicBrainzService!.searchReleases(
+          ? await _musicBrainzService.searchReleases(
               artist: artist,
               album: album,
               year: year,
@@ -105,7 +117,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
       if (_cancelled) return;
 
       final merged = LookupHelpers.mergeResults(mbResults, discogsResults);
-      _cache?.cacheSearchResults(cacheKey, merged);
+      _cache.cacheSearchResults(cacheKey, merged);
 
       state = state.copyWith(
         status: LookupStatus.idle,
@@ -121,6 +133,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
   /// Selects a result and fetches its track listing.
   Future<void> selectResult(SearchResult result) async {
+    _assertConfigured();
     _cancelled = false;
     state = state.copyWith(
       status: LookupStatus.loadingTracks,
@@ -129,7 +142,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     );
 
     // Check cache
-    final cachedTracks = _cache?.getTrackListing(result.id);
+    final cachedTracks = _cache.getTrackListing(result.id);
     if (cachedTracks != null) {
       state = state.copyWith(
         status: LookupStatus.idle,
@@ -139,14 +152,14 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
       try {
         List<TrackInfo> tracks;
         if (result.source == SearchSource.musicBrainz) {
-          tracks = await _musicBrainzService!.getReleaseTracks(result.id);
+          tracks = await _musicBrainzService.getReleaseTracks(result.id);
         } else {
           tracks = await _discogsService!.getReleaseTracks(int.parse(result.id));
         }
 
         if (_cancelled) return;
 
-        _cache?.cacheTrackListing(result.id, tracks);
+        _cache.cacheTrackListing(result.id, tracks);
         state = state.copyWith(
           status: LookupStatus.idle,
           trackListing: tracks,
@@ -162,7 +175,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     // Fetch cover art in parallel (MusicBrainz only)
     if (result.source == SearchSource.musicBrainz) {
       try {
-        final art = await _coverArtService!.getFrontCover(result.id);
+        final art = await _coverArtService.getFrontCover(result.id);
         if (!_cancelled) {
           state = state.copyWith(coverArt: art, coverArtLoading: false);
         }
@@ -183,6 +196,115 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     state = state.copyWith(matches: matches);
   }
 
+  /// Triggers multi-signal matching for partial match scenario.
+  ///
+  /// Sets [isPartialMatch] to true and stores all selected files for
+  /// display in the apply panel.
+  void matchFilesPartial(List<AudioFile> files) {
+    final matches = TrackMatcher.autoMatch(
+      tracks: state.trackListing,
+      files: files,
+    );
+    state = state.copyWith(
+      matches: matches,
+      isPartialMatch: true,
+      allSelectedFiles: files,
+      optedOutPaths: {},
+    );
+  }
+
+  /// Toggles a file's opt-out status for metadata application.
+  void toggleFileOptOut(String path) {
+    final current = Set<String>.from(state.optedOutPaths);
+    if (current.contains(path)) {
+      current.remove(path);
+    } else {
+      current.add(path);
+    }
+    state = state.copyWith(optedOutPaths: current);
+  }
+
+  /// Manually reassigns a track to a file.
+  ///
+  /// Removes any existing assignment for [filePath], then assigns [track]
+  /// to that file. If [track] is null, the file becomes unassigned.
+  void reassignTrack(String filePath, TrackInfo? track) {
+    final updatedMatches = List<TrackFileMatch>.from(state.matches);
+
+    // Remove existing assignment for this file.
+    final existingIdx =
+        updatedMatches.indexWhere((m) => m.file?.path == filePath);
+    if (existingIdx >= 0) {
+      final existing = updatedMatches[existingIdx];
+      updatedMatches[existingIdx] = TrackFileMatch(
+        track: existing.track,
+        file: null,
+        confidence: MatchConfidence.unmatched,
+      );
+    }
+
+    // Assign the new track to this file.
+    if (track != null) {
+      final targetIdx = updatedMatches.indexWhere((m) => m.track == track);
+      if (targetIdx >= 0) {
+        final targetFile =
+            state.allSelectedFiles.firstWhere((f) => f.path == filePath);
+        updatedMatches[targetIdx] = TrackFileMatch(
+          track: track,
+          file: targetFile,
+          confidence: MatchConfidence.high,
+          score: 1.0,
+        );
+      }
+    }
+
+    state = state.copyWith(matches: updatedMatches);
+  }
+
+  /// Clears a track assignment from a file.
+  void clearTrackAssignment(String filePath) {
+    reassignTrack(filePath, null);
+  }
+
+  /// Applies metadata using the partial match applicator.
+  ///
+  /// Album-level metadata is written to all non-opted-out files.
+  /// Track-level metadata is written only to files with a track assignment.
+  Future<ApplyResult> applyPartialMetadata({
+    required Set<String> selectedFields,
+    required bool applyCoverArt,
+  }) async {
+    _assertConfigured();
+    state = state.copyWith(status: LookupStatus.applying);
+
+    try {
+      final result = await _partialMatchApplicator!.apply(
+        matches: state.matches,
+        allFiles: state.allSelectedFiles,
+        selectedFields: selectedFields,
+        optedOutPaths: state.optedOutPaths,
+        totalFileCount: state.allSelectedFiles.length,
+        coverArt: applyCoverArt ? state.coverArt : null,
+        applyCoverArt: applyCoverArt,
+        albumTitle: state.selectedResult?.title,
+        albumArtist: state.selectedResult?.artist,
+        year: state.selectedResult?.year,
+      );
+      state = state.copyWith(status: LookupStatus.complete);
+      return result;
+    } catch (e) {
+      state = state.copyWith(
+        status: LookupStatus.error,
+        error: 'Apply failed: $e',
+      );
+      return ApplyResult(
+        successCount: 0,
+        failureCount: state.allSelectedFiles.length,
+        fileResults: [],
+      );
+    }
+  }
+
   /// Updates the track-to-file matching (e.g., after manual reorder).
   void updateMatching(List<TrackFileMatch> matches) {
     state = state.copyWith(matches: matches);
@@ -190,6 +312,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
   /// Triggers fingerprint identification for selected files.
   Future<void> identifyFiles(List<AudioFile> files) async {
+    _assertConfigured();
     if (_fingerprintGenerator == null) {
       state = state.copyWith(
         status: LookupStatus.error,
@@ -224,7 +347,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     // Look up each fingerprint
     final results = <SearchResult>[];
     for (final fp in fingerprints) {
-      final matches = await _acoustIdService!.lookup(
+      final matches = await _acoustIdService.lookup(
         fingerprint: fp.fingerprint,
         durationSeconds: fp.durationSeconds,
       );
@@ -251,14 +374,18 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     required Set<String> selectedFields,
     required bool applyCoverArt,
   }) async {
+    _assertConfigured();
     state = state.copyWith(status: LookupStatus.applying);
 
     try {
-      final result = await _metadataApplicator!.apply(
+      final result = await _metadataApplicator.apply(
         matches: state.matches,
         selectedFields: selectedFields,
         coverArt: applyCoverArt ? state.coverArt : null,
         applyCoverArt: applyCoverArt,
+        albumTitle: state.selectedResult?.title,
+        albumArtist: state.selectedResult?.artist,
+        year: state.selectedResult?.year,
       );
 
       state = state.copyWith(status: LookupStatus.complete);

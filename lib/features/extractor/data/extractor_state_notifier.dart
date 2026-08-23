@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/undo/undo_redo_manager.dart';
 import '../../../shared/models/audio_file.dart';

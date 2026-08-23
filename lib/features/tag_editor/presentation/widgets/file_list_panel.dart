@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/widgets/unsaved_changes_guard.dart';
+import '../../../folder_panel/presentation/breadcrumb_bar.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/filtered_sorted_file_list_provider.dart';
+import '../../data/providers/folder_loading_provider.dart';
+import '../../data/providers/grid_items_provider.dart';
 import '../../data/providers/selection_provider.dart';
-import 'address_bar.dart';
+import '../helpers/grid_navigation.dart';
 import 'data_grid/data_grid.dart';
 
 /// Panel showing the list of loaded audio files with address bar,
@@ -18,10 +22,10 @@ class FileListPanel extends ConsumerWidget {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyA, control: true): () {
-          final files = ref.read(filteredSortedFileListProvider);
+          final gridItems = ref.read(gridItemsProvider);
           ref
               .read(selectionProvider.notifier)
-              .selectAll(files.map((f) => f.path).toList());
+              .selectAll(filePathsFromGridItems(gridItems));
         },
       },
       child: Focus(
@@ -29,10 +33,19 @@ class FileListPanel extends ConsumerWidget {
         child: ClipRect(
           child: Column(
             children: [
-            // Address bar with folder path, recent folders, recursive toggle
-            AddressBar(
-              onFolderSelected: (path) {
-                // Handled by toolbar/home page loading logic
+            // Breadcrumb bar with folder path navigation
+            BreadcrumbBar(
+              onFolderSelected: (path) async {
+                // Guard against unsaved changes before loading a new folder.
+                final proceed = await UnsavedChangesGuard.check(
+                  context: context,
+                  ref: ref,
+                  clearUndoOnDiscard: true,
+                );
+                if (!proceed) return;
+                if (!context.mounted) return;
+                final service = FolderLoadingService(ref);
+                await service.loadFolder(context, path);
               },
             ),
             // Filter bar with text filter and show-selected toggle
@@ -54,6 +67,12 @@ class _FilterBar extends ConsumerStatefulWidget {
 
 class _FilterBarState extends ConsumerState<_FilterBar> {
   final _filterController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _filterController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -97,6 +116,20 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
               ),
             ),
           ),
+          if (showSelectedOnly) ...[
+            const SizedBox(width: 8),
+            Chip(
+              label: const Text(
+                'Showing selected only',
+                style: TextStyle(fontSize: 11),
+              ),
+              onDeleted: () {
+                ref.read(showSelectedOnlyProvider.notifier).state = false;
+              },
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ],
           const SizedBox(width: 8),
           // Show selected only toggle
           Tooltip(

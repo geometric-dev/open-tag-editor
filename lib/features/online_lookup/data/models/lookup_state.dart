@@ -1,6 +1,11 @@
+import '../../../../shared/models/audio_file.dart';
 import 'cover_art_result.dart';
 import 'search_result.dart';
 import 'track_file_match.dart';
+
+/// Sentinel value used by [LookupState.copyWith] to distinguish between
+/// "not provided" and "explicitly set to null".
+const _sentinel = Object();
 
 /// Immutable state for the lookup workflow.
 class LookupState {
@@ -15,6 +20,9 @@ class LookupState {
     this.error,
     this.fingerprintProgress,
     this.queueLength = 0,
+    this.isPartialMatch = false,
+    this.optedOutPaths = const {},
+    this.allSelectedFiles = const [],
   });
 
   /// Current workflow status.
@@ -47,30 +55,53 @@ class LookupState {
   /// Number of requests in the rate limiter queue.
   final int queueLength;
 
+  /// Whether this is a partial match (album tracks < selected files).
+  final bool isPartialMatch;
+
+  /// Set of file paths the user has opted out of metadata application.
+  final Set<String> optedOutPaths;
+
+  /// Full list of selected files (for unmatched display in partial mode).
+  final List<AudioFile> allSelectedFiles;
+
   /// Creates a copy with updated fields.
+  ///
+  /// Nullable fields use a sentinel default so that passing `null` explicitly
+  /// clears the value, while omitting the parameter preserves the current one.
   LookupState copyWith({
     LookupStatus? status,
     List<SearchResult>? searchResults,
-    SearchResult? selectedResult,
+    Object? selectedResult = _sentinel,
     List<TrackInfo>? trackListing,
     List<TrackFileMatch>? matches,
-    CoverArtResult? coverArt,
+    Object? coverArt = _sentinel,
     bool? coverArtLoading,
-    String? error,
-    FingerprintProgress? fingerprintProgress,
+    Object? error = _sentinel,
+    Object? fingerprintProgress = _sentinel,
     int? queueLength,
+    bool? isPartialMatch,
+    Set<String>? optedOutPaths,
+    List<AudioFile>? allSelectedFiles,
   }) {
     return LookupState(
       status: status ?? this.status,
       searchResults: searchResults ?? this.searchResults,
-      selectedResult: selectedResult ?? this.selectedResult,
+      selectedResult: selectedResult == _sentinel
+          ? this.selectedResult
+          : selectedResult as SearchResult?,
       trackListing: trackListing ?? this.trackListing,
       matches: matches ?? this.matches,
-      coverArt: coverArt ?? this.coverArt,
+      coverArt:
+          coverArt == _sentinel ? this.coverArt : coverArt as CoverArtResult?,
       coverArtLoading: coverArtLoading ?? this.coverArtLoading,
-      error: error ?? this.error,
-      fingerprintProgress: fingerprintProgress ?? this.fingerprintProgress,
+      error: error == _sentinel ? this.error : error as String?,
+      fingerprintProgress: fingerprintProgress == _sentinel
+          ? this.fingerprintProgress
+          : fingerprintProgress as FingerprintProgress?,
       queueLength: queueLength ?? this.queueLength,
+      isPartialMatch: isPartialMatch ?? this.isPartialMatch,
+      optedOutPaths: optedOutPaths ?? this.optedOutPaths,
+      allSelectedFiles: allSelectedFiles ?? this.allSelectedFiles,
     );
   }
 }

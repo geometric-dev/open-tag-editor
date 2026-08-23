@@ -16,30 +16,30 @@ void main() {
         notifier.select('b.mp3');
         notifier.moveDown(paths);
 
-        expect(notifier.debugState.selectedPaths, {'c.mp3'});
-        expect(notifier.debugState.anchorPath, 'c.mp3');
+        expect(notifier.state.selectedPaths, {'c.mp3'});
+        expect(notifier.state.anchorPath, 'c.mp3');
       });
 
       test('no-op at last row', () {
         notifier.select('e.mp3');
         notifier.moveDown(paths);
 
-        expect(notifier.debugState.selectedPaths, {'e.mp3'});
-        expect(notifier.debugState.anchorPath, 'e.mp3');
+        expect(notifier.state.selectedPaths, {'e.mp3'});
+        expect(notifier.state.anchorPath, 'e.mp3');
       });
 
       test('no-op on empty list', () {
         notifier.select('a.mp3');
         notifier.moveDown([]);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
+        expect(notifier.state.selectedPaths, {'a.mp3'});
       });
 
       test('selects first row when no anchor exists', () {
         notifier.moveDown(paths);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
-        expect(notifier.debugState.anchorPath, 'a.mp3');
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
     });
 
@@ -48,30 +48,30 @@ void main() {
         notifier.select('c.mp3');
         notifier.moveUp(paths);
 
-        expect(notifier.debugState.selectedPaths, {'b.mp3'});
-        expect(notifier.debugState.anchorPath, 'b.mp3');
+        expect(notifier.state.selectedPaths, {'b.mp3'});
+        expect(notifier.state.anchorPath, 'b.mp3');
       });
 
       test('no-op at first row', () {
         notifier.select('a.mp3');
         notifier.moveUp(paths);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
-        expect(notifier.debugState.anchorPath, 'a.mp3');
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
 
       test('no-op on empty list', () {
         notifier.select('a.mp3');
         notifier.moveUp([]);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
+        expect(notifier.state.selectedPaths, {'a.mp3'});
       });
 
-      test('selects last row when no anchor exists', () {
+      test('selects first row when no anchor exists', () {
         notifier.moveUp(paths);
 
-        expect(notifier.debugState.selectedPaths, {'e.mp3'});
-        expect(notifier.debugState.anchorPath, 'e.mp3');
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
     });
 
@@ -80,16 +80,16 @@ void main() {
         notifier.select('b.mp3');
         notifier.extendDown(paths);
 
-        expect(notifier.debugState.selectedPaths, {'b.mp3', 'c.mp3'});
-        expect(notifier.debugState.anchorPath, 'b.mp3');
+        expect(notifier.state.selectedPaths, {'b.mp3', 'c.mp3'});
+        expect(notifier.state.anchorPath, 'b.mp3');
       });
 
       test('no-op at last row', () {
         notifier.select('e.mp3');
         notifier.extendDown(paths);
 
-        expect(notifier.debugState.selectedPaths, {'e.mp3'});
-        expect(notifier.debugState.anchorPath, 'e.mp3');
+        expect(notifier.state.selectedPaths, {'e.mp3'});
+        expect(notifier.state.anchorPath, 'e.mp3');
       });
 
       test('extends from furthest selected row', () {
@@ -98,10 +98,10 @@ void main() {
         notifier.extendDown(paths);
 
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'b.mp3', 'c.mp3', 'd.mp3'},
         );
-        expect(notifier.debugState.anchorPath, 'b.mp3');
+        expect(notifier.state.anchorPath, 'b.mp3');
       });
     });
 
@@ -110,16 +110,16 @@ void main() {
         notifier.select('c.mp3');
         notifier.extendUp(paths);
 
-        expect(notifier.debugState.selectedPaths, {'b.mp3', 'c.mp3'});
-        expect(notifier.debugState.anchorPath, 'c.mp3');
+        expect(notifier.state.selectedPaths, {'b.mp3', 'c.mp3'});
+        expect(notifier.state.anchorPath, 'c.mp3');
       });
 
       test('no-op at first row', () {
         notifier.select('a.mp3');
         notifier.extendUp(paths);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
-        expect(notifier.debugState.anchorPath, 'a.mp3');
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
 
       test('extends from topmost selected row', () {
@@ -128,10 +128,10 @@ void main() {
         notifier.extendUp(paths);
 
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'a.mp3', 'b.mp3', 'c.mp3'},
         );
-        expect(notifier.debugState.anchorPath, 'c.mp3');
+        expect(notifier.state.anchorPath, 'c.mp3');
       });
     });
 
@@ -141,25 +141,25 @@ void main() {
         notifier.extendToStart(paths);
 
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'a.mp3', 'b.mp3', 'c.mp3'},
         );
-        expect(notifier.debugState.anchorPath, 'c.mp3');
+        expect(notifier.state.anchorPath, 'c.mp3');
       });
 
       test('no-op when anchor is already at first row', () {
         notifier.select('a.mp3');
         notifier.extendToStart(paths);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
-        expect(notifier.debugState.anchorPath, 'a.mp3');
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
 
       test('no-op on empty list', () {
         notifier.select('a.mp3');
         notifier.extendToStart([]);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
+        expect(notifier.state.selectedPaths, {'a.mp3'});
       });
     });
 
@@ -169,25 +169,25 @@ void main() {
         notifier.extendToEnd(paths);
 
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'c.mp3', 'd.mp3', 'e.mp3'},
         );
-        expect(notifier.debugState.anchorPath, 'c.mp3');
+        expect(notifier.state.anchorPath, 'c.mp3');
       });
 
       test('no-op when anchor is already at last row', () {
         notifier.select('e.mp3');
         notifier.extendToEnd(paths);
 
-        expect(notifier.debugState.selectedPaths, {'e.mp3'});
-        expect(notifier.debugState.anchorPath, 'e.mp3');
+        expect(notifier.state.selectedPaths, {'e.mp3'});
+        expect(notifier.state.anchorPath, 'e.mp3');
       });
 
       test('no-op on empty list', () {
         notifier.select('a.mp3');
         notifier.extendToEnd([]);
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3'});
+        expect(notifier.state.selectedPaths, {'a.mp3'});
       });
     });
 
@@ -202,24 +202,24 @@ void main() {
         // Should add range from anchor (e.mp3) to target (c.mp3)
         // That's c.mp3, d.mp3, e.mp3 unioned with existing
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'a.mp3', 'c.mp3', 'd.mp3', 'e.mp3'},
         );
-        expect(notifier.debugState.anchorPath, 'e.mp3');
+        expect(notifier.state.anchorPath, 'e.mp3');
       });
 
       test('falls back to toggleSelect when no anchor', () {
         notifier.addRangeSelect('b.mp3', paths);
 
-        expect(notifier.debugState.selectedPaths, {'b.mp3'});
-        expect(notifier.debugState.anchorPath, 'b.mp3');
+        expect(notifier.state.selectedPaths, {'b.mp3'});
+        expect(notifier.state.anchorPath, 'b.mp3');
       });
 
       test('preserves anchor unchanged', () {
         notifier.select('b.mp3');
         notifier.addRangeSelect('d.mp3', paths);
 
-        expect(notifier.debugState.anchorPath, 'b.mp3');
+        expect(notifier.state.anchorPath, 'b.mp3');
       });
     });
 
@@ -228,16 +228,16 @@ void main() {
         notifier.select('a.mp3');
         notifier.replaceSelection({'c.mp3', 'd.mp3'});
 
-        expect(notifier.debugState.selectedPaths, {'c.mp3', 'd.mp3'});
+        expect(notifier.state.selectedPaths, {'c.mp3', 'd.mp3'});
       });
 
       test('sets anchor to first path when non-empty', () {
         notifier.replaceSelection({'b.mp3', 'c.mp3'});
 
-        expect(notifier.debugState.anchorPath, isNotNull);
+        expect(notifier.state.anchorPath, isNotNull);
         expect(
-          notifier.debugState.selectedPaths
-              .contains(notifier.debugState.anchorPath),
+          notifier.state.selectedPaths
+              .contains(notifier.state.anchorPath),
           isTrue,
         );
       });
@@ -246,8 +246,8 @@ void main() {
         notifier.select('a.mp3');
         notifier.replaceSelection({});
 
-        expect(notifier.debugState.selectedPaths, isEmpty);
-        expect(notifier.debugState.anchorPath, isNull);
+        expect(notifier.state.selectedPaths, isEmpty);
+        expect(notifier.state.anchorPath, isNull);
       });
     });
 
@@ -257,7 +257,7 @@ void main() {
         notifier.addToSelection({'c.mp3', 'd.mp3'});
 
         expect(
-          notifier.debugState.selectedPaths,
+          notifier.state.selectedPaths,
           {'a.mp3', 'c.mp3', 'd.mp3'},
         );
       });
@@ -266,14 +266,14 @@ void main() {
         notifier.select('a.mp3');
         notifier.addToSelection({'c.mp3'});
 
-        expect(notifier.debugState.anchorPath, 'a.mp3');
+        expect(notifier.state.anchorPath, 'a.mp3');
       });
 
       test('does not duplicate already-selected paths', () {
         notifier.select('a.mp3');
         notifier.addToSelection({'a.mp3', 'b.mp3'});
 
-        expect(notifier.debugState.selectedPaths, {'a.mp3', 'b.mp3'});
+        expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3'});
       });
     });
   });

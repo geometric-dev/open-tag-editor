@@ -25,10 +25,12 @@ enum TagVariable {
   /// Human-readable display name for UI.
   final String displayName;
 
-  /// Looks up a [TagVariable] by its mask name. Returns null if not found.
+  /// Looks up a [TagVariable] by its mask name (case-insensitive).
+  /// Returns null if not found.
   static TagVariable? fromMaskName(String name) {
+    final lower = name.toLowerCase();
     for (final v in values) {
-      if (v.maskName == name) return v;
+      if (v.maskName.toLowerCase() == lower) return v;
     }
     return null;
   }

@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../tag_editor/data/providers/file_list_provider.dart';

@@ -74,11 +74,15 @@ class ExtractorState {
       .length;
 
   /// Creates a copy with updated fields.
+  ///
+  /// For nullable fields ([parseError], [extractionError], [writeResult]),
+  /// pass the sentinel [_absent] via the wrapper parameters to explicitly
+  /// set them to null.
   ExtractorState copyWith({
     String? pattern,
     List<MaskToken>? tokens,
-    String? parseError,
-    String? extractionError,
+    Object? parseError = _absent,
+    Object? extractionError = _absent,
     PathScope? pathScope,
     CaseOption? caseOption,
     bool? replaceUnderscores,
@@ -87,13 +91,16 @@ class ExtractorState {
     List<ExtractionPreview>? previews,
     Set<String>? deselectedFiles,
     bool? isWriting,
-    WriteExecutionResult? writeResult,
+    Object? writeResult = _absent,
   }) {
     return ExtractorState(
       pattern: pattern ?? this.pattern,
       tokens: tokens ?? this.tokens,
-      parseError: parseError ?? this.parseError,
-      extractionError: extractionError ?? this.extractionError,
+      parseError:
+          parseError == _absent ? this.parseError : parseError as String?,
+      extractionError: extractionError == _absent
+          ? this.extractionError
+          : extractionError as String?,
       pathScope: pathScope ?? this.pathScope,
       caseOption: caseOption ?? this.caseOption,
       replaceUnderscores: replaceUnderscores ?? this.replaceUnderscores,
@@ -102,7 +109,11 @@ class ExtractorState {
       previews: previews ?? this.previews,
       deselectedFiles: deselectedFiles ?? this.deselectedFiles,
       isWriting: isWriting ?? this.isWriting,
-      writeResult: writeResult ?? this.writeResult,
+      writeResult: writeResult == _absent
+          ? this.writeResult
+          : writeResult as WriteExecutionResult?,
     );
   }
 }
+
+const _absent = Object();

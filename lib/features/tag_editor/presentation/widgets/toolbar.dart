@@ -4,12 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../core/utils/file_utils.dart';
+import '../../../../features/error_handling/providers/error_providers.dart';
+import '../../../../features/error_handling/utils/error_entry_factory.dart';
+import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
+import '../../../../shared/widgets/unsaved_changes_guard.dart';
+import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
-import '../../../settings/presentation/pages/settings_page.dart';
+import '../../../settings/presentation/pages/settings_page.dart'
+    show SettingsDialog;
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/recent_folders_provider.dart';
+import '../../data/providers/selection_provider.dart';
 import '../../data/providers/service_providers.dart';
 import 'address_bar.dart';
 
@@ -17,8 +24,18 @@ import 'address_bar.dart';
 class EditorToolbar extends ConsumerWidget {
   const EditorToolbar({super.key});
 
-  Future<void> _openFolder(WidgetRef ref) async {
-    final result = await FilePicker.platform.getDirectoryPath(
+  Future<void> _openFolder(WidgetRef ref, BuildContext context) async {
+    // Guard against unsaved changes before opening a new folder.
+    if (context.mounted) {
+      final proceed = await UnsavedChangesGuard.check(
+        context: context,
+        ref: ref,
+        clearUndoOnDiscard: true,
+      );
+      if (!proceed) return;
+    }
+
+    final result = await FilePicker.getDirectoryPath(
       dialogTitle: 'Select Music Folder',
     );
     if (result == null) return;
@@ -26,8 +43,18 @@ class EditorToolbar extends ConsumerWidget {
     await _loadFromPath(ref, result);
   }
 
-  Future<void> _openFiles(WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
+  Future<void> _openFiles(WidgetRef ref, BuildContext context) async {
+    // Guard against unsaved changes before opening new files.
+    if (context.mounted) {
+      final proceed = await UnsavedChangesGuard.check(
+        context: context,
+        ref: ref,
+        clearUndoOnDiscard: true,
+      );
+      if (!proceed) return;
+    }
+
+    final result = await FilePicker.pickFiles(
       dialogTitle: 'Select Audio Files',
       type: FileType.custom,
       allowedExtensions: [
@@ -49,6 +76,9 @@ class EditorToolbar extends ConsumerWidget {
 
     statusNotifier.state = 'Loading ${paths.length} file(s)...';
     final files = await reader.readTagsBatch(paths);
+    notifier.clear();
+    ref.read(selectionProvider.notifier).clear();
+    ref.read(errorLogProvider.notifier).clear();
     notifier.addFiles(files);
     statusNotifier.state = 'Loaded ${files.length} file(s)';
   }
@@ -69,6 +99,9 @@ class EditorToolbar extends ConsumerWidget {
     statusNotifier.state = 'Loading ${audioFiles.length} file(s)...';
     final paths = audioFiles.map((f) => f.path).toList();
     final files = await reader.readTagsBatch(paths);
+    notifier.clear();
+    ref.read(selectionProvider.notifier).clear();
+    ref.read(errorLogProvider.notifier).clear();
     notifier.addFiles(files);
 
     // Update address bar and recent folders
@@ -94,7 +127,15 @@ class EditorToolbar extends ConsumerWidget {
 
     final fileTagsMap = <String, Map<String, String>>{};
     for (final file in modifiedFiles) {
-      fileTagsMap[file.path] = file.tags;
+      final changed = file.modifiedTags;
+      if (changed.isNotEmpty) {
+        fileTagsMap[file.path] = changed;
+      }
+    }
+
+    if (fileTagsMap.isEmpty) {
+      statusNotifier.state = 'No changes to save';
+      return;
     }
 
     final results = await writer.writeTagsBatch(fileTagsMap);
@@ -104,23 +145,45 @@ class EditorToolbar extends ConsumerWidget {
     // Mark successful files as no longer modified
     final updatedFiles = modifiedFiles
         .where((f) => results.any((r) => r.path == f.path && r.success))
-        .map((f) => f.copyWith(isModified: false))
+        .map((f) => f.copyWith(
+              isModified: false,
+              originalTags: Map<String, String>.unmodifiable(f.tags),
+            ),)
         .toList();
     notifier.updateFiles(updatedFiles);
 
     if (failCount > 0) {
+      // Report failures to error log
+      final entries = ErrorEntryFactory.fromWriteResults(results, fileTagsMap);
+      ref.read(errorLogProvider.notifier).addEntries(entries);
       statusNotifier.state =
           'Saved $successCount file(s), $failCount failed';
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$failCount file(s) failed to save'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 30),
+            showCloseIcon: true,
+            action: SnackBarAction(
+              label: 'View Details',
+              onPressed: () {
+                ref.read(errorPanelVisibleProvider.notifier).state = true;
+              },
+            ),
           ),
         );
       }
     } else {
       statusNotifier.state = 'Saved $successCount file(s)';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$successCount file(s) saved successfully'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -131,7 +194,7 @@ class EditorToolbar extends ConsumerWidget {
     final hasUnsaved = ref.watch(hasUnsavedChangesProvider);
 
     return Container(
-      height: 48,
+      height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
@@ -144,12 +207,18 @@ class EditorToolbar extends ConsumerWidget {
           _ToolbarButton(
             icon: Icons.folder_open,
             tooltip: 'Open Folder',
-            onPressed: () => _openFolder(ref),
+            onPressed: () => _openFolder(ref, context),
           ),
           _ToolbarButton(
             icon: Icons.audio_file,
             tooltip: 'Open Files',
-            onPressed: () => _openFiles(ref),
+            onPressed: () => _openFiles(ref, context),
+          ),
+          _ToolbarButton(
+            icon: Icons.view_sidebar,
+            tooltip: 'Toggle Folder Panel',
+            onPressed: () =>
+                ref.read(folderPanelStateProvider.notifier).toggle(),
           ),
           const VerticalDivider(indent: 8, endIndent: 8),
           _ToolbarButton(
@@ -179,26 +248,48 @@ class EditorToolbar extends ConsumerWidget {
           _ToolbarButton(
             icon: Icons.drive_file_rename_outline,
             tooltip: 'Rename Files',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => const RenameDialog(),
-              );
-            },
+            onPressed: ref.watch(fileListProvider).isEmpty
+                ? null
+                : () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => const RenameDialog(),
+                    );
+                  },
+          ),
+          _ToolbarButton(
+            icon: Icons.text_snippet,
+            tooltip: 'Tags from Filename',
+            onPressed: ref.watch(fileListProvider).isEmpty
+                ? null
+                : () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => const ExtractorDialog(),
+                    );
+                  },
           ),
           _ToolbarButton(
             icon: Icons.search,
-            tooltip: 'Online Lookup',
-            onPressed: () {
-              showLookupDialog(context, ref);
-            },
+            tooltip: ref.watch(selectedFilesProvider).isEmpty
+                ? 'Select files to look up metadata'
+                : 'Online Lookup',
+            onPressed: ref.watch(selectedFilesProvider).isEmpty
+                ? null
+                : () {
+                    showLookupDialog(context, ref);
+                  },
           ),
           _ToolbarButton(
             icon: Icons.image,
             tooltip: 'Album Art',
-            onPressed: () {
-              // TODO: Open album art manager
-            },
+            onPressed: ref.watch(selectedFilesProvider).isEmpty
+                ? null
+                : () {
+                    ref.read(tagPanelOpenProvider.notifier).state = true;
+                    ref.read(tagPanelActiveTabProvider.notifier).state =
+                        TagPanelTab.albumArt;
+                  },
           ),
           _ToolbarButton(
             icon: Icons.edit_note,
@@ -213,11 +304,7 @@ class EditorToolbar extends ConsumerWidget {
             icon: Icons.settings,
             tooltip: 'Settings',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SettingsPage(),
-                ),
-              );
+              SettingsDialog.show(context);
             },
           ),
         ],

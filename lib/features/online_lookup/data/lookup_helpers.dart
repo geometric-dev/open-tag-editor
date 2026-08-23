@@ -1,4 +1,5 @@
 import '../../../shared/models/audio_file.dart';
+import 'lookup_cache.dart';
 import 'models/search_result.dart';
 
 /// Helper functions for the online lookup workflow.
@@ -55,18 +56,20 @@ class LookupHelpers {
   }
 
   /// Builds a normalized cache key from search parameters.
+  ///
+  /// Delegates to [LookupCache.buildCacheKey] — this method exists for
+  /// convenience so callers don't need to import the cache directly.
   static String buildCacheKey({
     String? artist,
     String? album,
     String? year,
     Set<SearchSource>? sources,
   }) {
-    final parts = <String>[
-      'a:${(artist ?? '').toLowerCase().trim()}',
-      'al:${(album ?? '').toLowerCase().trim()}',
-      'y:${(year ?? '').trim()}',
-      's:${(sources ?? {}).map((s) => s.name).toList()..sort()}',
-    ];
-    return parts.join('|');
+    return LookupCache.buildCacheKey(
+      artist: artist,
+      album: album,
+      year: year,
+      sources: sources,
+    );
   }
 }

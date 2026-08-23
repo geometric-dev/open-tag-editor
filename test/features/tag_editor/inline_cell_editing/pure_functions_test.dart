@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:open_tag_editor/features/tag_editor/inline_cell_editing/utils/column_editability.dart';
-import 'package:open_tag_editor/features/tag_editor/inline_cell_editing/utils/cell_navigation.dart';
 import 'package:open_tag_editor/features/tag_editor/inline_cell_editing/models/cell_coordinate.dart';
+import 'package:open_tag_editor/features/tag_editor/inline_cell_editing/utils/cell_navigation.dart';
+import 'package:open_tag_editor/features/tag_editor/inline_cell_editing/utils/column_editability.dart';
 
 void main() {
   group('isColumnEditable', () {
@@ -69,7 +69,7 @@ void main() {
     ];
 
     test('middle of row returns next editable column in same row', () {
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = nextEditableColumn(current, visibleColumns, 5);
 
       expect(
@@ -79,7 +79,7 @@ void main() {
     });
 
     test('end of row wraps to first editable column of next row', () {
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'genre');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'genre');
       final result = nextEditableColumn(current, visibleColumns, 5);
 
       expect(
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('last row last column returns null', () {
-      final current = const CellCoordinate(rowIndex: 4, columnId: 'genre');
+      const current = CellCoordinate(rowIndex: 4, columnId: 'genre');
       final result = nextEditableColumn(current, visibleColumns, 5);
 
       expect(result, isNull);
@@ -101,7 +101,7 @@ void main() {
         'title',
         'filename',
       ];
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = nextEditableColumn(current, singleEditableColumns, 3);
 
       expect(
@@ -112,7 +112,7 @@ void main() {
 
     test('returns null when no editable columns exist', () {
       final readOnlyColumns = ['tagIndicator', 'filename', 'bitrate'];
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = nextEditableColumn(current, readOnlyColumns, 5);
 
       expect(result, isNull);
@@ -130,7 +130,7 @@ void main() {
     ];
 
     test('middle of row returns previous editable column in same row', () {
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'artist');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'artist');
       final result = previousEditableColumn(current, visibleColumns, 5);
 
       expect(
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('start of row wraps to last editable column of previous row', () {
-      final current = const CellCoordinate(rowIndex: 1, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 1, columnId: 'title');
       final result = previousEditableColumn(current, visibleColumns, 5);
 
       expect(
@@ -150,7 +150,7 @@ void main() {
     });
 
     test('first row first column returns null', () {
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = previousEditableColumn(current, visibleColumns, 5);
 
       expect(result, isNull);
@@ -158,7 +158,7 @@ void main() {
 
     test('returns null when no editable columns exist', () {
       final readOnlyColumns = ['tagIndicator', 'filename', 'bitrate'];
-      final current = const CellCoordinate(rowIndex: 0, columnId: 'title');
+      const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = previousEditableColumn(current, readOnlyColumns, 5);
 
       expect(result, isNull);

@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../shared/models/audio_file.dart';
 import '../models/sort_state.dart';
+import 'editor_state_provider.dart';
 import 'file_list_provider.dart';
 import 'selection_provider.dart';
 import 'sort_state_provider.dart';
@@ -26,9 +28,19 @@ final filteredSortedFileListProvider = Provider<List<AudioFile>>((ref) {
   final showSelectedOnly = ref.watch(showSelectedOnlyProvider);
   if (showSelectedOnly) {
     final selection = ref.watch(selectionProvider);
-    files = files
+    final filtered = files
         .where((f) => selection.selectedPaths.contains(f.path))
         .toList();
+    if (filtered.isEmpty && files.isNotEmpty) {
+      // Auto-deactivate: would show zero files
+      Future.microtask(() {
+        ref.read(showSelectedOnlyProvider.notifier).state = false;
+        ref.read(statusMessageProvider.notifier).state =
+            'Filter cleared \u2014 no selected files to show';
+      });
+    } else {
+      files = filtered;
+    }
   }
 
   // Apply sort
