@@ -16,8 +16,8 @@ class Win32ShortPath {
   static final _kernel32 = DynamicLibrary.open('kernel32.dll');
 
   static final _getShortPathNameW = _kernel32.lookupFunction<
-      Uint32 Function(Pointer<Utf16> lpszLongPath,
-          Pointer<Utf16> lpszShortPath, Uint32 cchBuffer),
+      Uint32 Function(Pointer<Utf16> lpszLongPath, Pointer<Utf16> lpszShortPath,
+          Uint32 cchBuffer),
       int Function(Pointer<Utf16> lpszLongPath, Pointer<Utf16> lpszShortPath,
           int cchBuffer)>('GetShortPathNameW');
 

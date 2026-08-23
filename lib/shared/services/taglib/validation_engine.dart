@@ -40,7 +40,8 @@ class ValidationEngine {
                 : expected;
 
         if (actual != effectiveExpected) {
-          mismatches.add('$field expected \'$effectiveExpected\' got \'$actual\'');
+          mismatches
+              .add('$field expected \'$effectiveExpected\' got \'$actual\'');
         }
       }
     }

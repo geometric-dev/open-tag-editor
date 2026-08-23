@@ -21,8 +21,7 @@ class DisabledWriterService implements TagWriterService {
       );
 
   @override
-  Future<void> removeAlbumArt(String path) =>
-      throw TagWriteException(
+  Future<void> removeAlbumArt(String path) => throw TagWriteException(
         'Native TagLib library not available. Writing is disabled.',
         path,
       );

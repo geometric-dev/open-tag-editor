@@ -119,14 +119,16 @@ class TagLibReaderService implements TagReaderService {
       } catch (e) {
         // On failure, include file with empty tags and readError
         final file = File(path);
-        results.add(AudioFile(
-          path: path,
-          filename: p.basename(path),
-          extension: p.extension(path).toLowerCase(),
-          fileSize: file.existsSync() ? file.statSync().size : 0,
-          isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
-          readError: e.toString(),
-        ),);
+        results.add(
+          AudioFile(
+            path: path,
+            filename: p.basename(path),
+            extension: p.extension(path).toLowerCase(),
+            fileSize: file.existsSync() ? file.statSync().size : 0,
+            isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+            readError: e.toString(),
+          ),
+        );
       }
     }
 
@@ -186,8 +188,7 @@ class TagLibReaderService implements TagReaderService {
       final (number, total) = TagPropertyMapper.parseTrackNumber(value);
       tags[appField] = number;
 
-      final totalField =
-          appField == 'trackNumber' ? 'trackTotal' : 'discTotal';
+      final totalField = appField == 'trackNumber' ? 'trackTotal' : 'discTotal';
       if (total != null && !tags.containsKey(totalField)) {
         tags[totalField] = total;
       }
@@ -228,8 +229,7 @@ class TagLibReaderService implements TagReaderService {
       if (complexProps == nullptr) return null;
 
       try {
-        final pictureData =
-            calloc<TagLib_Complex_Property_Picture_Data>();
+        final pictureData = calloc<TagLib_Complex_Property_Picture_Data>();
 
         try {
           _bindings.taglib_picture_from_complex_property(
@@ -379,7 +379,8 @@ class TagLibReaderService implements TagReaderService {
         if (header.length >= 4 &&
             header[0] == 0x49 && // 'I'
             header[1] == 0x44 && // 'D'
-            header[2] == 0x33) { // '3'
+            header[2] == 0x33) {
+          // '3'
           final version = header[3];
           return version == 4 ? TagFormat.id3v2_4 : TagFormat.id3v2_3;
         }
