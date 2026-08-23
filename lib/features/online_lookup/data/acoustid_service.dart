@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../core/constants/api_keys.dart';
+
 import 'lookup_service_exception.dart';
 import 'models/acoustid_models.dart';
 import 'rate_limiter.dart';
@@ -19,8 +21,8 @@ class AcoustIDService {
   /// Rate limiter for AcoustID requests.
   final RateLimiter rateLimiter;
 
-  /// AcoustID client API key (registered per-application).
-  static const _apiKey = 'C4iBH37ugg';
+  /// AcoustID client API key (see [acoustidClientKey]).
+  static const _apiKey = acoustidClientKey;
 
   static const _baseUrl = 'https://api.acoustid.org/v2/lookup';
 
