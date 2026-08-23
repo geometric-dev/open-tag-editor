@@ -288,34 +288,41 @@ class _FolderEntryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ListTile(
-      dense: true,
-      tileColor:
-          isHighlighted ? theme.colorScheme.surfaceContainerHighest : null,
-      leading: Icon(
-        entry.source == FolderEntrySource.bookmark
-            ? Icons.bookmark
-            : Icons.access_time,
-        size: 18,
-        color: entry.source == FolderEntrySource.bookmark
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
-      ),
-      title: Text(
-        entry.name,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w500,
+    // ListTile paints its tileColor/ink on the nearest Material ancestor.
+    // Without this Material, the highlight would paint behind the popup's
+    // DecoratedBox background and trigger the framework's invisible-ink
+    // assertion in tests.
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        dense: true,
+        tileColor:
+            isHighlighted ? theme.colorScheme.surfaceContainerHighest : null,
+        leading: Icon(
+          entry.source == FolderEntrySource.bookmark
+              ? Icons.bookmark
+              : Icons.access_time,
+          size: 18,
+          color: entry.source == FolderEntrySource.bookmark
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurfaceVariant,
         ),
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        entry.path,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+        title: Text(
+          entry.name,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
-        overflow: TextOverflow.ellipsis,
+        subtitle: Text(
+          entry.path,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        onTap: onTap,
       ),
-      onTap: onTap,
     );
   }
 }
