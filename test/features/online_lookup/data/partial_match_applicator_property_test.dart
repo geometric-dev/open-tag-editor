@@ -1,9 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:open_tag_editor/features/online_lookup/data/models/apply_result.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/cover_art_result.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/search_result.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/track_file_match.dart';
@@ -119,36 +117,6 @@ void main() {
     final count = random.nextInt(files.length); // 0 to files.length-1
     final shuffled = List<AudioFile>.from(files)..shuffle(random);
     return shuffled.take(count).map((f) => f.path).toSet();
-  }
-
-  /// Generates a random subset of selected fields.
-  Set<String> randomSelectedFields() {
-    const allFields = [
-      'album',
-      'albumArtist',
-      'year',
-      'title',
-      'artist',
-      'discNumber',
-      'trackNumber',
-    ];
-    // Always include at least one album field and one track field for
-    // meaningful tests.
-    final fields = <String>{};
-    // Include some album fields.
-    if (random.nextBool()) fields.add('album');
-    if (random.nextBool()) fields.add('albumArtist');
-    if (random.nextBool()) fields.add('year');
-    // Include some track fields.
-    if (random.nextBool()) fields.add('title');
-    if (random.nextBool()) fields.add('artist');
-    if (random.nextBool()) fields.add('discNumber');
-    if (random.nextBool()) fields.add('trackNumber');
-    // Ensure at least one field is selected.
-    if (fields.isEmpty) {
-      fields.add(allFields[random.nextInt(allFields.length)]);
-    }
-    return fields;
   }
 
   /// Generates TrackFileMatch entries: some files matched, some unmatched.
@@ -340,7 +308,8 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   /// **Validates: Requirements 4.1, 4.3**
-  group('Property 8: Track metadata applied only to matched non-opted-out files',
+  group(
+      'Property 8: Track metadata applied only to matched non-opted-out files',
       () {
     test(
       'track-level metadata written only to files with assignment and not opted out',

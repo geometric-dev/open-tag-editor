@@ -249,8 +249,7 @@ void main() {
     // Validates: Requirements 9.1, 9.3
     // ─────────────────────────────────────────────────────────────────────
 
-    test(
-        'track number uses total file count as denominator in partial mode',
+    test('track number uses total file count as denominator in partial mode',
         () async {
       // 16 total files, track at position 3.
       final files16 = List.generate(16, makeFile);
@@ -290,8 +289,7 @@ void main() {
       expect(tags['trackNumber'], '3/16');
     });
 
-    test(
-        'track number uses matched track count as denominator in full mode',
+    test('track number uses matched track count as denominator in full mode',
         () async {
       // Full mode: 11 tracks, 11 files → totalFileCount = 11.
       final files11 = List.generate(11, makeFile);

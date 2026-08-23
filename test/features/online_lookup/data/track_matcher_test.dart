@@ -20,8 +20,10 @@ void main() {
         final files = List.generate(
           16,
           (i) => AudioFile(
-            path: '/music/${(i + 1).toString().padLeft(2, '0')}_Track_${i + 1}.mp3',
-            filename: '${(i + 1).toString().padLeft(2, '0')}_Track_${i + 1}.mp3',
+            path:
+                '/music/${(i + 1).toString().padLeft(2, '0')}_Track_${i + 1}.mp3',
+            filename:
+                '${(i + 1).toString().padLeft(2, '0')}_Track_${i + 1}.mp3',
             extension: '.mp3',
             fileSize: 1024,
             duration: 200.0 + i * 10.0,
@@ -60,7 +62,8 @@ void main() {
         final files = List.generate(
           8,
           (i) => AudioFile(
-            path: '/music/${(i + 1).toString().padLeft(2, '0')}_Song_${i + 1}.mp3',
+            path:
+                '/music/${(i + 1).toString().padLeft(2, '0')}_Song_${i + 1}.mp3',
             filename: '${(i + 1).toString().padLeft(2, '0')}_Song_${i + 1}.mp3',
             extension: '.mp3',
             fileSize: 1024,
@@ -263,7 +266,8 @@ void main() {
         expect(
           totalScore,
           greaterThanOrEqualTo(altTotal < swapTotal ? altTotal : swapTotal),
-          reason: 'The optimal assignment should maximise total composite score',
+          reason:
+              'The optimal assignment should maximise total composite score',
         );
       });
     });

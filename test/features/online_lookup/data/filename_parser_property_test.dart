@@ -165,7 +165,8 @@ void main() {
       }
     });
 
-    test('alphabetic word tokens in output are subset of original filename', () {
+    test('alphabetic word tokens in output are subset of original filename',
+        () {
       for (var i = 0; i < 150; i++) {
         final filename = random.nextBool()
             ? filenameWithTrackNumber().filename

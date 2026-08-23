@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/features/online_lookup/data/track_matcher.dart';
 import 'package:open_tag_editor/features/online_lookup/data/filename_parser.dart';
 import 'package:open_tag_editor/features/online_lookup/data/fuzzy_matcher.dart';
-import 'package:open_tag_editor/features/online_lookup/data/models/track_file_match.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/search_result.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
@@ -63,9 +62,8 @@ void main() {
 
   /// Generates a short title (≤ 3 characters).
   String randomShortTitle() {
-    return shortTitles
-        .where((t) => t.length <= 3)
-        .toList()[random.nextInt(shortTitles.where((t) => t.length <= 3).length)];
+    return shortTitles.where((t) => t.length <= 3).toList()[
+        random.nextInt(shortTitles.where((t) => t.length <= 3).length)];
   }
 
   /// Generates a random AudioFile with optional track number in filename.
@@ -78,9 +76,8 @@ void main() {
 
     String filename;
     if (withTrackNumber) {
-      final padded = random.nextBool()
-          ? tn.toString().padLeft(2, '0')
-          : tn.toString();
+      final padded =
+          random.nextBool() ? tn.toString().padLeft(2, '0') : tn.toString();
       filename = '$padded$sep$title$ext';
     } else {
       filename = '$title$ext';
@@ -164,7 +161,8 @@ void main() {
           // Create a file and track with very different titles to ensure
           // similarity < 0.4.
           final fileTitle = 'ZZZZQQQQ${random.nextInt(9999)}';
-          final trackTitle = 'Completely Different Title ${random.nextInt(9999)}';
+          final trackTitle =
+              'Completely Different Title ${random.nextInt(9999)}';
 
           final file = AudioFile(
             path: 'C:\\Music\\$fileTitle.mp3',
@@ -193,7 +191,8 @@ void main() {
           expect(
             score,
             equals(0.0),
-            reason: 'Title similarity $rawSimilarity < ${TrackMatcher.minTitleSimilarity} '
+            reason:
+                'Title similarity $rawSimilarity < ${TrackMatcher.minTitleSimilarity} '
                 'should contribute zero to score (iteration $i)',
           );
         }
@@ -247,11 +246,10 @@ void main() {
           // Recompute each signal independently.
           final extractedTrackNumber =
               FilenameParser.extractTrackNumber(file.filename);
-          final trackNumberSignal =
-              (extractedTrackNumber != null &&
-                      extractedTrackNumber == track.position)
-                  ? 1.0
-                  : 0.0;
+          final trackNumberSignal = (extractedTrackNumber != null &&
+                  extractedTrackNumber == track.position)
+              ? 1.0
+              : 0.0;
 
           final extractedTitle = FilenameParser.extractTitle(file.filename);
           final rawTitleSimilarity =
@@ -267,9 +265,8 @@ void main() {
             durationSignal = 0.0;
           } else {
             final diffMs = (fileDurationMs - track.durationMs!).abs();
-            durationSignal =
-                (1.0 - (diffMs / TrackMatcher.durationToleranceMs))
-                    .clamp(0.0, 1.0);
+            durationSignal = (1.0 - (diffMs / TrackMatcher.durationToleranceMs))
+                .clamp(0.0, 1.0);
           }
 
           final effectiveTitleWeight =
