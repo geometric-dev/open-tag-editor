@@ -126,6 +126,7 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
-
-# Bundle TagLib native library
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/libtaglib_c.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime OPTIONAL)
+# Bundle TagLib native library.
+# Installed next to the executable (bundle root) to match the primary
+# search path in NativeLibraryLoader.
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/libtaglib_c.so" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime OPTIONAL)

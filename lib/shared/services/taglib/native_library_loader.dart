@@ -44,11 +44,11 @@ class NativeLibraryLoader {
     }
 
     if (Platform.isWindows) {
-      _cachedLibrary = _loadWindows();
+      _cachedLibrary = _loadWithCandidates(_windowsCandidates());
     } else if (Platform.isMacOS) {
-      _cachedLibrary = _loadMacOS();
+      _cachedLibrary = _loadWithCandidates(_macOSCandidates());
     } else if (Platform.isLinux) {
-      _cachedLibrary = _loadLinux();
+      _cachedLibrary = _loadWithCandidates(_linuxCandidates());
     } else {
       throw NativeLibraryException(
         'Unsupported platform: ${Platform.operatingSystem}',
@@ -60,60 +60,64 @@ class NativeLibraryLoader {
     return _cachedLibrary!;
   }
 
-  static DynamicLibrary _loadWindows() {
-    final execDir = File(Platform.resolvedExecutable).parent.path;
-    final libraryPath = '$execDir\\taglib_c.dll';
-
-    try {
-      return DynamicLibrary.open(libraryPath);
-    } catch (e) {
-      throw NativeLibraryException(
-        'Failed to load TagLib native library on Windows: $e',
-        'windows',
-        libraryPath,
-      );
+  /// Tries each candidate library name/path in order, returning the first
+  /// that loads successfully.
+  ///
+  /// Names without directory separators are resolved by the OS loader
+  /// (e.g. system library paths); absolute paths are tried directly.
+  /// Throws [NativeLibraryException] listing every attempted location.
+  static DynamicLibrary _loadWithCandidates(List<String> candidates) {
+    final errors = <String>[];
+    for (final candidate in candidates) {
+      try {
+        return DynamicLibrary.open(candidate);
+      } catch (e) {
+        errors.add('$candidate -> $e');
+      }
     }
+    throw NativeLibraryException(
+      'Failed to load TagLib native library. Attempted:\n'
+      '${errors.join('\n')}',
+      Platform.operatingSystem,
+      candidates.first,
+    );
   }
 
-  static DynamicLibrary _loadMacOS() {
+  /// Windows search locations, most preferred first.
+  ///
+  /// The installer places taglib_c.dll next to the executable; older
+  /// installs placed it under data\.
+  static List<String> _windowsCandidates() {
+    final execDir = File(Platform.resolvedExecutable).parent.path;
+    return [
+      '$execDir\\taglib_c.dll',
+      '$execDir\\data\\taglib_c.dll',
+    ];
+  }
+
+  /// macOS search locations, most preferred first.
+  ///
+  /// The app bundle keeps the dylib in Contents/Frameworks/.
+  static List<String> _macOSCandidates() {
     final execPath = File(Platform.resolvedExecutable).parent.path;
     // The executable is at <app_bundle>/Contents/MacOS/app_name,
     // so Frameworks is at <app_bundle>/Contents/Frameworks/.
-    final frameworksDir =
-        '${Directory(execPath).parent.path}/Frameworks';
-    final libraryPath = '$frameworksDir/libtaglib_c.dylib';
-
-    try {
-      return DynamicLibrary.open(libraryPath);
-    } catch (e) {
-      throw NativeLibraryException(
-        'Failed to load TagLib native library on macOS: $e',
-        'macos',
-        libraryPath,
-      );
-    }
+    final frameworksDir = '${Directory(execPath).parent.path}/Frameworks';
+    return [
+      '$frameworksDir/libtaglib_c.dylib',
+      '$execPath/libtaglib_c.dylib',
+    ];
   }
 
-  static DynamicLibrary _loadLinux() {
+  /// Linux search locations, most preferred first.
+  ///
+  /// Falls back to the bare soname so system-installed TagLib works.
+  static List<String> _linuxCandidates() {
     final execDir = File(Platform.resolvedExecutable).parent.path;
-    final libraryPath = '$execDir/libtaglib_c.so';
-
-    // Try loading from adjacent to the executable first.
-    try {
-      return DynamicLibrary.open(libraryPath);
-    } catch (_) {
-      // Fall back to system library paths.
-    }
-
-    const systemName = 'libtaglib_c.so';
-    try {
-      return DynamicLibrary.open(systemName);
-    } catch (e) {
-      throw NativeLibraryException(
-        'Failed to load TagLib native library on Linux: $e',
-        'linux',
-        libraryPath,
-      );
-    }
+    return [
+      '$execDir/libtaglib_c.so',
+      '$execDir/lib/libtaglib_c.so',
+      'libtaglib_c.so',
+    ];
   }
 }

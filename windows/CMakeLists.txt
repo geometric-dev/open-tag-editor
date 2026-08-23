@@ -107,10 +107,12 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
 
-# Bundle TagLib native libraries (optional - only if the DLLs exist)
+# Bundle TagLib native libraries (optional - only if the DLLs exist).
+# Installed next to the executable (bundle root) to match the search
+# paths in NativeLibraryLoader.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/taglib_c.dll")
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/taglib_c.dll" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/taglib_c.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tag.dll")
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tag.dll" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tag.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 endif()
