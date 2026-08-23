@@ -236,8 +236,7 @@ void main() {
 
         expect(notifier.state.anchorPath, isNotNull);
         expect(
-          notifier.state.selectedPaths
-              .contains(notifier.state.anchorPath),
+          notifier.state.selectedPaths.contains(notifier.state.anchorPath),
           isTrue,
         );
       });
@@ -275,6 +274,75 @@ void main() {
 
         expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3'});
       });
+    });
+  });
+
+  group('SelectionNotifier keyboard paging', () {
+    late SelectionNotifier notifier;
+    final paths = ['a.mp3', 'b.mp3', 'c.mp3', 'd.mp3', 'e.mp3'];
+
+    setUp(() {
+      notifier = SelectionNotifier();
+    });
+
+    test('moveHome selects the first row and sets anchor', () {
+      notifier.select('d.mp3');
+      notifier.moveHome(paths);
+
+      expect(notifier.state.selectedPaths, {'a.mp3'});
+      expect(notifier.state.anchorPath, 'a.mp3');
+    });
+
+    test('moveEnd selects the last row', () {
+      notifier.select('b.mp3');
+      notifier.moveEnd(paths);
+
+      expect(notifier.state.selectedPaths, {'e.mp3'});
+    });
+
+    test('home/end no-op on empty list', () {
+      notifier.moveHome(<String>[]);
+      notifier.moveEnd(<String>[]);
+
+      expect(notifier.state.hasSelection, isFalse);
+    });
+
+    test('moveByPage clamps at the last row', () {
+      notifier.select('d.mp3');
+      notifier.moveByPage(paths, 1, 10);
+
+      expect(notifier.state.selectedPaths, {'e.mp3'});
+    });
+
+    test('moveByPage negative direction jumps up', () {
+      notifier.select('e.mp3');
+      notifier.moveByPage(paths, -1, 2);
+
+      expect(notifier.state.selectedPaths, {'c.mp3'});
+    });
+
+    test('moveByPage selects first row when nothing is selected', () {
+      notifier.moveByPage(paths, 1, 2);
+
+      expect(notifier.state.selectedPaths, {'a.mp3'});
+    });
+
+    test('extendByPage extends range from anchor toward the end', () {
+      notifier.select('a.mp3');
+      notifier.extendByPage(paths, 1, 2);
+
+      expect(
+        notifier.state.selectedPaths,
+        {'a.mp3', 'b.mp3', 'c.mp3'},
+      );
+      expect(notifier.state.anchorPath, 'a.mp3');
+    });
+
+    test('extendByPage clamps at the list edges', () {
+      notifier.select('a.mp3');
+      notifier.extendByPage(paths, 1, 99);
+
+      expect(notifier.state.selectedPaths.length, 5);
     });
   });
 

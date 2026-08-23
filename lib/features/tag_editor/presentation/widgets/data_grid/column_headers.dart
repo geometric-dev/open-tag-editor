@@ -66,6 +66,7 @@ class ColumnHeaders extends ConsumerWidget {
               ? effectiveWidths[i]
               : column.defaultWidth;
           return _ColumnHeaderCell(
+            columnIndex: i,
             column: column,
             effectiveWidth: width,
             sortState: sortState,
@@ -82,6 +83,9 @@ class ColumnHeaders extends ConsumerWidget {
             onAutoFit: () => onAutoFit?.call(column.id),
             onResetWidths: () =>
                 ref.read(columnConfigProvider.notifier).resetColumnWidths(),
+            onReorder: (oldIndex, newIndex) => ref
+                .read(columnConfigProvider.notifier)
+                .reorderColumn(oldIndex, newIndex),
             allColumns: defaultColumns,
             visibleColumnIds: config.visibleColumnIds,
             hasSelection: hasSelection,
@@ -97,6 +101,7 @@ class ColumnHeaders extends ConsumerWidget {
 /// tooltip, resize handle, and context menu.
 class _ColumnHeaderCell extends StatefulWidget {
   const _ColumnHeaderCell({
+    required this.columnIndex,
     required this.column,
     required this.effectiveWidth,
     required this.sortState,
@@ -106,11 +111,15 @@ class _ColumnHeaderCell extends StatefulWidget {
     required this.onResizeEnd,
     required this.onAutoFit,
     required this.onResetWidths,
+    required this.onReorder,
     required this.allColumns,
     required this.visibleColumnIds,
     this.hasSelection = false,
     this.onRemoveSelected,
   });
+
+  /// Display index of this column within the visible columns.
+  final int columnIndex;
 
   final ColumnDefinition column;
   final double effectiveWidth;
@@ -119,6 +128,7 @@ class _ColumnHeaderCell extends StatefulWidget {
   final void Function(String columnId) onToggleVisibility;
   final void Function(double newWidth) onResize;
   final VoidCallback onResizeEnd;
+  final void Function(int oldIndex, int newIndex)? onReorder;
   final VoidCallback onAutoFit;
   final VoidCallback onResetWidths;
   final List<ColumnDefinition> allColumns;
@@ -154,8 +164,10 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
       child: Stack(
         children: [
           MouseRegion(
-            onEnter: isSortable ? (_) => setState(() => _isHovered = true) : null,
-            onExit: isSortable ? (_) => setState(() => _isHovered = false) : null,
+            onEnter:
+                isSortable ? (_) => setState(() => _isHovered = true) : null,
+            onExit:
+                isSortable ? (_) => setState(() => _isHovered = false) : null,
             child: GestureDetector(
               onTap: isSortable ? widget.onSort : null,
               onSecondaryTapUp: (details) {
@@ -222,6 +234,29 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
   void _showContextMenu(BuildContext context, Offset position) {
     final items = <PopupMenuEntry<String>>[];
 
+    // Column reorder (not offered for fixed columns)
+    if (!widget.column.isFixed) {
+      final canMoveLeft = widget.columnIndex > 0 &&
+          widget.visibleColumnIds[widget.columnIndex - 1] != 'tagIndicator';
+      final canMoveRight =
+          widget.columnIndex < widget.visibleColumnIds.length - 1;
+      items.add(
+        PopupMenuItem<String>(
+          value: '__move_left__',
+          enabled: canMoveLeft,
+          child: const Text('Move Left', style: TextStyle(fontSize: 12)),
+        ),
+      );
+      items.add(
+        PopupMenuItem<String>(
+          value: '__move_right__',
+          enabled: canMoveRight,
+          child: const Text('Move Right', style: TextStyle(fontSize: 12)),
+        ),
+      );
+      items.add(const PopupMenuDivider());
+    }
+
     // Column visibility toggles
     for (final col in widget.allColumns) {
       if (col.isFixed) continue; // Can't toggle fixed columns
@@ -267,7 +302,11 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
       ),
       items: items,
     ).then((value) {
-      if (value == '__reset_widths__') {
+      if (value == '__move_left__') {
+        widget.onReorder?.call(widget.columnIndex, widget.columnIndex - 1);
+      } else if (value == '__move_right__') {
+        widget.onReorder?.call(widget.columnIndex, widget.columnIndex + 1);
+      } else if (value == '__reset_widths__') {
         widget.onResetWidths();
       } else if (value == '__remove_selected__') {
         widget.onRemoveSelected?.call();

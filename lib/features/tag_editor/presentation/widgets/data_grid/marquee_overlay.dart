@@ -99,7 +99,8 @@ class _MarqueeOverlayState extends ConsumerState<MarqueeOverlay> {
     final dx = (_currentPosition.dx - _startPosition.dx).abs();
     final dy = (_currentPosition.dy - _startPosition.dy).abs();
 
-    if (!_isActive && (dx > kMarqueeDragThreshold || dy > kMarqueeDragThreshold)) {
+    if (!_isActive &&
+        (dx > kMarqueeDragThreshold || dy > kMarqueeDragThreshold)) {
       // Confirm edit if active before starting marquee
       final editState = ref.read(inlineCellEditProvider);
       if (editState.isEditing) {

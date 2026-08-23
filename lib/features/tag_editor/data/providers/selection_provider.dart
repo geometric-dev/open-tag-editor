@@ -144,6 +144,42 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     _extendSelection(orderedPaths, -1);
   }
 
+  /// Moves selection to the first row (Home).
+  void moveHome(List<String> orderedPaths) {
+    if (orderedPaths.isEmpty) return;
+    select(orderedPaths.first);
+  }
+
+  /// Moves selection to the last row (End).
+  void moveEnd(List<String> orderedPaths) {
+    if (orderedPaths.isEmpty) return;
+    select(orderedPaths.last);
+  }
+
+  /// Moves selection up/down by [rows] rows (PageUp/PageDown).
+  ///
+  /// [direction] is -1 for up, +1 for down. The target clamps to the
+  /// list edges instead of no-oping at the boundary.
+  void moveByPage(List<String> orderedPaths, int direction, int rows) {
+    if (orderedPaths.isEmpty) return;
+    final indexes = buildIndexMap(orderedPaths);
+    final current = state.activePath ?? state.anchorPath;
+    final currentIndex = current == null ? -1 : (indexes[current] ?? -1);
+    if (currentIndex < 0) {
+      select(orderedPaths.first);
+      return;
+    }
+    final target =
+        (currentIndex + direction * rows).clamp(0, orderedPaths.length - 1);
+    select(orderedPaths[target]);
+  }
+
+  /// Extends the active end up/down by [rows] rows (Shift+PageUp/Down),
+  /// clamping at the list edges.
+  void extendByPage(List<String> orderedPaths, int direction, int rows) {
+    _extendSelection(orderedPaths, direction * rows, clampToEdge: true);
+  }
+
   /// Extend selection from anchor to the first row (Ctrl+Shift+Home).
   void extendToStart(List<String> orderedPaths) {
     final anchor = state.anchorPath;
@@ -215,7 +251,11 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     );
   }
 
-  void _extendSelection(List<String> orderedPaths, int direction) {
+  void _extendSelection(
+    List<String> orderedPaths,
+    int direction, {
+    bool clampToEdge = false,
+  }) {
     final anchor = state.anchorPath;
     if (anchor == null || orderedPaths.isEmpty) return;
 
@@ -227,8 +267,12 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     final activeIndex = orderedPaths.indexOf(active);
     if (activeIndex < 0) return;
 
-    final newActiveIndex = activeIndex + direction;
-    if (newActiveIndex < 0 || newActiveIndex >= orderedPaths.length) return;
+    var newActiveIndex = activeIndex + direction;
+    if (clampToEdge) {
+      newActiveIndex = newActiveIndex.clamp(0, orderedPaths.length - 1);
+    } else if (newActiveIndex < 0 || newActiveIndex >= orderedPaths.length) {
+      return;
+    }
 
     // Build the range from anchor to new active
     final start = min(anchorIndex, newActiveIndex);

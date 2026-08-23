@@ -34,6 +34,9 @@ class DataGrid extends ConsumerWidget {
   /// The fixed height for all rows (file rows and separator rows).
   static const double rowHeight = 28;
 
+  /// Rows jumped by PageUp/PageDown.
+  static const int pageJumpRows = 20;
+
   /// Upper bound on rows measured during auto-fit. Beyond this the
   /// extra TextPainter layouts cost more than the precision is worth.
   static const int autoFitSampleCap = 1000;
@@ -267,6 +270,49 @@ class DataGrid extends ConsumerWidget {
       }
     }
 
+    // PageUp/PageDown: jump selection by a page, clamping at edges
+    final isPageUp = event.logicalKey == LogicalKeyboardKey.pageUp;
+    final isPageDown = event.logicalKey == LogicalKeyboardKey.pageDown;
+    if (isPageUp || isPageDown) {
+      final direction = isPageUp ? -1 : 1;
+      if (isShift) {
+        selNotifier.extendByPage(orderedPaths, direction, pageJumpRows);
+      } else {
+        selNotifier.moveByPage(orderedPaths, direction, pageJumpRows);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // Home/End (plain and Shift): jump to first/last row
+    final isHome = event.logicalKey == LogicalKeyboardKey.home;
+    final isEnd = event.logicalKey == LogicalKeyboardKey.end;
+    if ((isHome || isEnd) && !isCtrl) {
+      if (isShift) {
+        isHome
+            ? selNotifier.extendToStart(orderedPaths)
+            : selNotifier.extendToEnd(orderedPaths);
+      } else {
+        isHome
+            ? selNotifier.moveHome(orderedPaths)
+            : selNotifier.moveEnd(orderedPaths);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // Enter: begin editing the focused cell
+    if (event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+      final focused = editState.focusedCell;
+      if (focused != null && isColumnEditable(focused.columnId)) {
+        editNotifier.enterEditMode(
+          focused,
+          prePopulate: true,
+          selectAll: true,
+        );
+        return KeyEventResult.handled;
+      }
+    }
+
     // Delete key: remove selected files from list
     if (event.logicalKey == LogicalKeyboardKey.delete) {
       final selectedFiles = ref.read(selectedFilesProvider);
@@ -393,7 +439,7 @@ class _FocusableDataGridState extends State<_FocusableDataGrid> {
   }
 }
 
-class _ScrollableDataGrid extends StatefulWidget {
+class _ScrollableDataGrid extends ConsumerStatefulWidget {
   const _ScrollableDataGrid({
     required this.files,
     required this.gridItems,
@@ -421,12 +467,59 @@ class _ScrollableDataGrid extends StatefulWidget {
   final VoidCallback? onRemoveSelected;
 
   @override
-  State<_ScrollableDataGrid> createState() => _ScrollableDataGridState();
+  ConsumerState<_ScrollableDataGrid> createState() =>
+      _ScrollableDataGridState();
 }
 
-class _ScrollableDataGridState extends State<_ScrollableDataGrid> {
+class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
   final _horizontalController = ScrollController();
   final _verticalController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Keyboard navigation must keep the active row visible. Listen for
+    // active-path changes and reveal the row (no-op while marquee-dragging
+    // since pointer selection sets activePath only via clicks, which are
+    // already on-screen).
+    ref.listenManual(
+      selectionProvider.select((s) => s.activePath),
+      (previous, next) {
+        if (next != null && next != previous) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _revealRow(next);
+          });
+        }
+      },
+    );
+  }
+
+  /// Scrolls the vertical viewport so the given file's row is visible.
+  void _revealRow(String path) {
+    if (!_verticalController.hasClients) return;
+
+    // Map the path to its grid item index (separators share the rows).
+    int? gridIndex;
+    for (var i = 0; i < widget.gridItems.length; i++) {
+      final item = widget.gridItems[i];
+      if (item is FileGridItem && item.file.path == path) {
+        gridIndex = i;
+        break;
+      }
+    }
+    if (gridIndex == null) return;
+
+    final top = gridIndex * DataGrid.rowHeight;
+    final bottom = top + DataGrid.rowHeight;
+    final offset = _verticalController.offset;
+    final viewport = _verticalController.position.viewportDimension;
+
+    if (top < offset) {
+      _verticalController.jumpTo(top);
+    } else if (bottom > offset + viewport) {
+      _verticalController.jumpTo(bottom - viewport);
+    }
+  }
 
   @override
   void didUpdateWidget(covariant _ScrollableDataGrid oldWidget) {
