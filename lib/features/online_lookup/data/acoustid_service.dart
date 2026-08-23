@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'lookup_service_exception.dart';
 import 'models/acoustid_models.dart';
 import 'rate_limiter.dart';
 
@@ -45,7 +46,10 @@ class AcoustIDService {
     final response = await rateLimiter.send(request);
 
     if (response.statusCode != 200) {
-      return [];
+      throw LookupServiceException(
+        'AcoustID request failed',
+        statusCode: response.statusCode,
+      );
     }
 
     return _parseResponse(response.body);
@@ -76,12 +80,14 @@ class AcoustIDService {
               ? artists.first['name'] as String?
               : null;
 
-          acoustIdResults.add(AcoustIDResult(
-            recordingId: id,
-            confidence: score,
-            title: title,
-            artist: artist,
-          ),);
+          acoustIdResults.add(
+            AcoustIDResult(
+              recordingId: id,
+              confidence: score,
+              title: title,
+              artist: artist,
+            ),
+          );
         }
       }
 

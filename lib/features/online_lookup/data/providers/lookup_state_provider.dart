@@ -329,48 +329,58 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
           FingerprintProgress(completed: 0, total: files.length),
     );
 
-    final filePaths = files.map((f) => f.path).toList();
-    final fingerprints = await _fingerprintGenerator.generateBatch(
-      filePaths,
-      onProgress: (completed, total) {
-        if (!_cancelled) {
-          state = state.copyWith(
-            fingerprintProgress: FingerprintProgress(
-              completed: completed,
-              total: total,
+    try {
+      final filePaths = files.map((f) => f.path).toList();
+      final fingerprints = await _fingerprintGenerator.generateBatch(
+        filePaths,
+        onProgress: (completed, total) {
+          if (!_cancelled) {
+            state = state.copyWith(
+              fingerprintProgress: FingerprintProgress(
+                completed: completed,
+                total: total,
+              ),
+            );
+          }
+        },
+      );
+
+      if (_cancelled) return;
+
+      // Look up each fingerprint
+      final results = <SearchResult>[];
+      for (final fp in fingerprints) {
+        final matches = await _acoustIdService.lookup(
+          fingerprint: fp.fingerprint,
+          durationSeconds: fp.durationSeconds,
+        );
+        if (_cancelled) return;
+        if (matches.isNotEmpty) {
+          final best = matches.first;
+          results.add(
+            SearchResult(
+              id: best.recordingId,
+              title: best.title ?? 'Unknown',
+              artist: best.artist,
+              source: SearchSource.musicBrainz,
             ),
           );
         }
-      },
-    );
-
-    if (_cancelled) return;
-
-    // Look up each fingerprint
-    final results = <SearchResult>[];
-    for (final fp in fingerprints) {
-      final matches = await _acoustIdService.lookup(
-        fingerprint: fp.fingerprint,
-        durationSeconds: fp.durationSeconds,
-      );
-      if (matches.isNotEmpty) {
-        final best = matches.first;
-        results.add(
-          SearchResult(
-            id: best.recordingId,
-            title: best.title ?? 'Unknown',
-            artist: best.artist,
-            source: SearchSource.musicBrainz,
-          ),
-        );
       }
-    }
 
-    state = state.copyWith(
-      status: LookupStatus.idle,
-      searchResults: results,
-      fingerprintProgress: null,
-    );
+      state = state.copyWith(
+        status: LookupStatus.idle,
+        searchResults: results,
+        fingerprintProgress: null,
+      );
+    } catch (e) {
+      if (_cancelled) return;
+      state = state.copyWith(
+        status: LookupStatus.error,
+        error: 'Fingerprint lookup failed: $e',
+        fingerprintProgress: null,
+      );
+    }
   }
 
   /// Applies metadata to matched files.

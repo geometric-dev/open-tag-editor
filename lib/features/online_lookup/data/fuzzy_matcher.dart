@@ -20,9 +20,8 @@ class FuzzyMatcher {
 
     if (lowerA == lowerB) return 1.0;
 
-    final maxLength = lowerA.length > lowerB.length
-        ? lowerA.length
-        : lowerB.length;
+    final maxLength =
+        lowerA.length > lowerB.length ? lowerA.length : lowerB.length;
     final distance = _levenshteinDistance(lowerA, lowerB);
 
     return 1.0 - (distance / maxLength);

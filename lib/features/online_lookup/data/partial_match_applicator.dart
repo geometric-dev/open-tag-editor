@@ -88,9 +88,7 @@ class PartialMatchApplicator {
           albumArtist.isNotEmpty) {
         tags['artist'] = albumArtist;
       }
-      if (selectedFields.contains('year') &&
-          year != null &&
-          year.isNotEmpty) {
+      if (selectedFields.contains('year') && year != null && year.isNotEmpty) {
         tags['year'] = year;
       }
       // Disc number is album-level — all files share the same disc.
@@ -194,8 +192,7 @@ class PartialMatchApplicator {
   /// share the same disc number.
   int _getDiscNumber(List<TrackFileMatch> matches) {
     for (final match in matches) {
-      if (match.file != null &&
-          match.confidence != MatchConfidence.unmatched) {
+      if (match.file != null && match.confidence != MatchConfidence.unmatched) {
         return match.track.discNumber;
       }
     }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'lookup_service_exception.dart';
 import 'models/search_result.dart';
 import 'rate_limiter.dart';
 
@@ -57,7 +58,12 @@ class DiscogsService {
     try {
       final response = await rateLimiter.get(url, headers: _headers);
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        throw LookupServiceException(
+          'Discogs request failed',
+          statusCode: response.statusCode,
+        );
+      }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final results = json['results'] as List<dynamic>?;
@@ -69,7 +75,8 @@ class DiscogsService {
         // Discogs title format is "Artist - Album"
         final parts = title.split(' - ');
         final resultArtist = parts.length > 1 ? parts.first : null;
-        final resultAlbum = parts.length > 1 ? parts.sublist(1).join(' - ') : title;
+        final resultAlbum =
+            parts.length > 1 ? parts.sublist(1).join(' - ') : title;
 
         return SearchResult(
           id: (r['id'] as int).toString(),
@@ -81,8 +88,10 @@ class DiscogsService {
           source: SearchSource.discogs,
         );
       }).toList();
-    } catch (_) {
-      return [];
+    } on LookupServiceException {
+      rethrow;
+    } catch (e) {
+      throw LookupServiceException('Discogs request failed: $e');
     }
   }
 
@@ -95,7 +104,12 @@ class DiscogsService {
     try {
       final response = await rateLimiter.get(url, headers: _headers);
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        throw LookupServiceException(
+          'Discogs request failed',
+          statusCode: response.statusCode,
+        );
+      }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final tracklist = json['tracklist'] as List<dynamic>?;
@@ -119,21 +133,25 @@ class DiscogsService {
         final durationStr = track['duration'] as String?;
         final durationMs = _parseDuration(durationStr);
 
-        tracks.add(TrackInfo(
-          title: title,
-          position: position,
-          discNumber: discNumber,
-          durationMs: durationMs,
-          artist: track['artists'] != null
-              ? (track['artists'] as List).map((a) => a['name']).join(', ')
-              : null,
-        ),);
+        tracks.add(
+          TrackInfo(
+            title: title,
+            position: position,
+            discNumber: discNumber,
+            durationMs: durationMs,
+            artist: track['artists'] != null
+                ? (track['artists'] as List).map((a) => a['name']).join(', ')
+                : null,
+          ),
+        );
         position++;
       }
 
       return tracks;
-    } catch (_) {
-      return [];
+    } on LookupServiceException {
+      rethrow;
+    } catch (e) {
+      throw LookupServiceException('Discogs request failed: $e');
     }
   }
 

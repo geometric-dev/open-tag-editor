@@ -131,9 +131,7 @@ class MetadataApplicator {
         albumArtist.isNotEmpty) {
       tags['albumArtist'] = albumArtist;
     }
-    if (selectedFields.contains('year') &&
-        year != null &&
-        year.isNotEmpty) {
+    if (selectedFields.contains('year') && year != null && year.isNotEmpty) {
       tags['year'] = year;
     }
     if (selectedFields.contains('trackNumber')) {

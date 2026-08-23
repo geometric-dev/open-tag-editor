@@ -29,9 +29,7 @@ class FingerprintGenerator {
       );
     }
 
-    final effectivePath = File(fpcalcPath).existsSync()
-        ? fpcalcPath
-        : 'fpcalc';
+    final effectivePath = File(fpcalcPath).existsSync() ? fpcalcPath : 'fpcalc';
 
     try {
       final result = await Process.run(

@@ -45,8 +45,7 @@ class RateLimiter {
     try {
       await _waitForSlot();
 
-      var response =
-          await _client.send(request).then(http.Response.fromStream);
+      var response = await _client.send(request).then(http.Response.fromStream);
 
       var retries = 0;
       while (response.statusCode == 429 && retries < _maxRetries) {
@@ -55,9 +54,8 @@ class RateLimiter {
         await Future<void>.delayed(retryAfter);
 
         final retryRequest = _copyRequest(request);
-        response = await _client
-            .send(retryRequest)
-            .then(http.Response.fromStream);
+        response =
+            await _client.send(retryRequest).then(http.Response.fromStream);
       }
 
       return response;

@@ -93,8 +93,7 @@ final metadataApplicatorProvider = Provider<MetadataApplicator>((ref) {
 });
 
 /// Partial match applicator provider.
-final partialMatchApplicatorProvider =
-    Provider<PartialMatchApplicator>((ref) {
+final partialMatchApplicatorProvider = Provider<PartialMatchApplicator>((ref) {
   return PartialMatchApplicator(
     tagWriter: ref.read(tagWriterProvider),
     fileListNotifier: ref.read(fileListProvider.notifier),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'lookup_service_exception.dart';
 import 'models/search_result.dart';
 import 'rate_limiter.dart';
 
@@ -15,7 +16,8 @@ class MusicBrainzService {
   final RateLimiter rateLimiter;
 
   static const _baseUrl = 'https://musicbrainz.org/ws/2';
-  static const _userAgent = 'OpenTagEditor/0.1.0 (https://github.com/open-tag-editor)';
+  static const _userAgent =
+      'OpenTagEditor/0.1.0 (https://github.com/open-tag-editor)';
 
   Map<String, String> get _headers => {
         'User-Agent': _userAgent,
@@ -47,7 +49,12 @@ class MusicBrainzService {
     try {
       final response = await rateLimiter.get(url, headers: _headers);
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        throw LookupServiceException(
+          'MusicBrainz request failed',
+          statusCode: response.statusCode,
+        );
+      }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final releases = json['releases'] as List<dynamic>?;
@@ -61,13 +68,12 @@ class MusicBrainzService {
             : null;
 
         final date = r['date'] as String?;
-        final releaseYear = date != null && date.length >= 4
-            ? date.substring(0, 4)
-            : null;
+        final releaseYear =
+            date != null && date.length >= 4 ? date.substring(0, 4) : null;
 
         final media = r['media'] as List<dynamic>?;
-        final trackCount = media
-            ?.fold<int>(0, (sum, m) => sum + ((m['track-count'] as int?) ?? 0));
+        final trackCount = media?.fold<int>(
+            0, (sum, m) => sum + ((m['track-count'] as int?) ?? 0));
 
         return SearchResult(
           id: r['id'] as String,
@@ -79,8 +85,10 @@ class MusicBrainzService {
           source: SearchSource.musicBrainz,
         );
       }).toList();
-    } catch (_) {
-      return [];
+    } on LookupServiceException {
+      rethrow;
+    } catch (e) {
+      throw LookupServiceException('MusicBrainz request failed: $e');
     }
   }
 
@@ -98,7 +106,12 @@ class MusicBrainzService {
     try {
       final response = await rateLimiter.get(url, headers: _headers);
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        throw LookupServiceException(
+          'MusicBrainz request failed',
+          statusCode: response.statusCode,
+        );
+      }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final media = json['media'] as List<dynamic>?;
@@ -114,12 +127,11 @@ class MusicBrainzService {
 
         for (final track in discTracks) {
           final recording = track['recording'] as Map<String, dynamic>?;
-          final title = track['title'] as String? ??
-              recording?['title'] as String? ??
-              '';
+          final title =
+              track['title'] as String? ?? recording?['title'] as String? ?? '';
           final position = track['position'] as int? ?? 0;
-          final length = track['length'] as int? ??
-              recording?['length'] as int?;
+          final length =
+              track['length'] as int? ?? recording?['length'] as int?;
 
           // Track artist if different from release artist
           final artistCredit = track['artist-credit'] as List<dynamic>?;
@@ -127,19 +139,23 @@ class MusicBrainzService {
               ? artistCredit.first['name'] as String?
               : null;
 
-          tracks.add(TrackInfo(
-            title: title,
-            position: position,
-            discNumber: discIndex + 1,
-            durationMs: length,
-            artist: trackArtist,
-          ),);
+          tracks.add(
+            TrackInfo(
+              title: title,
+              position: position,
+              discNumber: discIndex + 1,
+              durationMs: length,
+              artist: trackArtist,
+            ),
+          );
         }
       }
 
       return tracks;
-    } catch (_) {
-      return [];
+    } on LookupServiceException {
+      rethrow;
+    } catch (e) {
+      throw LookupServiceException('MusicBrainz request failed: $e');
     }
   }
 

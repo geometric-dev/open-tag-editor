@@ -107,21 +107,22 @@ class TrackMatcher {
   ) {
     final sortedFiles = List<AudioFile>.from(files)
       ..sort((a, b) {
-        final aTrack =
-            int.tryParse(a.tags['trackNumber'] ?? '') ?? 0;
-        final bTrack =
-            int.tryParse(b.tags['trackNumber'] ?? '') ?? 0;
+        final aTrack = int.tryParse(a.tags['trackNumber'] ?? '') ?? 0;
+        final bTrack = int.tryParse(b.tags['trackNumber'] ?? '') ?? 0;
         if (aTrack != bTrack) return aTrack.compareTo(bTrack);
         return a.filename.compareTo(b.filename);
       });
 
-    return List.generate(tracks.length, (i) {
-      return TrackFileMatch(
-        track: tracks[i],
-        file: sortedFiles[i],
-        confidence: MatchConfidence.exact,
-      );
-    },);
+    return List.generate(
+      tracks.length,
+      (i) {
+        return TrackFileMatch(
+          track: tracks[i],
+          file: sortedFiles[i],
+          confidence: MatchConfidence.exact,
+        );
+      },
+    );
   }
 
   /// Matches tracks to files using the Hungarian algorithm to find the
@@ -167,20 +168,24 @@ class TrackMatcher {
       final assignedFile = assignment[i];
       if (assignedFile < numFiles) {
         final score = scores[i][assignedFile];
-        results.add(TrackFileMatch(
-          track: tracks[i],
-          file: files[assignedFile],
-          confidence: _confidenceFromScore(score),
-          score: score,
-        ),);
+        results.add(
+          TrackFileMatch(
+            track: tracks[i],
+            file: files[assignedFile],
+            confidence: _confidenceFromScore(score),
+            score: score,
+          ),
+        );
       } else {
         // Assigned to a dummy column — no real file available
-        results.add(TrackFileMatch(
-          track: tracks[i],
-          file: null,
-          confidence: MatchConfidence.unmatched,
-          score: 0.0,
-        ),);
+        results.add(
+          TrackFileMatch(
+            track: tracks[i],
+            file: null,
+            confidence: MatchConfidence.unmatched,
+            score: 0.0,
+          ),
+        );
       }
     }
 
@@ -282,11 +287,13 @@ class TrackMatcher {
 
       if (trackDurationMs == null) {
         // Can't match by duration without track duration
-        results.add(TrackFileMatch(
-          track: track,
-          file: null,
-          confidence: MatchConfidence.unmatched,
-        ),);
+        results.add(
+          TrackFileMatch(
+            track: track,
+            file: null,
+            confidence: MatchConfidence.unmatched,
+          ),
+        );
         continue;
       }
 
@@ -310,17 +317,21 @@ class TrackMatcher {
 
       if (bestMatch != null) {
         unmatchedFiles[bestIndex] = null; // Mark as used
-        results.add(TrackFileMatch(
-          track: track,
-          file: bestMatch,
-          confidence: MatchConfidence.duration,
-        ),);
+        results.add(
+          TrackFileMatch(
+            track: track,
+            file: bestMatch,
+            confidence: MatchConfidence.duration,
+          ),
+        );
       } else {
-        results.add(TrackFileMatch(
-          track: track,
-          file: null,
-          confidence: MatchConfidence.unmatched,
-        ),);
+        results.add(
+          TrackFileMatch(
+            track: track,
+            file: null,
+            confidence: MatchConfidence.unmatched,
+          ),
+        );
       }
     }
 

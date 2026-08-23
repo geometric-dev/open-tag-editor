@@ -34,8 +34,7 @@ class CoverArtService {
         return null;
       }
 
-      final mimeType =
-          response.headers['content-type'] ?? 'image/jpeg';
+      final mimeType = response.headers['content-type'] ?? 'image/jpeg';
 
       return CoverArtResult(
         imageBytes: Uint8List.fromList(response.bodyBytes),
