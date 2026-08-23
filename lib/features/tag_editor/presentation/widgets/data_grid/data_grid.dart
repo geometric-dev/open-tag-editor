@@ -34,6 +34,10 @@ class DataGrid extends ConsumerWidget {
   /// The fixed height for all rows (file rows and separator rows).
   static const double rowHeight = 28;
 
+  /// Upper bound on rows measured during auto-fit. Beyond this the
+  /// extra TextPainter layouts cost more than the precision is worth.
+  static const int autoFitSampleCap = 1000;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final files = ref.watch(filteredSortedFileListProvider);
@@ -159,9 +163,9 @@ class DataGrid extends ConsumerWidget {
             .firstWhere(isColumnEditable, orElse: () => '');
         if (firstEditable.isNotEmpty) {
           ref.read(inlineCellEditProvider.notifier).moveFocus(
-            CellCoordinate(rowIndex: rowIndex, columnId: firstEditable),
-            showBorder: false,
-          );
+                CellCoordinate(rowIndex: rowIndex, columnId: firstEditable),
+                showBorder: false,
+              );
         }
       }
     }
@@ -435,8 +439,9 @@ class _ScrollableDataGridState extends State<_ScrollableDataGrid> {
       if (oldOffset <= 0) return;
 
       // Find which file was at the top of the viewport in the old list
-      final oldTopIndex =
-          (oldOffset / DataGrid.rowHeight).floor().clamp(0, oldWidget.gridItems.length - 1);
+      final oldTopIndex = (oldOffset / DataGrid.rowHeight)
+          .floor()
+          .clamp(0, oldWidget.gridItems.length - 1);
 
       // Find the file at that position in the old grid items
       String? topFilePath;
@@ -461,10 +466,10 @@ class _ScrollableDataGridState extends State<_ScrollableDataGrid> {
 
       if (newIndex != null) {
         final newOffset = newIndex * DataGrid.rowHeight;
-        final maxExtent =
-            (widget.gridItems.length * DataGrid.rowHeight) -
+        final maxExtent = (widget.gridItems.length * DataGrid.rowHeight) -
             (_verticalController.position.viewportDimension);
-        final clampedOffset = newOffset.clamp(0.0, maxExtent > 0 ? maxExtent : 0.0);
+        final clampedOffset =
+            newOffset.clamp(0.0, maxExtent > 0 ? maxExtent : 0.0);
 
         if ((clampedOffset - oldOffset).abs() > 0.5) {
           WidgetsBinding.instance.addPostFrameCallback((_) {

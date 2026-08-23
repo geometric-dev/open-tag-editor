@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../models/selection_state.dart';
 
+/// Builds a path-to-index map so navigation helpers avoid repeated O(n)
+/// [List.indexOf] scans on large libraries (one pass per operation).
+Map<String, int> buildIndexMap(List<String> orderedPaths) =>
+    {for (var i = 0; i < orderedPaths.length; i++) orderedPaths[i]: i};
+
 /// Provider for the file selection state.
 final selectionProvider =
     StateNotifierProvider<SelectionNotifier, SelectionState>((ref) {
@@ -49,8 +54,10 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
       return;
     }
 
-    final anchorIndex = orderedPaths.indexOf(anchor);
-    final targetIndex = orderedPaths.indexOf(path);
+    final indexes = buildIndexMap(orderedPaths);
+    // Missing paths map to -1, preserving the original indexOf fallback.
+    final anchorIndex = indexes[anchor] ?? -1;
+    final targetIndex = indexes[path] ?? -1;
 
     if (anchorIndex < 0 || targetIndex < 0) {
       select(path);
@@ -176,8 +183,10 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
       return;
     }
 
-    final anchorIndex = orderedPaths.indexOf(anchor);
-    final targetIndex = orderedPaths.indexOf(path);
+    final indexes = buildIndexMap(orderedPaths);
+    // Missing paths map to -1, preserving the original indexOf fallback.
+    final anchorIndex = indexes[anchor] ?? -1;
+    final targetIndex = indexes[path] ?? -1;
     if (anchorIndex < 0 || targetIndex < 0) return;
 
     final start = min(anchorIndex, targetIndex);
