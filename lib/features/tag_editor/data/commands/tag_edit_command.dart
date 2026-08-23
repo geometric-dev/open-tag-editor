@@ -1,6 +1,6 @@
-import '../../features/tag_editor/data/providers/file_list_provider.dart';
-import '../../shared/models/audio_file.dart';
-import 'undo_redo_manager.dart';
+import '../../../../shared/models/audio_file.dart';
+import '../../../../core/undo/undo_redo_manager.dart';
+import '../providers/file_list_provider.dart';
 
 /// Command for editing a single tag field on one or more files.
 class TagEditCommand implements UndoableCommand {
@@ -72,8 +72,8 @@ class TagEditCommand implements UndoableCommand {
         }
         // Determine if the file is still modified compared to on-disk state.
         final original = file.originalTags;
-        final stillModified = original == null ||
-            !_mapsEqual(newTags, original);
+        final stillModified =
+            original == null || !_mapsEqual(newTags, original);
         updatedFiles.add(
           file.copyWith(tags: newTags, isModified: stillModified),
         );
@@ -154,12 +154,14 @@ class BatchTagEditCommand implements UndoableCommand {
       if (filePaths.contains(file.path)) {
         final prevTags = previousValues[file.path] ?? {};
         final original = file.originalTags;
-        final stillModified = original == null ||
-            !_mapsEqual(prevTags, original);
-        updatedFiles.add(file.copyWith(
-          tags: Map<String, String>.from(prevTags),
-          isModified: stillModified,
-        ),);
+        final stillModified =
+            original == null || !_mapsEqual(prevTags, original);
+        updatedFiles.add(
+          file.copyWith(
+            tags: Map<String, String>.from(prevTags),
+            isModified: stillModified,
+          ),
+        );
       }
     }
 
