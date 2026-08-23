@@ -46,7 +46,7 @@ void main() {
   group('RenameExecutor.execute', () {
     test('renames files and reports counts', () async {
       final a = createFile('01 Song.mp3');
-      final b = createFile('02 Other.mp3');
+      createFile('02 Other.mp3');
 
       final result = await executor.execute(
         [
