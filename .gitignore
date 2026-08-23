@@ -2,7 +2,11 @@
 .dart_tool/
 .packages
 build/
+
+# Generated code is gitignored EXCEPT the committed ffigen output, which is
+# required to compile and only changes when native/taglib_c.h changes.
 *.g.dart
+!lib/shared/services/taglib/taglib_bindings.g.dart
 *.freezed.dart
 
 # IDE
