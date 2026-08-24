@@ -62,9 +62,28 @@ class FilenameSanitizer {
 
   /// Reserved names on Windows (case-insensitive).
   static const List<String> _windowsReservedNames = [
-    'CON', 'PRN', 'AUX', 'NUL',
-    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+    'CON',
+    'PRN',
+    'AUX',
+    'NUL',
+    'COM1',
+    'COM2',
+    'COM3',
+    'COM4',
+    'COM5',
+    'COM6',
+    'COM7',
+    'COM8',
+    'COM9',
+    'LPT1',
+    'LPT2',
+    'LPT3',
+    'LPT4',
+    'LPT5',
+    'LPT6',
+    'LPT7',
+    'LPT8',
+    'LPT9',
   ];
 
   /// Sanitizes [filename] by removing/replacing invalid characters.
@@ -145,9 +164,8 @@ class FilenameSanitizer {
     // Step 2: Extract filename portion (after last separator).
     final separator = Platform.isWindows ? r'\' : '/';
     final lastSepIndex = fullPath.lastIndexOf(separator);
-    final filename = lastSepIndex == -1
-        ? fullPath
-        : fullPath.substring(lastSepIndex + 1);
+    final filename =
+        lastSepIndex == -1 ? fullPath : fullPath.substring(lastSepIndex + 1);
 
     // Step 4: Check if filename is empty or all whitespace.
     if (filename.isEmpty || filename.trim().isEmpty) {

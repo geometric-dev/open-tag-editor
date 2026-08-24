@@ -146,7 +146,8 @@ class RenameExecutor {
     var counter = 1;
     var candidate = path;
     while (File(candidate).existsSync()) {
-      candidate = '$parent${Platform.pathSeparator}$baseName ($counter)$extension';
+      candidate =
+          '$parent${Platform.pathSeparator}$baseName ($counter)$extension';
       counter++;
     }
 

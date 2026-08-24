@@ -84,8 +84,7 @@ List<GridItem> buildGridItems({
     // Sort files within the group by filename (case-insensitive).
     final groupFiles = groups[dir]!
       ..sort(
-        (a, b) =>
-            a.file.filename.toLowerCase().compareTo(
+        (a, b) => a.file.filename.toLowerCase().compareTo(
               b.file.filename.toLowerCase(),
             ),
       );

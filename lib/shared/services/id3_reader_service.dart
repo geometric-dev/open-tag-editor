@@ -130,14 +130,16 @@ class Id3ReaderService implements TagReaderService {
         // Return file with empty tags and readError on failure
         final filename = p.basename(path);
         final file = File(path);
-        results.add(AudioFile(
-          path: path,
-          filename: filename,
-          extension: p.extension(path).toLowerCase(),
-          fileSize: 0,
-          isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
-          readError: e.toString(),
-        ),);
+        results.add(
+          AudioFile(
+            path: path,
+            filename: filename,
+            extension: p.extension(path).toLowerCase(),
+            fileSize: 0,
+            isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+            readError: e.toString(),
+          ),
+        );
       }
     }
     return results;
@@ -318,8 +320,9 @@ class Id3ReaderService implements TagReaderService {
     while (offset < bytes.length - 4) {
       final isLast = (bytes[offset] & 0x80) != 0;
       final blockType = bytes[offset] & 0x7F;
-      final blockSize =
-          (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+      final blockSize = (bytes[offset + 1] << 16) |
+          (bytes[offset + 2] << 8) |
+          bytes[offset + 3];
       offset += 4;
 
       if (offset + blockSize > bytes.length) break;
@@ -328,8 +331,8 @@ class Id3ReaderService implements TagReaderService {
         case 0: // STREAMINFO
           if (blockSize >= 18) {
             sampleRate = ((bytes[offset + 10] << 12) |
-                    (bytes[offset + 11] << 4) |
-                    ((bytes[offset + 12] & 0xF0) >> 4));
+                (bytes[offset + 11] << 4) |
+                ((bytes[offset + 12] & 0xF0) >> 4));
             channels = ((bytes[offset + 12] & 0x0E) >> 1) + 1;
             final totalSamples = ((bytes[offset + 13] & 0x0F) << 32) |
                 (bytes[offset + 14] << 24) |
@@ -387,7 +390,8 @@ class Id3ReaderService implements TagReaderService {
 
       if (pos + commentLen > bytes.length) break;
 
-      final comment = utf8.decode(bytes.sublist(pos, pos + commentLen), allowMalformed: true);
+      final comment = utf8.decode(bytes.sublist(pos, pos + commentLen),
+          allowMalformed: true);
       final eqIndex = comment.indexOf('=');
       if (eqIndex > 0) {
         final key = comment.substring(0, eqIndex).toLowerCase();
@@ -741,11 +745,41 @@ class Id3ReaderService implements TagReaderService {
   int? _getMp3Bitrate(int version, int layer, int index) {
     // MPEG1, Layer III bitrates
     const bitratesV1L3 = [
-      0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0,
+      0,
+      32,
+      40,
+      48,
+      56,
+      64,
+      80,
+      96,
+      112,
+      128,
+      160,
+      192,
+      224,
+      256,
+      320,
+      0,
     ];
     // MPEG2/2.5, Layer III bitrates
     const bitratesV2L3 = [
-      0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0,
+      0,
+      8,
+      16,
+      24,
+      32,
+      40,
+      48,
+      56,
+      64,
+      80,
+      96,
+      112,
+      128,
+      144,
+      160,
+      0,
     ];
 
     if (version == 3) {
@@ -774,19 +808,85 @@ class Id3ReaderService implements TagReaderService {
   }
 
   static const _id3v1Genres = [
-    'Blues', 'Classic Rock', 'Country', 'Dance', 'Disco', 'Funk', 'Grunge',
-    'Hip-Hop', 'Jazz', 'Metal', 'New Age', 'Oldies', 'Other', 'Pop', 'R&B',
-    'Rap', 'Reggae', 'Rock', 'Techno', 'Industrial', 'Alternative', 'Ska',
-    'Death Metal', 'Pranks', 'Soundtrack', 'Euro-Techno', 'Ambient',
-    'Trip-Hop', 'Vocal', 'Jazz+Funk', 'Fusion', 'Trance', 'Classical',
-    'Instrumental', 'Acid', 'House', 'Game', 'Sound Clip', 'Gospel', 'Noise',
-    'AlternRock', 'Bass', 'Soul', 'Punk', 'Space', 'Meditative',
-    'Instrumental Pop', 'Instrumental Rock', 'Ethnic', 'Gothic', 'Darkwave',
-    'Techno-Industrial', 'Electronic', 'Pop-Folk', 'Eurodance', 'Dream',
-    'Southern Rock', 'Comedy', 'Cult', 'Gangsta', 'Top 40', 'Christian Rap',
-    'Pop/Funk', 'Jungle', 'Native American', 'Cabaret', 'New Wave',
-    'Psychedelic', 'Rave', 'Showtunes', 'Trailer', 'Lo-Fi', 'Tribal',
-    'Acid Punk', 'Acid Jazz', 'Polka', 'Retro', 'Musical', 'Rock & Roll',
+    'Blues',
+    'Classic Rock',
+    'Country',
+    'Dance',
+    'Disco',
+    'Funk',
+    'Grunge',
+    'Hip-Hop',
+    'Jazz',
+    'Metal',
+    'New Age',
+    'Oldies',
+    'Other',
+    'Pop',
+    'R&B',
+    'Rap',
+    'Reggae',
+    'Rock',
+    'Techno',
+    'Industrial',
+    'Alternative',
+    'Ska',
+    'Death Metal',
+    'Pranks',
+    'Soundtrack',
+    'Euro-Techno',
+    'Ambient',
+    'Trip-Hop',
+    'Vocal',
+    'Jazz+Funk',
+    'Fusion',
+    'Trance',
+    'Classical',
+    'Instrumental',
+    'Acid',
+    'House',
+    'Game',
+    'Sound Clip',
+    'Gospel',
+    'Noise',
+    'AlternRock',
+    'Bass',
+    'Soul',
+    'Punk',
+    'Space',
+    'Meditative',
+    'Instrumental Pop',
+    'Instrumental Rock',
+    'Ethnic',
+    'Gothic',
+    'Darkwave',
+    'Techno-Industrial',
+    'Electronic',
+    'Pop-Folk',
+    'Eurodance',
+    'Dream',
+    'Southern Rock',
+    'Comedy',
+    'Cult',
+    'Gangsta',
+    'Top 40',
+    'Christian Rap',
+    'Pop/Funk',
+    'Jungle',
+    'Native American',
+    'Cabaret',
+    'New Wave',
+    'Psychedelic',
+    'Rave',
+    'Showtunes',
+    'Trailer',
+    'Lo-Fi',
+    'Tribal',
+    'Acid Punk',
+    'Acid Jazz',
+    'Polka',
+    'Retro',
+    'Musical',
+    'Rock & Roll',
     'Hard Rock',
   ];
 

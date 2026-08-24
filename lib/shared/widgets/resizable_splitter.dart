@@ -79,8 +79,7 @@ class _ResizableSplitterState extends State<ResizableSplitter> {
                   setState(() => _isDragging = true);
                 },
                 onHorizontalDragUpdate: (details) {
-                  final newRightWidth =
-                      effectiveRightWidth - details.delta.dx;
+                  final newRightWidth = effectiveRightWidth - details.delta.dx;
                   final clamped = newRightWidth.clamp(
                     widget.minRightWidth,
                     maxRight,

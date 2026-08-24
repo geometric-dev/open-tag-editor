@@ -28,9 +28,8 @@ final filteredSortedFileListProvider = Provider<List<AudioFile>>((ref) {
   final showSelectedOnly = ref.watch(showSelectedOnlyProvider);
   if (showSelectedOnly) {
     final selection = ref.watch(selectionProvider);
-    final filtered = files
-        .where((f) => selection.selectedPaths.contains(f.path))
-        .toList();
+    final filtered =
+        files.where((f) => selection.selectedPaths.contains(f.path)).toList();
     if (filtered.isEmpty && files.isNotEmpty) {
       // Auto-deactivate: would show zero files
       Future.microtask(() {

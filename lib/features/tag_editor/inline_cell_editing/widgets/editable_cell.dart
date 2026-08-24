@@ -47,8 +47,8 @@ class EditableCellState extends ConsumerState<EditableCell> {
   Widget build(BuildContext context) {
     final editState = ref.watch(inlineCellEditProvider);
     final isEditing = editState.editingCell == widget.coordinate;
-    final isFocused = editState.focusedCell == widget.coordinate &&
-        editState.showFocusBorder;
+    final isFocused =
+        editState.focusedCell == widget.coordinate && editState.showFocusBorder;
     final editable = isColumnEditable(widget.coordinate.columnId);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -174,9 +174,8 @@ class EditableCellState extends ConsumerState<EditableCell> {
         position.dy,
       ),
       items: items,
-      constraints: values.length > 20
-          ? const BoxConstraints(maxHeight: 280)
-          : null,
+      constraints:
+          values.length > 20 ? const BoxConstraints(maxHeight: 280) : null,
     );
 
     if (chosen == null) return; // Dismissed without selection.

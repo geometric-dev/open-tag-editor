@@ -88,8 +88,7 @@ class WriteTagsCommand implements UndoableCommand {
       if (prevTags == null) continue;
 
       final original = file.originalTags;
-      final stillModified = original == null ||
-          !_mapsEqual(prevTags, original);
+      final stillModified = original == null || !_mapsEqual(prevTags, original);
       updatedFiles.add(
         file.copyWith(
           tags: Map<String, String>.from(prevTags),

@@ -116,8 +116,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
                 : 'Non-recursive: top-level only',
             child: InkWell(
               borderRadius: BorderRadius.circular(4),
-              onTap: () =>
-                  ref.read(recursiveLoadingProvider.notifier).toggle(),
+              onTap: () => ref.read(recursiveLoadingProvider.notifier).toggle(),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 6,
@@ -185,10 +184,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
         'No folder loaded',
         style: TextStyle(
           fontSize: 12,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withValues(alpha: 0.5),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         ),
       );
     }
@@ -404,10 +400,8 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
           child: Icon(
             Icons.chevron_right,
             size: 14,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.5),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
       );

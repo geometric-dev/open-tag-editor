@@ -42,8 +42,7 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
         // Load width overrides, filtering invalid entries
         final widthOverrides = <String, double>{};
         if (map['widths'] is Map) {
-          final validColumnIds =
-              defaultColumns.map((c) => c.id).toSet();
+          final validColumnIds = defaultColumns.map((c) => c.id).toSet();
           final widthsMap = map['widths'] as Map<String, dynamic>;
           for (final entry in widthsMap.entries) {
             final value = (entry.value as num?)?.toDouble();
@@ -111,9 +110,8 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
     order.removeAt(orderOldIdx);
     // Find target position in order based on neighbors in visible
     final targetNeighbor = newIndex > 0 ? visible[newIndex - 1] : null;
-    final orderNewIdx = targetNeighbor != null
-        ? order.indexOf(targetNeighbor) + 1
-        : 0;
+    final orderNewIdx =
+        targetNeighbor != null ? order.indexOf(targetNeighbor) + 1 : 0;
     order.insert(orderNewIdx, item);
 
     state = ColumnConfig(visibleColumnIds: visible, columnOrder: order);

@@ -86,18 +86,22 @@ class RenameService {
     for (final file in files) {
       try {
         final newPath = await rename(file, pattern);
-        results.add(RenameResult(
-          originalPath: file.path,
-          newPath: newPath,
-          success: true,
-        ),);
+        results.add(
+          RenameResult(
+            originalPath: file.path,
+            newPath: newPath,
+            success: true,
+          ),
+        );
       } on Exception catch (e) {
-        results.add(RenameResult(
-          originalPath: file.path,
-          newPath: file.path,
-          success: false,
-          error: e.toString(),
-        ),);
+        results.add(
+          RenameResult(
+            originalPath: file.path,
+            newPath: file.path,
+            success: false,
+            error: e.toString(),
+          ),
+        );
       }
     }
     return results;

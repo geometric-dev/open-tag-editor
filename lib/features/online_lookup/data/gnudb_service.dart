@@ -76,9 +76,8 @@ class GnuDbService {
   /// second round trip.
   Future<GnuDbLookupResult> lookupByFiles(List<AudioFile> files) async {
     final ordered = orderForToc(files);
-    final durations = ordered
-        .map((f) => f.duration ?? 0.0)
-        .toList(growable: false);
+    final durations =
+        ordered.map((f) => f.duration ?? 0.0).toList(growable: false);
     final hasAllDurations = ordered.every((f) => f.duration != null);
     if (!hasAllDurations || durations.length < 2) {
       throw LookupServiceException(
@@ -128,10 +127,7 @@ class GnuDbService {
       if (entry is! Map<String, dynamic>) continue;
       final discId = entry['discid'] as String?;
       final genre = entry['genre'] as String?;
-      if (discId == null ||
-          discId.isEmpty ||
-          genre == null ||
-          genre.isEmpty) {
+      if (discId == null || discId.isEmpty || genre == null || genre.isEmpty) {
         continue;
       }
 

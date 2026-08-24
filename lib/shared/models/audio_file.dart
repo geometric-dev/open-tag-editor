@@ -106,8 +106,8 @@ class AudioFile extends Equatable {
       extension: extension ?? this.extension,
       fileSize: fileSize ?? this.fileSize,
       tags: tags ?? this.tags,
-      originalTags: originalTags ??
-          (preserveOriginalTags ? this.originalTags : null),
+      originalTags:
+          originalTags ?? (preserveOriginalTags ? this.originalTags : null),
       albumArt: clearAlbumArt ? null : (albumArt ?? this.albumArt),
       duration: duration ?? this.duration,
       bitrate: bitrate ?? this.bitrate,

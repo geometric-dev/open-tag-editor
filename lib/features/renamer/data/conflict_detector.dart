@@ -15,8 +15,7 @@ class ConflictDetector {
     final caseInsensitive = Platform.isWindows;
 
     for (final entry in previews.entries) {
-      final key =
-          caseInsensitive ? entry.value.toLowerCase() : entry.value;
+      final key = caseInsensitive ? entry.value.toLowerCase() : entry.value;
       groups.putIfAbsent(key, () => []).add(entry.key);
     }
 
@@ -26,8 +25,7 @@ class ConflictDetector {
     final keyToOriginalTarget = <String, String>{};
 
     for (final entry in previews.entries) {
-      final key =
-          caseInsensitive ? entry.value.toLowerCase() : entry.value;
+      final key = caseInsensitive ? entry.value.toLowerCase() : entry.value;
       keyToOriginalTarget.putIfAbsent(key, () => entry.value);
     }
 

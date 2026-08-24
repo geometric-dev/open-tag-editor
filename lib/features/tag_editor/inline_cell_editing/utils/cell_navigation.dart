@@ -11,8 +11,7 @@ CellCoordinate? nextEditableColumn(
   List<String> visibleColumnIds,
   int totalRows,
 ) {
-  final editableIds =
-      visibleColumnIds.where(isColumnEditable).toList();
+  final editableIds = visibleColumnIds.where(isColumnEditable).toList();
   if (editableIds.isEmpty) return null;
 
   final currentIndex = editableIds.indexOf(current.columnId);
@@ -43,8 +42,7 @@ CellCoordinate? previousEditableColumn(
   List<String> visibleColumnIds,
   int totalRows,
 ) {
-  final editableIds =
-      visibleColumnIds.where(isColumnEditable).toList();
+  final editableIds = visibleColumnIds.where(isColumnEditable).toList();
   if (editableIds.isEmpty) return null;
 
   final currentIndex = editableIds.indexOf(current.columnId);

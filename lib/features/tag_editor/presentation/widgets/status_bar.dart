@@ -21,9 +21,8 @@ class EnhancedStatusBar extends ConsumerWidget {
     final errorCount = ref.watch(errorCountProvider);
     final errorPanelVisible = ref.watch(errorPanelVisibleProvider);
 
-    final selectedFiles = files
-        .where((f) => selection.selectedPaths.contains(f.path))
-        .toList();
+    final selectedFiles =
+        files.where((f) => selection.selectedPaths.contains(f.path)).toList();
 
     final totalDuration = _sumDuration(files);
     final selectedDuration = _sumDuration(selectedFiles);

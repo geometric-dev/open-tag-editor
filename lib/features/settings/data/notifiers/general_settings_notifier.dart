@@ -11,8 +11,7 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
   static const _keyFileCountThreshold =
       'settings_v1_general_file_count_threshold';
   static const _keyBackupEnabled = 'settings_v1_general_backup_enabled';
-  static const _keyPreserveTimestamp =
-      'settings_v1_general_preserve_timestamp';
+  static const _keyPreserveTimestamp = 'settings_v1_general_preserve_timestamp';
   static const _keyThemeMode = 'settings_v1_general_theme_mode';
 
   /// Loads settings from SharedPreferences.
@@ -23,8 +22,7 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
         reopenLastFolder: prefs.getBool(_keyReopenLastFolder) ?? false,
         fileCountThreshold: prefs.getInt(_keyFileCountThreshold) ?? 500,
         backupEnabled: prefs.getBool(_keyBackupEnabled) ?? true,
-        preserveTimestamp:
-            prefs.getBool(_keyPreserveTimestamp) ?? false,
+        preserveTimestamp: prefs.getBool(_keyPreserveTimestamp) ?? false,
         themeMode: _parseThemeMode(prefs.getString(_keyThemeMode)),
       );
     } catch (_) {

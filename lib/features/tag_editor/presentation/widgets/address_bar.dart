@@ -151,8 +151,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                 : 'Non-recursive: top-level only',
             child: InkWell(
               borderRadius: BorderRadius.circular(4),
-              onTap: () =>
-                  ref.read(recursiveLoadingProvider.notifier).toggle(),
+              onTap: () => ref.read(recursiveLoadingProvider.notifier).toggle(),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 6,

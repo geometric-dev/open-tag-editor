@@ -65,23 +65,21 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     if (mounted) {
       if (result.errorCount > 0) {
         // Convert RenameErrors to RenameResults for the error entry factory.
-        final renameResults = result.errors
-            .map(
-              (e) {
-                // Look up the target path from previews.
-                final preview = state.previews.cast<RenamePreview?>().firstWhere(
+        final renameResults = result.errors.map(
+          (e) {
+            // Look up the target path from previews.
+            final preview = state.previews.cast<RenamePreview?>().firstWhere(
                   (p) => p!.originalPath == e.filePath,
                   orElse: () => null,
                 );
-                return RenameResult(
-                  originalPath: e.filePath,
-                  newPath: preview?.newPath ?? '',
-                  success: false,
-                  error: e.message,
-                );
-              },
-            )
-            .toList();
+            return RenameResult(
+              originalPath: e.filePath,
+              newPath: preview?.newPath ?? '',
+              success: false,
+              error: e.message,
+            );
+          },
+        ).toList();
         final entries = ErrorEntryFactory.fromRenameResults(renameResults);
         ref.read(errorLogProvider.notifier).addEntries(entries);
 
@@ -194,7 +192,8 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
         state.previews.any((p) => p.status == RenamePreviewStatus.ok);
     final previewRequired =
         ref.watch(renamingSettingsProvider).previewBeforeRenaming;
-    final canExecute = previewRequired ? hasOkPreviews : state.pattern.isNotEmpty;
+    final canExecute =
+        previewRequired ? hasOkPreviews : state.pattern.isNotEmpty;
 
     return AlertDialog(
       title: const Text('Rename Files'),
@@ -225,7 +224,9 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                       if (value != null && value < presets.length) {
                         final pattern = presets[value].pattern;
                         _patternController.text = pattern;
-                        ref.read(renamerStateProvider.notifier).setPattern(pattern);
+                        ref
+                            .read(renamerStateProvider.notifier)
+                            .setPattern(pattern);
                         setState(() => _selectedPresetIndex = value);
                       }
                     },
@@ -239,7 +240,8 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                           presets.isEmpty ||
                           presets[_selectedPresetIndex!].isBuiltIn
                       ? null
-                      : () => _confirmDeletePreset(presets[_selectedPresetIndex!].name),
+                      : () => _confirmDeletePreset(
+                          presets[_selectedPresetIndex!].name),
                 ),
               ],
             ),
@@ -256,9 +258,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                       hintText: '%artist - %title',
                     ),
                     onChanged: (value) {
-                      ref
-                          .read(renamerStateProvider.notifier)
-                          .setPattern(value);
+                      ref.read(renamerStateProvider.notifier).setPattern(value);
                     },
                   ),
                 ),
@@ -396,9 +396,8 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
       // 6. Actions row
       actions: [
         TextButton(
-          onPressed: state.isExecuting
-              ? null
-              : () => Navigator.of(context).pop(),
+          onPressed:
+              state.isExecuting ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         TextButton(
@@ -406,9 +405,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
           child: const Text('Save Preset'),
         ),
         FilledButton(
-          onPressed: state.isExecuting || !canExecute
-              ? null
-              : _executeRename,
+          onPressed: state.isExecuting || !canExecute ? null : _executeRename,
           child: state.isExecuting
               ? const SizedBox(
                   width: 16,

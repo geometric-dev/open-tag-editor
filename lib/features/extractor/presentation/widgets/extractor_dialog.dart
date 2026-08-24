@@ -141,9 +141,7 @@ class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
                 if (value != null && value < presets.length) {
                   final pattern = presets[value].pattern;
                   _patternController.text = pattern;
-                  ref
-                      .read(extractorStateProvider.notifier)
-                      .setPattern(pattern);
+                  ref.read(extractorStateProvider.notifier).setPattern(pattern);
                 }
               },
             ),

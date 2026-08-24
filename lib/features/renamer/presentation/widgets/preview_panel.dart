@@ -119,8 +119,7 @@ class _PreviewRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,
-                    decoration:
-                        willChange ? TextDecoration.lineThrough : null,
+                    decoration: willChange ? TextDecoration.lineThrough : null,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -155,9 +154,9 @@ class _StatusIcon extends StatelessWidget {
       RenamePreviewStatus.ok => (Icons.check_circle, Colors.green),
       RenamePreviewStatus.conflict => (Icons.warning, Colors.orange),
       RenamePreviewStatus.error => (
-        Icons.error,
-        Theme.of(context).colorScheme.error,
-      ),
+          Icons.error,
+          Theme.of(context).colorScheme.error,
+        ),
       RenamePreviewStatus.unchanged => (Icons.remove, Colors.grey),
     };
 

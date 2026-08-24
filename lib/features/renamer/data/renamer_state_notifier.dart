@@ -116,7 +116,8 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
       final renames = <String, String>{};
       for (final plan in plans) {
         // Only include plans that were actually renamed (not skipped/errored).
-        final wasError = result.errors.any((e) => e.filePath == plan.sourcePath);
+        final wasError =
+            result.errors.any((e) => e.filePath == plan.sourcePath);
         if (!wasError) {
           renames[plan.sourcePath] = plan.targetPath;
         }
@@ -297,8 +298,7 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
     if (path.isEmpty) return false;
     if (Platform.isWindows) {
       // Matches drive letter patterns like "C:\" or "C:/"
-      return path.length >= 3 &&
-          RegExp(r'^[a-zA-Z]:[/\\]').hasMatch(path);
+      return path.length >= 3 && RegExp(r'^[a-zA-Z]:[/\\]').hasMatch(path);
     }
     return path.startsWith('/');
   }

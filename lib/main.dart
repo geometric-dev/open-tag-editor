@@ -57,10 +57,10 @@ Future<void> _applyWindowGeometry(
     var y = state.windowY.toDouble();
 
     if (primaryDisplay != null) {
-      final displayWidth = primaryDisplay.size.width /
-          primaryDisplay.devicePixelRatio;
-      final displayHeight = primaryDisplay.size.height /
-          primaryDisplay.devicePixelRatio;
+      final displayWidth =
+          primaryDisplay.size.width / primaryDisplay.devicePixelRatio;
+      final displayHeight =
+          primaryDisplay.size.height / primaryDisplay.devicePixelRatio;
 
       // Clamp size to display bounds.
       width = width.clamp(400.0, displayWidth);

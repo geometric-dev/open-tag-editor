@@ -24,7 +24,8 @@ class SortStateNotifier extends StateNotifier<SortState> {
       state = SortState(columnId: columnId, direction: SortDirection.ascending);
     } else if (state.direction == SortDirection.ascending) {
       // Same column, ascending → descending
-      state = SortState(columnId: columnId, direction: SortDirection.descending);
+      state =
+          SortState(columnId: columnId, direction: SortDirection.descending);
     } else {
       // Same column, descending → unsorted
       state = const SortState();

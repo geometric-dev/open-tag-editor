@@ -46,7 +46,8 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
         },
         const SingleActivator(LogicalKeyboardKey.keyA, control: true): () {
           final files = ref.read(fileListProvider);
-          ref.read(selectionProvider.notifier)
+          ref
+              .read(selectionProvider.notifier)
               .selectAll(files.map((f) => f.path).toList());
         },
         const SingleActivator(LogicalKeyboardKey.keyG, control: true): () {

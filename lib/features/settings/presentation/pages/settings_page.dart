@@ -233,9 +233,7 @@ class _FileProtectionPane extends StatelessWidget {
       title: 'File Protection',
       onReset: () {
         ref.read(generalSettingsProvider.notifier).setBackupEnabled(true);
-        ref
-            .read(generalSettingsProvider.notifier)
-            .setPreserveTimestamp(false);
+        ref.read(generalSettingsProvider.notifier).setPreserveTimestamp(false);
       },
       children: [
         _CheckboxRow(

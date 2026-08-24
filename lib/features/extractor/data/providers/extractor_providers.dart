@@ -11,8 +11,9 @@ import '../models/extractor_state.dart';
 ///
 /// This provider depends on the current file list and selection state.
 /// Uses selected files if any are selected, otherwise uses all files.
-final extractorStateProvider = StateNotifierProvider.autoDispose<
-    ExtractorStateNotifier, ExtractorState>((ref) {
+final extractorStateProvider =
+    StateNotifierProvider.autoDispose<ExtractorStateNotifier, ExtractorState>(
+        (ref) {
   final allFiles = ref.watch(fileListProvider);
   final selection = ref.watch(selectionProvider);
   final undoRedo = ref.read(undoRedoProvider.notifier);

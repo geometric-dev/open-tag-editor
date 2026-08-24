@@ -21,9 +21,14 @@ import '../../../album_art/presentation/widgets/batch_progress_overlay.dart';
 import '../../../album_art/presentation/widgets/drop_zone_wrapper.dart';
 import '../../../album_art/presentation/widgets/image_preview_modal.dart';
 import '../../data/providers/editor_state_provider.dart'
-    show TagPanelTab, selectedFilesProvider, statusMessageProvider, tagPanelActiveTabProvider;
+    show
+        TagPanelTab,
+        selectedFilesProvider,
+        statusMessageProvider,
+        tagPanelActiveTabProvider;
 import '../../data/providers/file_list_provider.dart' show fileListProvider;
-import '../../data/providers/service_providers.dart' show tagSaveServiceProvider;
+import '../../data/providers/service_providers.dart'
+    show tagSaveServiceProvider;
 
 /// Panel for editing tag fields of the selected file(s).
 ///
@@ -126,20 +131,23 @@ class _TagEditPanelState extends ConsumerState<TagEditPanel> {
               _TabButton(
                 label: 'Tags',
                 isActive: activeTab == TagPanelTab.tags,
-                onTap: () => ref.read(tagPanelActiveTabProvider.notifier).state =
-                    TagPanelTab.tags,
+                onTap: () => ref
+                    .read(tagPanelActiveTabProvider.notifier)
+                    .state = TagPanelTab.tags,
               ),
               _TabButton(
                 label: 'Album Art',
                 isActive: activeTab == TagPanelTab.albumArt,
-                onTap: () => ref.read(tagPanelActiveTabProvider.notifier).state =
-                    TagPanelTab.albumArt,
+                onTap: () => ref
+                    .read(tagPanelActiveTabProvider.notifier)
+                    .state = TagPanelTab.albumArt,
               ),
               _TabButton(
                 label: 'File Info',
                 isActive: activeTab == TagPanelTab.fileInfo,
-                onTap: () => ref.read(tagPanelActiveTabProvider.notifier).state =
-                    TagPanelTab.fileInfo,
+                onTap: () => ref
+                    .read(tagPanelActiveTabProvider.notifier)
+                    .state = TagPanelTab.fileInfo,
               ),
             ],
           ),
@@ -152,7 +160,8 @@ class _TagEditPanelState extends ConsumerState<TagEditPanel> {
     );
   }
 
-  Widget _buildTabContent(TagPanelTab activeTab, List<AudioFile> selectedFiles) {
+  Widget _buildTabContent(
+      TagPanelTab activeTab, List<AudioFile> selectedFiles) {
     switch (activeTab) {
       case TagPanelTab.tags:
         return _TagFieldsTab(selectedFiles: selectedFiles);
@@ -195,11 +204,9 @@ class _TabButton extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight:
-                        isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: isActive
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    color:
+                        isActive ? colorScheme.primary : colorScheme.onSurface,
                   ),
             ),
           ),
@@ -253,7 +260,6 @@ class _CompactButton extends StatelessWidget {
     );
   }
 }
-
 
 // ---------------------------------------------------------------------------
 // Tags tab
@@ -346,9 +352,7 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
       return widget.selectedFiles.first.tags[field] ?? '';
     }
 
-    final values = widget.selectedFiles
-        .map((f) => f.tags[field] ?? '')
-        .toSet();
+    final values = widget.selectedFiles.map((f) => f.tags[field] ?? '').toSet();
     if (values.length == 1) return values.first;
     return '';
   }
@@ -440,9 +444,7 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
 
   Widget _buildField(String field) {
     final isMixed = widget.selectedFiles.length > 1;
-    final values = widget.selectedFiles
-        .map((f) => f.tags[field] ?? '')
-        .toSet();
+    final values = widget.selectedFiles.map((f) => f.tags[field] ?? '').toSet();
     final hasMultipleValues = isMixed && values.length > 1;
 
     final validate = ref.watch(tagFieldValidationProvider);
@@ -503,7 +505,6 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
     );
   }
 }
-
 
 // ---------------------------------------------------------------------------
 // Album Art tab
@@ -623,8 +624,7 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
                         'Mixed',
                         style: TextStyle(
                           fontSize: 11,
-                          color:
-                              colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -673,9 +673,8 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
         _CompactOutlineButton(
           label: 'Export',
           icon: Icons.save_alt,
-          onPressed: displayArt != null
-              ? () => _handleExport(displayArt)
-              : null,
+          onPressed:
+              displayArt != null ? () => _handleExport(displayArt) : null,
         ),
         const SizedBox(width: 6),
         _CompactOutlineButton(
@@ -872,7 +871,6 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
   }
 }
 
-
 // ---------------------------------------------------------------------------
 // File Info tab
 // ---------------------------------------------------------------------------
@@ -909,10 +907,7 @@ class _FileInfoTab extends StatelessWidget {
             ),
             _InfoRow(
               label: 'Formats',
-              value: selectedFiles
-                  .map((f) => f.extension)
-                  .toSet()
-                  .join(', '),
+              value: selectedFiles.map((f) => f.extension).toSet().join(', '),
             ),
           ],
         ),

@@ -79,23 +79,27 @@ class TagFieldValidator {
 
     // Rule 1: Practical max length (10,000 chars)
     if (value.length > maxFieldLength) {
-      issues.add(TagFieldIssue(
-        severity: TagFieldSeverity.error,
-        message: 'Value exceeds maximum length of $maxFieldLength characters '
-            '(currently ${value.length}).',
-        field: field,
-      ),);
+      issues.add(
+        TagFieldIssue(
+          severity: TagFieldSeverity.error,
+          message: 'Value exceeds maximum length of $maxFieldLength characters '
+              '(currently ${value.length}).',
+          field: field,
+        ),
+      );
     }
 
     // Rule 2: ID3v1 truncation warning
     if (options.writeId3v1) {
       final limit = field == 'year' ? id3v1YearMaxLength : id3v1MaxLength;
       if (value.length > limit) {
-        issues.add(TagFieldIssue(
-          severity: TagFieldSeverity.warning,
-          message: 'Will be truncated to $limit characters in the ID3v1 tag.',
-          field: field,
-        ),);
+        issues.add(
+          TagFieldIssue(
+            severity: TagFieldSeverity.warning,
+            message: 'Will be truncated to $limit characters in the ID3v1 tag.',
+            field: field,
+          ),
+        );
       }
     }
 
@@ -106,24 +110,28 @@ class TagFieldValidator {
         final preview = nonLatin1.length <= 5
             ? nonLatin1.join(', ')
             : '${nonLatin1.take(5).join(', ')}…';
-        issues.add(TagFieldIssue(
-          severity: TagFieldSeverity.error,
-          message:
-              'Contains characters not representable in Latin-1: $preview. '
-              'Switch to UTF-8 or UTF-16 encoding.',
-          field: field,
-        ),);
+        issues.add(
+          TagFieldIssue(
+            severity: TagFieldSeverity.error,
+            message:
+                'Contains characters not representable in Latin-1: $preview. '
+                'Switch to UTF-8 or UTF-16 encoding.',
+            field: field,
+          ),
+        );
       }
     }
 
     // Rule 4: Numeric field validation
     if (numericFields.contains(field)) {
       if (!_isValidNumericValue(value)) {
-        issues.add(TagFieldIssue(
-          severity: TagFieldSeverity.warning,
-          message: 'Expected a numeric value.',
-          field: field,
-        ),);
+        issues.add(
+          TagFieldIssue(
+            severity: TagFieldSeverity.warning,
+            message: 'Expected a numeric value.',
+            field: field,
+          ),
+        );
       }
     }
 

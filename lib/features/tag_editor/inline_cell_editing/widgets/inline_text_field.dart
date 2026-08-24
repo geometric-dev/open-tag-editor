@@ -75,8 +75,8 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
       final editState = ref.read(inlineCellEditProvider);
       if (editState.isEditing) {
         ref.read(inlineCellEditProvider.notifier).confirmEdit(
-          clearFocus: true,
-        );
+              clearFocus: true,
+            );
       }
     }
   }

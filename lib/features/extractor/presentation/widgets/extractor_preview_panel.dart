@@ -178,9 +178,8 @@ class _PreviewRow extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isMatched = preview.matched;
 
-    final backgroundColor = isMatched
-        ? null
-        : colorScheme.errorContainer.withValues(alpha: 0.3);
+    final backgroundColor =
+        isMatched ? null : colorScheme.errorContainer.withValues(alpha: 0.3);
 
     return Container(
       color: backgroundColor,
@@ -220,9 +219,7 @@ class _PreviewRow extends StatelessWidget {
           for (final maskName in variableMaskNames)
             Expanded(
               child: Text(
-                isMatched
-                    ? (preview.transformedTags[maskName] ?? '')
-                    : '',
+                isMatched ? (preview.transformedTags[maskName] ?? '') : '',
                 style: TextStyle(
                   fontSize: 11,
                   color: isMatched

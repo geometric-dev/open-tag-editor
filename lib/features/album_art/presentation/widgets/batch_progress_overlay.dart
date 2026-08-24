@@ -35,9 +35,8 @@ class BatchProgressOverlay extends StatelessWidget {
         children: [
           if (!progress.isComplete) ...[
             LinearProgressIndicator(
-              value: progress.total > 0
-                  ? progress.completed / progress.total
-                  : 0,
+              value:
+                  progress.total > 0 ? progress.completed / progress.total : 0,
             ),
             const SizedBox(height: 8),
             Text(
