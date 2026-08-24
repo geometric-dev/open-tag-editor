@@ -12,10 +12,12 @@ import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
 import '../../../settings/presentation/pages/settings_page.dart'
     show SettingsDialog;
+import '../../../../shared/services/playlist_service.dart';
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/service_providers.dart';
+import '../widgets/address_bar.dart';
 
 /// Main toolbar with common actions.
 class EditorToolbar extends ConsumerWidget {
@@ -79,6 +81,47 @@ class EditorToolbar extends ConsumerWidget {
 
     final service = FolderLoadingService(ref.read);
     await service.loadFromDrop(context, paths);
+  }
+
+  Future<void> _exportPlaylist(WidgetRef ref, BuildContext context) async {
+    final allFiles = ref.read(fileListProvider);
+    final selected = ref.read(selectedFilesProvider);
+    final files = selected.isNotEmpty ? selected : allFiles;
+    if (files.isEmpty) return;
+
+    final outputPath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Export Playlist',
+      fileName: 'playlist.m3u8',
+      type: FileType.custom,
+      allowedExtensions: ['m3u', 'm3u8'],
+    );
+    if (outputPath == null || outputPath.isEmpty) return;
+
+    try {
+      final baseDir = ref.read(loadedFolderPathProvider);
+      // Relative to loaded folder for portability, matching Tag&Rename.
+      await PlaylistService.writePlaylistFile(
+        outputPath,
+        files,
+        extended: true,
+        useAbsolutePaths: false,
+        baseDirectory: baseDir,
+      );
+      if (!context.mounted) return;
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Playlist exported (${files.length} tracks)')),
+        );
+      }
+      ref.read(statusMessageProvider.notifier).state =
+          'Exported playlist (${files.length} tracks)';
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Playlist export failed: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _saveChanges(WidgetRef ref, BuildContext context) async {
@@ -234,6 +277,13 @@ class EditorToolbar extends ConsumerWidget {
                     ref.read(tagPanelActiveTabProvider.notifier).state =
                         TagPanelTab.albumArt;
                   },
+          ),
+          _ToolbarButton(
+            icon: Icons.playlist_add,
+            tooltip: 'Export Playlist',
+            onPressed: ref.watch(fileListProvider).isEmpty
+                ? null
+                : () => _exportPlaylist(ref, context),
           ),
           _ToolbarButton(
             icon: Icons.edit_note,
