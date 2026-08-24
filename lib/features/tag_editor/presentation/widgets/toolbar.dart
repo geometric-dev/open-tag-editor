@@ -9,6 +9,7 @@ import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
+import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/tools/data/tag_case_tools.dart';
 import '../../../../features/tools/data/tag_transform_command.dart';
 import '../../../../shared/services/export_service.dart';
@@ -221,6 +222,116 @@ class EditorToolbar extends ConsumerWidget {
     }
   }
 
+  /// Opens the cover-art resize/convert dialog and runs the batch with
+  /// progress feedback.
+  Future<void> _showResizeCoverArtDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final selected = ref.read(selectedFilesProvider);
+    final withArt = selected.where((f) => f.albumArt != null).toList();
+    if (withArt.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selected files have no embedded cover art to resize.'),
+        ),
+      );
+      return;
+    }
+
+    var maxDimension = 500;
+    var format = CoverArtFormat.keep;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Resize / Convert Cover Art'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${withArt.length} file(s) with embedded art will be '
+                'resized in place. Originals are recoverable via Undo.',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: maxDimension,
+                decoration: const InputDecoration(
+                  labelText: 'Max dimension (longest side, px)',
+                  isDense: true,
+                ),
+                items: const [200, 300, 500, 800, 1000]
+                    .map((v) => DropdownMenuItem(value: v, child: Text('$v')))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => maxDimension = v ?? 500),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<CoverArtFormat>(
+                initialValue: format,
+                decoration: const InputDecoration(
+                  labelText: 'Output format',
+                  isDense: true,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: CoverArtFormat.keep,
+                    child: Text('Keep current'),
+                  ),
+                  DropdownMenuItem(
+                    value: CoverArtFormat.jpeg,
+                    child: Text('JPEG'),
+                  ),
+                  DropdownMenuItem(
+                    value: CoverArtFormat.png,
+                    child: Text('PNG'),
+                  ),
+                ],
+                onChanged: (v) => setDialogState(() => format = v ?? format),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Resize'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final status = ref.read(statusMessageProvider.notifier);
+    final service = CoverArtResizeService(
+      tagWriter: ref.read(tagWriterProvider),
+      fileListNotifier: ref.read(fileListProvider.notifier),
+      undoRedoManager: ref.read(undoRedoProvider.notifier),
+    );
+    final options =
+        CoverArtResizeOptions(maxDimension: maxDimension, format: format);
+
+    await for (final progress in service.resizeAlbumArt(withArt, options)) {
+      status.state =
+          'Resizing cover art ${progress.completed}/${progress.total}...';
+    }
+
+    status.state = 'Cover art resized ($maxDimension px)';
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cover art resized on ${withArt.length} file(s)'),
+        ),
+      );
+    }
+  }
+
   /// Dispatches Tools-menu actions: per-file tag transforms (undoable)
   /// and ID3v1<->v2 synchronization (disk writes via TagSyncService).
   Future<void> _onToolSelected(
@@ -258,6 +369,11 @@ class EditorToolbar extends ConsumerWidget {
             ),
           );
       status.state = '${tool.menuLabel}: ${deltas.length} file(s) changed';
+      return;
+    }
+
+    if (value == 'art:resize') {
+      _showResizeCoverArtDialog(context, ref);
       return;
     }
 
@@ -428,6 +544,12 @@ class EditorToolbar extends ConsumerWidget {
                   child: Text(tool.menuLabel,
                       style: const TextStyle(fontSize: 12)),
                 ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'art:resize',
+                child: Text('Resize / Convert Cover Art...',
+                    style: TextStyle(fontSize: 12)),
+              ),
               const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'sync:v2toV1',
