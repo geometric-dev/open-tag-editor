@@ -23,6 +23,18 @@ class TagPropertyMapper {
     'copyright': 'COPYRIGHT',
     'bpm': 'BPM',
     'compilation': 'COMPILATION',
+    'lyrics': 'LYRICS',
+    'rating': 'RATING',
+    'mood': 'MOOD',
+    'grouping': 'GROUPING',
+    'subtitle': 'SUBTITLE',
+    'language': 'LANGUAGE',
+    'originalArtist': 'ORIGINALARTIST',
+    'remixer': 'REMIXEDBY',
+    'label': 'LABEL',
+    'catalogNumber': 'CATALOGNUMBER',
+    'isrc': 'ISRC',
+    'url': 'URL',
   };
 
   /// Maps TagLib property keys to app field names.
@@ -45,6 +57,18 @@ class TagPropertyMapper {
     'COPYRIGHT': 'copyright',
     'BPM': 'bpm',
     'COMPILATION': 'compilation',
+    'LYRICS': 'lyrics',
+    'RATING': 'rating',
+    'MOOD': 'mood',
+    'GROUPING': 'grouping',
+    'SUBTITLE': 'subtitle',
+    'LANGUAGE': 'language',
+    'ORIGINALARTIST': 'originalArtist',
+    'REMIXEDBY': 'remixer',
+    'LABEL': 'label',
+    'CATALOGNUMBER': 'catalogNumber',
+    'ISRC': 'isrc',
+    'URL': 'url',
   };
 
   /// Converts an app field name to the corresponding TagLib property key.

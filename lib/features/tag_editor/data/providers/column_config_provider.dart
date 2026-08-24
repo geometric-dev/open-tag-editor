@@ -151,7 +151,33 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
 
   static ColumnConfig _defaultConfig() {
     final allIds = defaultColumns.map((c) => c.id).toList();
-    return ColumnConfig(visibleColumnIds: List.from(allIds), columnOrder: allIds);
+    // Default visible set mirrors Tag&Rename's out-of-the-box columns;
+    // niche Tag&Rename parity frames (rating/mood/grouping etc.) are
+    // available via the header visibility toggle but hidden initially to
+    // avoid overwhelming new users.
+    const defaultVisible = [
+      'tagIndicator',
+      'filename',
+      'title',
+      'artist',
+      'album',
+      'year',
+      'genre',
+      'trackNumber',
+      'discNumber',
+      'bitrate',
+      'duration',
+      'albumArtist',
+      'comment',
+      'bpm',
+      'composer',
+      'conductor',
+      'relativePath',
+    ];
+    return ColumnConfig(
+      visibleColumnIds: List.from(defaultVisible),
+      columnOrder: allIds,
+    );
   }
 
   Future<void> _persist() async {

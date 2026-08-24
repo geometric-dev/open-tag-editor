@@ -20,6 +20,17 @@ enum TagField {
   bpm('BPM'),
   compilation('Compilation'),
   lyrics('Lyrics'),
+  rating('Rating'),
+  mood('Mood'),
+  grouping('Grouping'),
+  subtitle('Subtitle'),
+  language('Language'),
+  originalArtist('Original Artist'),
+  remixer('Remixed By'),
+  label('Label'),
+  catalogNumber('Catalog #'),
+  isrc('ISRC'),
+  url('URL'),
   albumArt('Album Art');
 
   const TagField(this.displayName);

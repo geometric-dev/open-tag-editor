@@ -144,4 +144,76 @@ final List<ColumnDefinition> defaultColumns = <ColumnDefinition>[
     valueExtractor: (file, {rootFolder}) =>
         FormatUtils.computeRelativePath(file.path, rootFolder ?? ''),
   ),
+  ColumnDefinition(
+    id: 'rating',
+    label: 'Rating',
+    defaultWidth: 70,
+    valueExtractor: (file, {rootFolder}) => file.tags['rating'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'mood',
+    label: 'Mood',
+    defaultWidth: 100,
+    valueExtractor: (file, {rootFolder}) => file.tags['mood'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'grouping',
+    label: 'Grouping',
+    defaultWidth: 120,
+    valueExtractor: (file, {rootFolder}) => file.tags['grouping'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'subtitle',
+    label: 'Subtitle',
+    defaultWidth: 150,
+    valueExtractor: (file, {rootFolder}) => file.tags['subtitle'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'language',
+    label: 'Language',
+    defaultWidth: 80,
+    valueExtractor: (file, {rootFolder}) => file.tags['language'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'originalArtist',
+    label: 'Original Artist',
+    defaultWidth: 150,
+    valueExtractor: (file, {rootFolder}) => file.tags['originalArtist'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'remixer',
+    label: 'Remixed By',
+    defaultWidth: 150,
+    valueExtractor: (file, {rootFolder}) => file.tags['remixer'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'label',
+    label: 'Label',
+    defaultWidth: 120,
+    valueExtractor: (file, {rootFolder}) => file.tags['label'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'catalogNumber',
+    label: 'Catalog #',
+    defaultWidth: 110,
+    valueExtractor: (file, {rootFolder}) => file.tags['catalogNumber'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'isrc',
+    label: 'ISRC',
+    defaultWidth: 130,
+    valueExtractor: (file, {rootFolder}) => file.tags['isrc'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'url',
+    label: 'URL',
+    defaultWidth: 200,
+    valueExtractor: (file, {rootFolder}) => file.tags['url'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'lyrics',
+    label: 'Lyrics',
+    defaultWidth: 200,
+    valueExtractor: (file, {rootFolder}) => file.tags['lyrics'] ?? '',
+  ),
 ];
