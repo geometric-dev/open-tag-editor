@@ -6,6 +6,29 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — Tag&Rename parity wave
+- **GNUdb lookup** (freedb successor): matches selected album tracks by a
+  virtual CD table-of-contents computed from durations; new source chip in
+  the lookup dialog.
+- **Export wizard formats**: true `.xlsx` via a dependency-free ZIP+OOXML
+  writer (inline strings, numeric cells, CRC-checked archive), alongside
+  CSV (RFC-4180 + BOM) and HTML.
+- **Tags Synchronization wizard**: dialog with direction choice, MP3
+  count, fill-preview, and results summary over the new ID3v1 codec
+  (v1.1 track byte, Latin-1-safe encoding, in-place replace).
+- **Cover art resize/convert**: batch downscale to a max dimension and
+  convert JPEG/PNG through the pure-Dart `image` package; single undoable
+  command restores every original.
+- **Tools menu** hosting transforms, cover-art resize, and sync wizard;
+  artist case tools are undoable per-file delta commands.
+- `.cdg` karaoke companions now follow their audio file on rename.
+- Multi-value tag properties join with `; ` on read instead of silently
+  dropping all but the first value.
+
+### Fixed
+- ID3v1 `_hasTag` read its signature from the wrong offset, breaking
+  replace-in-place; append mode no longer resurrects deleted files.
+
 ## [0.2.0] - 2026-08-23
 
 Quality and trust release: single save path, background-isolate I/O,
