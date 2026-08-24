@@ -127,6 +127,36 @@ void main() {
       );
     });
 
+    test('renames .cdg karaoke companion when present', () async {
+      final audio = createFile('track01.mp3');
+      final cdg = createFile('track01.cdg', content: 'CDGDATA');
+
+      final result = await executor.execute(
+        [plan('track01.mp3', '01 - Song.mp3')],
+        strategy: ConflictStrategy.skip,
+      );
+
+      expect(result.renamedCount, 1);
+      expect(File(audio).existsSync(), isFalse);
+      expect(File(cdg).existsSync(), isFalse);
+      expect(
+        File(p.join(tempDir.path, '01 - Song.cdg')).readAsStringSync(),
+        'CDGDATA',
+      );
+    });
+
+    test('absent .cdg companion is simply ignored', () async {
+      createFile('plain.mp3');
+
+      final result = await executor.execute(
+        [plan('plain.mp3', 'renamed.mp3')],
+        strategy: ConflictStrategy.skip,
+      );
+
+      expect(result.renamedCount, 1);
+      expect(result.errorCount, 0);
+    });
+
     test('missing source produces a per-file error, batch continues', () async {
       final ok = createFile('ok.mp3');
 

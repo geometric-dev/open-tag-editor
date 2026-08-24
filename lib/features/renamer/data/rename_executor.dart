@@ -122,6 +122,11 @@ class RenameExecutor {
   }
 
   /// Attempts to rename a file, falling back to copy-then-delete on failure.
+  ///
+  /// Karaoke companions: when a `.cdg` file shares the source's basename,
+  /// it is renamed to match the target too (Tag&Rename behaviour). A
+  /// companion that cannot be renamed is reported but does not fail the
+  /// audio rename, which has already succeeded.
   Future<void> _renameFile(String sourcePath, String targetPath) async {
     try {
       await File(sourcePath).rename(targetPath);
@@ -130,6 +135,28 @@ class RenameExecutor {
       await File(sourcePath).copy(targetPath);
       await File(sourcePath).delete();
     }
+
+    final companion = _cdgCompanion(sourcePath);
+    if (companion == null) return;
+    final companionTarget = _swapExtension(targetPath, '.cdg');
+    try {
+      await File(companion).rename(companionTarget);
+    } catch (e) {
+      throw Exception('Audio renamed but companion .cdg failed: $e');
+    }
+  }
+
+  /// Returns the `.cdg` sibling for [audioPath] if one exists.
+  String? _cdgCompanion(String audioPath) {
+    final candidate = _swapExtension(audioPath, '.cdg');
+    return File(candidate).existsSync() ? candidate : null;
+  }
+
+  /// Replaces the extension of [path], keeping the basename.
+  static String _swapExtension(String path, String newExt) {
+    final dot = path.lastIndexOf('.');
+    final base = dot <= 0 ? path : path.substring(0, dot);
+    return '$base$newExt';
   }
 
   /// Finds a unique path by appending ` (1)`, ` (2)`, etc.
