@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,15 +8,18 @@ import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
+import '../../../../shared/services/export_service.dart';
+import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
 import '../../../settings/presentation/pages/settings_page.dart'
     show SettingsDialog;
-import '../../../../shared/services/playlist_service.dart';
+import '../../data/providers/column_config_provider.dart';
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
+import '../../data/providers/filtered_sorted_file_list_provider.dart';
 import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/service_providers.dart';
 import '../widgets/address_bar.dart';
@@ -119,6 +124,40 @@ class EditorToolbar extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Playlist export failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportData(WidgetRef ref, BuildContext context) async {
+    final outputPath = await FilePicker.saveFile(
+      dialogTitle: 'Export File Information',
+      fileName: 'tags.csv',
+      type: FileType.custom,
+      allowedExtensions: ['csv', 'html', 'htm'],
+    );
+    if (outputPath == null || outputPath.isEmpty) return;
+
+    try {
+      final files = ref.read(filteredSortedFileListProvider);
+      final config = ref.read(columnConfigProvider);
+      final columns = ExportService.columnsFor(
+        config.visibleColumnIds.toSet(),
+      );
+      final content = ExportService.serializeFor(outputPath, files, columns);
+      await File(outputPath).writeAsString(content);
+
+      ref.read(statusMessageProvider.notifier).state =
+          'Exported ${files.length} file(s) to ${outputPath.split(Platform.pathSeparator).last}';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Exported ${files.length} row(s)')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
         );
       }
     }
@@ -284,6 +323,13 @@ class EditorToolbar extends ConsumerWidget {
             onPressed: ref.watch(fileListProvider).isEmpty
                 ? null
                 : () => _exportPlaylist(ref, context),
+          ),
+          _ToolbarButton(
+            icon: Icons.table_view,
+            tooltip: 'Export File Information (CSV / HTML)',
+            onPressed: ref.watch(fileListProvider).isEmpty
+                ? null
+                : () => _exportData(ref, context),
           ),
           _ToolbarButton(
             icon: Icons.edit_note,
