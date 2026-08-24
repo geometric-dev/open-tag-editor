@@ -8,8 +8,11 @@ import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
+import '../../../../features/tools/data/tag_case_tools.dart';
+import '../../../../features/tools/data/tag_transform_command.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
+import '../../../../shared/services/tag_sync_service.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
@@ -213,6 +216,82 @@ class EditorToolbar extends ConsumerWidget {
     }
   }
 
+  /// Dispatches Tools-menu actions: per-file tag transforms (undoable)
+  /// and ID3v1<->v2 synchronization (disk writes via TagSyncService).
+  Future<void> _onToolSelected(
+    String value,
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
+    final status = ref.read(statusMessageProvider.notifier);
+    final selected = ref.read(selectedFilesProvider);
+
+    if (value.startsWith('tool:')) {
+      final tool = TagTool.values.firstWhere((t) => 'tool:${t.name}' == value);
+
+      // Build per-file deltas from the tool transform.
+      final deltas = <String, Map<String, String>>{};
+      final previousTags = <String, Map<String, String>>{};
+      for (final file in selected) {
+        final delta = applyTool(tool, file);
+        if (delta.isEmpty) continue;
+        deltas[file.path] = delta;
+        previousTags[file.path] = Map.of(file.tags);
+      }
+
+      if (deltas.isEmpty) {
+        status.state = 'Nothing to change';
+        return;
+      }
+
+      ref.read(undoRedoProvider.notifier).execute(
+            TagTransformCommand(
+              fileListNotifier: ref.read(fileListProvider.notifier),
+              deltas: deltas,
+              previousTags: previousTags,
+              description: '${tool.menuLabel} (${deltas.length} file(s))',
+            ),
+          );
+      status.state = '${tool.menuLabel}: ${deltas.length} file(s) changed';
+      return;
+    }
+
+    if (value.startsWith('sync:')) {
+      final direction = value.split(':')[1];
+      final service = TagSyncService(tagWriter: ref.read(tagWriterProvider));
+      status.state = 'Synchronizing tags...';
+
+      final result = direction == 'v2toV1'
+          ? await service.syncToId3v1(selected)
+          : await service.syncFromId3v1(selected);
+
+      status.state = 'Tag sync: ${result.updatedCount} updated, '
+          '${result.skippedCount} skipped';
+
+      if (result.failures.isNotEmpty) {
+        ref.read(errorLogProvider.notifier).addEntries([
+          for (final f in result.failures)
+            ErrorEntryFactory.fromLookupFailure(
+              summary: f.path,
+              message: f.error ?? 'Unknown sync error',
+            ),
+        ]);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${result.failures.length} file(s) failed to sync'),
+              action: SnackBarAction(
+                label: 'Details',
+                onPressed: () =>
+                    ref.read(errorPanelVisibleProvider.notifier).state = true,
+              ),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -330,6 +409,32 @@ class EditorToolbar extends ConsumerWidget {
             onPressed: ref.watch(fileListProvider).isEmpty
                 ? null
                 : () => _exportData(ref, context),
+          ),
+          // Tools menu: batch tag utilities (Tag&Rename parity).
+          PopupMenuButton<String>(
+            tooltip: 'Tools',
+            icon: const Icon(Icons.handyman, size: 20),
+            onSelected: (value) => _onToolSelected(value, ref, context),
+            itemBuilder: (context) => [
+              for (final tool in TagTool.values)
+                PopupMenuItem(
+                  value: 'tool:${tool.name}',
+                  enabled: ref.read(selectedFilesProvider).isNotEmpty,
+                  child: Text(tool.menuLabel,
+                      style: const TextStyle(fontSize: 12)),
+                ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'sync:v2toV1',
+                child:
+                    Text('Sync tags to ID3v1', style: TextStyle(fontSize: 12)),
+              ),
+              const PopupMenuItem(
+                value: 'sync:v1toV2',
+                child: Text('Fill empty tags from ID3v1',
+                    style: TextStyle(fontSize: 12)),
+              ),
+            ],
           ),
           _ToolbarButton(
             icon: Icons.edit_note,
