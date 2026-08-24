@@ -7,6 +7,7 @@ class GeneralSettings {
     this.reopenLastFolder = false,
     this.fileCountThreshold = 500,
     this.backupEnabled = true,
+    this.preserveTimestamp = false,
     this.themeMode = AppThemeMode.system,
   });
 
@@ -20,6 +21,10 @@ class GeneralSettings {
   /// Whether a `.bak` copy is created before writing tags.
   final bool backupEnabled;
 
+  /// When true, original file modification time is restored after tag writes
+  /// (Tag&Rename: “Don’t change file timestamp on saving tags”).
+  final bool preserveTimestamp;
+
   /// Application theme mode.
   final AppThemeMode themeMode;
 
@@ -28,12 +33,14 @@ class GeneralSettings {
     bool? reopenLastFolder,
     int? fileCountThreshold,
     bool? backupEnabled,
+    bool? preserveTimestamp,
     AppThemeMode? themeMode,
   }) {
     return GeneralSettings(
       reopenLastFolder: reopenLastFolder ?? this.reopenLastFolder,
       fileCountThreshold: fileCountThreshold ?? this.fileCountThreshold,
       backupEnabled: backupEnabled ?? this.backupEnabled,
+      preserveTimestamp: preserveTimestamp ?? this.preserveTimestamp,
       themeMode: themeMode ?? this.themeMode,
     );
   }

@@ -46,6 +46,8 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
   return IsolateTagWriterService(
     getSnapshot: () => TagWriteSettingsSnapshot(
       backupEnabled: ref.read(generalSettingsProvider).backupEnabled,
+      preserveTimestamp:
+          ref.read(generalSettingsProvider).preserveTimestamp,
       options: writeOptions(),
     ),
     createDirectWriter: () {
@@ -58,6 +60,8 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
         ),
         ValidationEngine(ref.read(tagReaderProvider)),
         getWriteOptions: writeOptions,
+        isPreserveTimestampEnabled: () =>
+            ref.read(generalSettingsProvider).preserveTimestamp,
       );
     },
   );

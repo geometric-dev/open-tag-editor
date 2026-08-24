@@ -24,18 +24,27 @@ class TagLibWriterService implements TagWriterService {
     this._backupManager,
     this._validator, {
     required TagWriteOptions Function() getWriteOptions,
-  }) : _getWriteOptions = getWriteOptions;
+    bool Function()? isPreserveTimestampEnabled,
+  })  : _getWriteOptions = getWriteOptions,
+        _isPreserveTimestampEnabled = isPreserveTimestampEnabled;
 
   final TagLibBindings _bindings;
   final BackupManager _backupManager;
   final ValidationEngine _validator;
   final TagWriteOptions Function() _getWriteOptions;
+  final bool Function()? _isPreserveTimestampEnabled;
   final AtomicWriteManager _atomicWriteManager = AtomicWriteManager();
 
   @override
   Future<void> writeTags(String path, Map<String, String> tags) async {
     _assertFileExists(path);
     await _backupManager.createBackupIfEnabled(path);
+    DateTime? originalMtime;
+    if (_isPreserveTimestampEnabled?.call() ?? false) {
+      try {
+        originalMtime = File(path).statSync().modified;
+      } catch (_) {}
+    }
     final options = _getWriteOptions();
 
     // Set the default text encoding for ID3v2 frames before writing.
@@ -73,12 +82,24 @@ class TagLibWriterService implements TagWriterService {
     });
 
     await _validator.validate(path, tags);
+
+    if (originalMtime != null) {
+      try {
+        await File(path).setLastModified(originalMtime);
+      } catch (_) {}
+    }
   }
 
   @override
   Future<void> writeAlbumArt(String path, AlbumArtData art) async {
     _assertFileExists(path);
     await _backupManager.createBackupIfEnabled(path);
+    DateTime? originalMtime;
+    if (_isPreserveTimestampEnabled?.call() ?? false) {
+      try {
+        originalMtime = File(path).statSync().modified;
+      } catch (_) {}
+    }
 
     await _atomicWriteManager.writeAtomic(path, (tempPath) async {
       final effectivePath = _resolveNativePath(tempPath);
@@ -129,12 +150,24 @@ class TagLibWriterService implements TagWriterService {
         }
       }
     });
+
+    if (originalMtime != null) {
+      try {
+        await File(path).setLastModified(originalMtime);
+      } catch (_) {}
+    }
   }
 
   @override
   Future<void> removeAlbumArt(String path) async {
     _assertFileExists(path);
     await _backupManager.createBackupIfEnabled(path);
+    DateTime? originalMtime;
+    if (_isPreserveTimestampEnabled?.call() ?? false) {
+      try {
+        originalMtime = File(path).statSync().modified;
+      } catch (_) {}
+    }
 
     await _atomicWriteManager.writeAtomic(path, (tempPath) async {
       final effectivePath = _resolveNativePath(tempPath);
@@ -172,6 +205,12 @@ class TagLibWriterService implements TagWriterService {
         }
       }
     });
+
+    if (originalMtime != null) {
+      try {
+        await File(path).setLastModified(originalMtime);
+      } catch (_) {}
+    }
   }
 
   @override

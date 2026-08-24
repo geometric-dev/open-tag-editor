@@ -31,11 +31,15 @@ TagReaderService createPlatformTagReaderService() {
 class TagWriteSettingsSnapshot {
   const TagWriteSettingsSnapshot({
     required this.backupEnabled,
+    required this.preserveTimestamp,
     required this.options,
   });
 
   /// Whether `.bak` backups should be created before writing.
   final bool backupEnabled;
+
+  /// Whether to restore original file modification time after writing.
+  final bool preserveTimestamp;
 
   /// ID3v2 version / encoding / v1 companion settings.
   final TagWriteOptions options;
@@ -57,5 +61,6 @@ TagLibWriterService? createNativeTagWriterFromSnapshot(
     BackupManager(isBackupEnabled: () => snapshot.backupEnabled),
     ValidationEngine(reader),
     getWriteOptions: () => snapshot.options,
+    isPreserveTimestampEnabled: () => snapshot.preserveTimestamp,
   );
 }

@@ -231,8 +231,12 @@ class _FileProtectionPane extends StatelessWidget {
 
     return _SettingsPane(
       title: 'File Protection',
-      onReset: () =>
-          ref.read(generalSettingsProvider.notifier).setBackupEnabled(true),
+      onReset: () {
+        ref.read(generalSettingsProvider.notifier).setBackupEnabled(true);
+        ref
+            .read(generalSettingsProvider.notifier)
+            .setPreserveTimestamp(false);
+      },
       children: [
         _CheckboxRow(
           label: 'Create backup before writing',
@@ -240,6 +244,15 @@ class _FileProtectionPane extends StatelessWidget {
           value: settings.backupEnabled,
           onChanged: (v) =>
               ref.read(generalSettingsProvider.notifier).setBackupEnabled(v),
+        ),
+        _CheckboxRow(
+          label: 'Preserve file modification time',
+          subtitle:
+              'Keep original file timestamp when saving tags (don’t change file time)',
+          value: settings.preserveTimestamp,
+          onChanged: (v) => ref
+              .read(generalSettingsProvider.notifier)
+              .setPreserveTimestamp(v),
         ),
       ],
     );

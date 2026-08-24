@@ -89,7 +89,7 @@ class EditorToolbar extends ConsumerWidget {
     final files = selected.isNotEmpty ? selected : allFiles;
     if (files.isEmpty) return;
 
-    final outputPath = await FilePicker.platform.saveFile(
+    final outputPath = await FilePicker.saveFile(
       dialogTitle: 'Export Playlist',
       fileName: 'playlist.m3u8',
       type: FileType.custom,
