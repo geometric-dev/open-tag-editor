@@ -25,13 +25,18 @@ class LookupHelpers {
   /// Merges search results from multiple sources into a single list.
   ///
   /// Preserves all results with their source indicators intact.
-  /// Results are interleaved: MusicBrainz first, then Discogs.
+  /// Results are interleaved in the given source order (MusicBrainz,
+  /// Discogs, GNUdb, ...).
   static List<SearchResult> mergeResults(
     List<SearchResult> musicBrainzResults,
     List<SearchResult> discogsResults,
   ) {
     return [...musicBrainzResults, ...discogsResults];
   }
+
+  /// Merges any number of per-source result lists, preserving order.
+  static List<SearchResult> mergeAll(List<List<SearchResult>> batches) =>
+      [for (final batch in batches) ...batch];
 
   /// Groups a list of tracks by disc number.
   ///

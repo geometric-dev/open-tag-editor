@@ -7,6 +7,7 @@ import '../acoustid_service.dart';
 import '../cover_art_service.dart';
 import '../discogs_service.dart';
 import '../fingerprint_generator.dart';
+import '../gnudb_service.dart';
 import '../lookup_cache.dart';
 import '../metadata_applicator.dart';
 import '../musicbrainz_service.dart';
@@ -39,6 +40,11 @@ final generalRateLimiterProvider = Provider<RateLimiter>((ref) {
     perDuration: const Duration(seconds: 1),
     innerClient: http.Client(),
   );
+});
+
+/// GNUdb service provider (freedb successor).
+final gnuDbServiceProvider = Provider<GnuDbService>((ref) {
+  return GnuDbService(rateLimiter: ref.read(generalRateLimiterProvider));
 });
 
 /// MusicBrainz service provider.

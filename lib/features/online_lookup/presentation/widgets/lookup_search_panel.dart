@@ -63,6 +63,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
           album: _albumController.text,
           year: _yearController.text.isNotEmpty ? _yearController.text : null,
           sources: _selectedSources,
+          files: widget.selectedFiles,
         );
   }
 
@@ -156,6 +157,21 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
               tooltip: settings.isDiscogsConfigured
                   ? null
                   : 'Configure Discogs token in Settings → Online Lookup',
+            ),
+            const SizedBox(width: 8),
+            FilterChip(
+              label: const Text('GNUdb'),
+              selected: _selectedSources.contains(SearchSource.gnudb),
+              onSelected: (v) => setState(() {
+                if (v) {
+                  _selectedSources.add(SearchSource.gnudb);
+                } else {
+                  _selectedSources.remove(SearchSource.gnudb);
+                }
+              }),
+              tooltip:
+                  'freedb successor — matches by virtual CD TOC built from '
+                  'track durations; needs 2+ selected tracks with lengths',
             ),
             const Spacer(),
             // Identify button

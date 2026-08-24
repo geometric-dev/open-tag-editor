@@ -8,6 +8,7 @@ import '../acoustid_service.dart';
 import '../cover_art_service.dart';
 import '../discogs_service.dart';
 import '../fingerprint_generator.dart';
+import '../gnudb_service.dart';
 import '../lookup_cache.dart';
 import '../lookup_helpers.dart';
 import '../metadata_applicator.dart';
@@ -26,6 +27,7 @@ final lookupStateProvider =
   return LookupStateNotifier(
     musicBrainzService: ref.watch(musicBrainzServiceProvider),
     discogsService: ref.watch(discogsServiceProvider),
+    gnuDbService: ref.watch(gnuDbServiceProvider),
     acoustIdService: ref.watch(acoustIdServiceProvider),
     fingerprintGenerator: ref.watch(fingerprintGeneratorProvider),
     coverArtService: ref.watch(coverArtServiceProvider),
@@ -46,6 +48,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
   LookupStateNotifier({
     required MusicBrainzService musicBrainzService,
     DiscogsService? discogsService,
+    required GnuDbService gnuDbService,
     required AcoustIDService acoustIdService,
     FingerprintGenerator? fingerprintGenerator,
     required CoverArtService coverArtService,
@@ -55,6 +58,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     ErrorLogNotifier? errorLogNotifier,
   })  : _musicBrainzService = musicBrainzService,
         _discogsService = discogsService,
+        _gnuDbService = gnuDbService,
         _acoustIdService = acoustIdService,
         _fingerprintGenerator = fingerprintGenerator,
         _coverArtService = coverArtService,
@@ -66,6 +70,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
   final MusicBrainzService _musicBrainzService;
   final DiscogsService? _discogsService;
+  final GnuDbService _gnuDbService;
   final AcoustIDService _acoustIdService;
   final FingerprintGenerator? _fingerprintGenerator;
   final CoverArtService _coverArtService;
@@ -89,11 +94,15 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
   }
 
   /// Performs a search across selected sources.
+  ///
+  /// [files] is required for the GNUdb source, which matches by a virtual
+  /// CD table-of-contents derived from track durations rather than text.
   Future<void> search({
     required String? artist,
     required String? album,
     String? year,
     required Set<SearchSource> sources,
+    List<AudioFile>? files,
   }) async {
     _cancelled = false;
     state = state.copyWith(status: LookupStatus.searching, error: null);
@@ -136,7 +145,24 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
       if (_cancelled) return;
 
-      final merged = LookupHelpers.mergeResults(mbResults, discogsResults);
+      // GNUdb matches by virtual TOC from file durations and embeds the
+      // track list in the response, so seed the cache here and selectResult
+      // needs no second request.
+      var gnudbResults = <SearchResult>[];
+      if (sources.contains(SearchSource.gnudb) &&
+          files != null &&
+          files.length >= 2) {
+        final gnudbLookup = await _gnuDbService.lookupByFiles(files);
+        for (final entry in gnudbLookup.tracksByDiscId.entries) {
+          _cache.cacheTrackListing(entry.key, entry.value);
+        }
+        gnudbResults = gnudbLookup.results;
+      }
+
+      if (_cancelled) return;
+
+      final merged =
+          LookupHelpers.mergeAll([mbResults, discogsResults, gnudbResults]);
       _cache.cacheSearchResults(cacheKey, merged);
 
       state = state.copyWith(

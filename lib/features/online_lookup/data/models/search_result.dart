@@ -39,6 +39,9 @@ enum SearchSource {
 
   /// Discogs music database.
   discogs,
+
+  /// GNUdb (freedb successor), matched via virtual CD TOC from durations.
+  gnudb,
 }
 
 /// Unified track info from any source.
