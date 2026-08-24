@@ -155,10 +155,7 @@ class TagLibReaderService implements TagReaderService {
             final values = _readStringArray(valuesPtr);
             if (values.isEmpty) continue;
 
-            final value = values.first;
-            if (value.isEmpty) continue;
-
-            _mapPropertyToTags(key, value, tags);
+            _mapPropertyToTags(key, values, tags);
           } finally {
             _bindings.taglib_property_free(valuesPtr);
           }
@@ -174,14 +171,22 @@ class TagLibReaderService implements TagReaderService {
   }
 
   /// Maps a TagLib property key/value pair into the app's tag map,
-  /// handling track/disc number splitting.
+  /// handling track/disc number splitting and multi-value joining.
   void _mapPropertyToTags(
     String tagLibKey,
-    String value,
+    List<String> values,
     Map<String, String> tags,
   ) {
+    if (values.isEmpty) return;
+
     final appField = TagPropertyMapper.toAppField(tagLibKey);
     if (appField == null) return;
+
+    // Multi-value fields (e.g. several GENRE or ARTIST entries) are joined
+    // for display/export so data is not silently lost. Writes remain
+    // delta-based: fields the user does not touch are never re-set, so
+    // the original multi-values survive on disk.
+    final value = values.join('; ');
 
     // Handle track/disc number fields that may contain "3/12" format
     if (appField == 'trackNumber' || appField == 'discNumber') {
