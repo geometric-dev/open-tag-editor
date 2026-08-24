@@ -12,9 +12,9 @@ import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart'
 import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/tools/data/tag_case_tools.dart';
 import '../../../../features/tools/data/tag_transform_command.dart';
-import '../../../../shared/services/export_service.dart';
+import '../../../../features/tools/presentation/tag_sync_dialog.dart';
 import '../../../../shared/services/playlist_service.dart';
-import '../../../../shared/services/tag_sync_service.dart';
+import '../../../../shared/services/export_service.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
@@ -377,39 +377,16 @@ class EditorToolbar extends ConsumerWidget {
       return;
     }
 
-    if (value.startsWith('sync:')) {
-      final direction = value.split(':')[1];
-      final service = TagSyncService(tagWriter: ref.read(tagWriterProvider));
-      status.state = 'Synchronizing tags...';
-
-      final result = direction == 'v2toV1'
-          ? await service.syncToId3v1(selected)
-          : await service.syncFromId3v1(selected);
-
-      status.state = 'Tag sync: ${result.updatedCount} updated, '
-          '${result.skippedCount} skipped';
-
-      if (result.failures.isNotEmpty) {
-        ref.read(errorLogProvider.notifier).addEntries([
-          for (final f in result.failures)
-            ErrorEntryFactory.fromLookupFailure(
-              summary: f.path,
-              message: f.error ?? 'Unknown sync error',
-            ),
-        ]);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${result.failures.length} file(s) failed to sync'),
-              action: SnackBarAction(
-                label: 'Details',
-                onPressed: () =>
-                    ref.read(errorPanelVisibleProvider.notifier).state = true,
-              ),
-            ),
-          );
-        }
+    if (value == 'sync:wizard') {
+      if (ref.read(selectedFilesProvider).isEmpty) {
+        status.state = 'Select MP3 files to synchronize';
+        return;
       }
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const TagSyncDialog(),
+      );
+      return;
     }
   }
 
@@ -552,13 +529,8 @@ class EditorToolbar extends ConsumerWidget {
               ),
               const PopupMenuDivider(),
               const PopupMenuItem(
-                value: 'sync:v2toV1',
-                child:
-                    Text('Sync tags to ID3v1', style: TextStyle(fontSize: 12)),
-              ),
-              const PopupMenuItem(
-                value: 'sync:v1toV2',
-                child: Text('Fill empty tags from ID3v1',
+                value: 'sync:wizard',
+                child: Text('Tags Synchronization…',
                     style: TextStyle(fontSize: 12)),
               ),
             ],
