@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -137,7 +138,7 @@ class EditorToolbar extends ConsumerWidget {
       dialogTitle: 'Export File Information',
       fileName: 'tags.csv',
       type: FileType.custom,
-      allowedExtensions: ['csv', 'html', 'htm'],
+      allowedExtensions: ['csv', 'xlsx', 'html', 'htm'],
     );
     if (outputPath == null || outputPath.isEmpty) return;
 
@@ -148,7 +149,11 @@ class EditorToolbar extends ConsumerWidget {
         config.visibleColumnIds.toSet(),
       );
       final content = ExportService.serializeFor(outputPath, files, columns);
-      await File(outputPath).writeAsString(content);
+      if (content is Uint8List) {
+        await File(outputPath).writeAsBytes(content);
+      } else {
+        await File(outputPath).writeAsString(content as String);
+      }
 
       ref.read(statusMessageProvider.notifier).state =
           'Exported ${files.length} file(s) to ${outputPath.split(Platform.pathSeparator).last}';

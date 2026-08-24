@@ -138,8 +138,7 @@ void main() {
   });
 
   group('TagSyncService', () {
-    test('syncToId3v1 writes visible tags into ID3v1 for mp3s only',
-        () async {
+    test('syncToId3v1 writes visible tags into ID3v1 for mp3s only', () async {
       final mp3Path = createMp3();
       final service = TagSyncService(tagWriter: RecordingWriter());
 
@@ -156,8 +155,7 @@ void main() {
       expect(v1['artist'], 'Band');
     });
 
-    test('syncFromId3v1 fills only empty v2 fields via writer delta',
-        () async {
+    test('syncFromId3v1 fills only empty v2 fields via writer delta', () async {
       final writer = RecordingWriter();
       final service = TagSyncService(tagWriter: writer);
       final path = createMp3(withV1: true);

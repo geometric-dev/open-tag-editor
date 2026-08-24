@@ -1,11 +1,13 @@
+import 'dart:typed_data';
+
 import '../models/audio_file.dart';
+import 'xlsx/xlsx_writer.dart';
 
 /// One row to export: a header label plus its cell value.
 typedef ExportColumn = ({String header, String Function(AudioFile) value});
 
-/// Exports the file list to CSV or HTML, mirroring Tag&Rename's
-/// "Export files information" wizard (CSV opens cleanly in Excel;
-/// true .xlsx binary is intentionally out of scope).
+/// Exports the file list to CSV, HTML, or XLSX, mirroring Tag&Rename's
+/// "Export files information" wizard.
 class ExportService {
   ExportService._();
 
@@ -132,12 +134,31 @@ class ExportService {
     return buffer.toString();
   }
 
-  /// Serializes based on output extension (.csv default, .html supported).
-  static String serializeFor(
-      String outputPath, List<AudioFile> files, List<ExportColumn> columns) {
-    if (outputPath.toLowerCase().endsWith('.html') ||
-        outputPath.toLowerCase().endsWith('.htm')) {
+  /// Serializes [files] into a true .xlsx workbook (single sheet,
+  /// inline-string cells; numeric-looking values become number cells).
+  static Uint8List toXlsx(
+    List<AudioFile> files,
+    List<ExportColumn> columns,
+  ) {
+    final writer = XlsxWriter()..addRow([for (final c in columns) c.header]);
+    for (final file in files) {
+      writer.addRow([for (final c in columns) c.value(file)]);
+    }
+    return writer.build();
+  }
+
+  /// Serializes based on output extension: .xlsx, .html/.htm, else CSV.
+  static Object serializeFor(
+    String outputPath,
+    List<AudioFile> files,
+    List<ExportColumn> columns,
+  ) {
+    final lower = outputPath.toLowerCase();
+    if (lower.endsWith('.html') || lower.endsWith('.htm')) {
       return toHtml(files, columns);
+    }
+    if (lower.endsWith('.xlsx')) {
+      return toXlsx(files, columns);
     }
     return toCsv(files, columns);
   }
