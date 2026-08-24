@@ -353,6 +353,9 @@ class TagLibReaderService implements TagReaderService {
         return TagFormat.vorbisComment;
       case '.m4a':
       case '.mp4':
+      case '.m4b':
+      case '.m4r':
+      case '.m4v':
       case '.aac':
         // MP4 container exclusively uses iTunes-style atoms.
         return TagFormat.mp4Atoms;
@@ -360,8 +363,22 @@ class TagLibReaderService implements TagReaderService {
         // ASF container exclusively uses ASF metadata.
         return TagFormat.asf;
       case '.ape':
-        // APE files exclusively use APE tags.
+      case '.mpc':
+      case '.wv':
+      case '.tta':
+      case '.ofr':
+        // These use APE tags (MusePack, WavPack, TrueAudio, OptimFROG).
         return TagFormat.apeTag;
+      case '.aiff':
+      case '.aif':
+        // AIFF uses ID3v2-chunk style similar to WAV.
+        return TagFormat.id3v2_3;
+      case '.dsf':
+        // DSD files carry ID3v2.3 tags.
+        return TagFormat.id3v2_3;
+      case '.spx':
+        // Speex uses Vorbis Comments like Ogg.
+        return TagFormat.vorbisComment;
       default:
         return TagFormat.unknown;
     }
