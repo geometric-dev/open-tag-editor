@@ -15,7 +15,8 @@ class AlbumArtCommand implements UndoableCommand {
     required this.fileListNotifier,
     required this.filePaths,
     required this.previousArtMap,
-    required this.newArt,
+    this.newArt,
+    this.newArtByPath,
     required this.operationType,
   });
 
@@ -28,8 +29,18 @@ class AlbumArtCommand implements UndoableCommand {
   /// Map of file path → previous AlbumArtData (null if file had no art).
   final Map<String, AlbumArtData?> previousArtMap;
 
-  /// The new art applied (null for remove operations).
+  /// The new art applied to *every* file (null for remove operations).
+  ///
+  /// Correct for "add this image to these files" and "remove art from these
+  /// files", where each file genuinely ends up with the same image.
   final AlbumArtData? newArt;
+
+  /// The new art applied to each file *individually*.
+  ///
+  /// Required when every file gets a different image, which is what a resize
+  /// or convert of a batch of distinct covers produces. Passing only [newArt]
+  /// there would paint the first file's cover over all the others.
+  final Map<String, AlbumArtData>? newArtByPath;
 
   /// Whether this was an add or remove operation.
   final AlbumArtOperationType operationType;
@@ -45,20 +56,22 @@ class AlbumArtCommand implements UndoableCommand {
 
   @override
   void execute() {
-    final currentFiles = fileListNotifier.currentFiles;
     final updatedFiles = <AudioFile>[];
 
-    for (final file in currentFiles) {
-      if (filePaths.contains(file.path)) {
-        if (newArt != null) {
-          // Add operation
-          updatedFiles.add(file.copyWith(albumArt: newArt, isModified: true));
-        } else {
-          // Remove operation
-          updatedFiles.add(
-            file.copyWith(clearAlbumArt: true, isModified: true),
-          );
-        }
+    for (final file in fileListNotifier.currentFiles) {
+      if (!filePaths.contains(file.path)) continue;
+
+      // Art is not a tag field, so it is not part of AudioFile.modifiedTags
+      // and must not mark the file dirty: the write already happened, and
+      // marking it dirty would leave the app permanently "unsaved" with a
+      // Save button that can never do anything.
+      final perFile = newArtByPath?[file.path];
+      if (perFile != null) {
+        updatedFiles.add(file.copyWith(albumArt: perFile));
+      } else if (newArt != null) {
+        updatedFiles.add(file.copyWith(albumArt: newArt));
+      } else {
+        updatedFiles.add(file.copyWith(clearAlbumArt: true));
       }
     }
 
@@ -67,21 +80,16 @@ class AlbumArtCommand implements UndoableCommand {
 
   @override
   void undo() {
-    final currentFiles = fileListNotifier.currentFiles;
     final updatedFiles = <AudioFile>[];
 
-    for (final file in currentFiles) {
-      if (filePaths.contains(file.path)) {
-        final previousArt = previousArtMap[file.path];
-        if (previousArt != null) {
-          updatedFiles.add(
-            file.copyWith(albumArt: previousArt, isModified: true),
-          );
-        } else {
-          updatedFiles.add(
-            file.copyWith(clearAlbumArt: true, isModified: true),
-          );
-        }
+    for (final file in fileListNotifier.currentFiles) {
+      if (!filePaths.contains(file.path)) continue;
+
+      final previousArt = previousArtMap[file.path];
+      if (previousArt != null) {
+        updatedFiles.add(file.copyWith(albumArt: previousArt));
+      } else {
+        updatedFiles.add(file.copyWith(clearAlbumArt: true));
       }
     }
 

@@ -94,6 +94,32 @@ class ErrorEntryFactory {
     );
   }
 
+  /// Creates a single [ErrorEntry] for a failed tag write on [path].
+  ///
+  /// Retryable, because a tag write that failed once commonly succeeds on a
+  /// retry. Callers that file a write failure as a *lookup* failure get an
+  /// error panel that cannot offer retry, which is why this exists.
+  static ErrorEntry fromWriteFailure({
+    required String path,
+    required String message,
+  }) {
+    return ErrorEntry(
+      id: _uuid.v4(),
+      filePath: path,
+      fileName: p.basename(path),
+      operationType: OperationType.write,
+      errorMessage: message,
+      timestamp: DateTime.now(),
+      operationContext: WriteOperationContext(
+        filePath: path,
+        // The tag delta is not known to this factory. Retry re-reads the
+        // file from disk rather than replaying a write, which is the safe
+        // direction: it cannot re-apply stale values over newer data.
+        tags: const {},
+      ),
+    );
+  }
+
   /// Creates [ErrorEntry] instances from file paths that failed tag reading.
   ///
   /// The [errorMessages] map provides the error message for each failed path.

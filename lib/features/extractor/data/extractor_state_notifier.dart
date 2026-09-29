@@ -19,6 +19,18 @@ import 'write_tags_command.dart';
 /// Manages extraction dialog state including pattern, scope, options, and
 /// previews.
 class ExtractorStateNotifier extends StateNotifier<ExtractorState> {
+  /// Finds [path] in [files], or null when it is not loaded.
+  ///
+  /// Deliberately returns null instead of a substitute: a silent
+  /// firstWhere-orElse fallback once captured the wrong file's tags for an
+  /// undo snapshot, which would then restore one file's data onto another.
+  static AudioFile? _findFile(List<AudioFile> files, String path) {
+    for (final file in files) {
+      if (file.path == path) return file;
+    }
+    return null;
+  }
+
   ExtractorStateNotifier({
     required this.files,
     required this.rootFolder,
@@ -141,19 +153,42 @@ class ExtractorStateNotifier extends StateNotifier<ExtractorState> {
       final filePaths = <String>[];
       final extractedValues = <String, Map<String, String>>{};
       final previousValues = <String, Map<String, String>>{};
+      final missing = <WriteError>[];
 
       for (final preview in filesToWrite) {
+        // Capture current tag state for undo. If the preview's path is not
+        // in the file list, skip it and record an error rather than falling
+        // back to files.first: the old fallback captured the *first* file's
+        // tags under this path, so undo would then restore the wrong file's
+        // data onto it with no error anywhere.
+        final currentFile = _findFile(files, preview.filePath);
+        if (currentFile == null) {
+          missing.add(
+            WriteError(
+              filePath: preview.filePath,
+              message:
+                  'Not present in the loaded file list; cannot apply or undo',
+            ),
+          );
+          continue;
+        }
+
         filePaths.add(preview.filePath);
         extractedValues[preview.filePath] = preview.transformedTags;
-
-        // Capture current tag state for undo.
-        final currentFile = files.firstWhere(
-          (f) => f.path == preview.filePath,
-          orElse: () => files.first,
-        );
         previousValues[preview.filePath] = Map<String, String>.from(
           currentFile.tags,
         );
+      }
+
+      if (filePaths.isEmpty) {
+        final result = WriteExecutionResult(
+          writtenCount: 0,
+          skippedCount: 0,
+          errorCount: missing.length,
+          errors: missing,
+        );
+        state = state.copyWith(isWriting: false, writeResult: result);
+        return result;
       }
 
       // Create and execute the command.
@@ -174,14 +209,32 @@ class ExtractorStateNotifier extends StateNotifier<ExtractorState> {
         undoRedoManager.execute(_NoOpWrapperCommand(command));
       }
 
-      state = state.copyWith(isWriting: false, writeResult: result);
-      return result;
+      // Surface the skipped paths alongside the write errors, so nothing
+      // that was dropped disappears without a trace.
+      state = state.copyWith(
+        isWriting: false,
+        writeResult: missing.isEmpty
+            ? result
+            : WriteExecutionResult(
+                writtenCount: result.writtenCount,
+                skippedCount: result.skippedCount + missing.length,
+                errorCount: result.errorCount + missing.length,
+                errors: [...result.errors, ...missing],
+              ),
+      );
+      return state.writeResult!;
     } catch (e) {
       final result = WriteExecutionResult(
         writtenCount: 0,
         skippedCount: 0,
         errorCount: 1,
-        errors: [WriteError(filePath: '', message: e.toString())],
+        errors: [
+          WriteError(
+            // A blank path renders as a nameless row in the error panel.
+            filePath: '(batch)',
+            message: e.toString(),
+          ),
+        ],
       );
       state = state.copyWith(isWriting: false, writeResult: result);
       return result;

@@ -102,13 +102,14 @@ class CoverArtResizeService {
 
     if (outcomes.isNotEmpty) {
       // In-memory refresh so previews show the resized images immediately.
+      // Not marked modified: the bytes are already on disk, and art is not
+      // part of modifiedTags, so a dirty flag here would leave Save enabled
+      // forever with nothing it could write.
       final updated = <AudioFile>[];
       for (final file in fileListNotifier.currentFiles) {
         final outcome = outcomes.where((o) => o.path == file.path).toList();
         if (outcome.isEmpty) continue;
-        updated.add(
-          file.copyWith(albumArt: outcome.first.newArt, isModified: true),
-        );
+        updated.add(file.copyWith(albumArt: outcome.first.newArt));
       }
       if (updated.isNotEmpty) fileListNotifier.updateFiles(updated);
 
@@ -120,7 +121,9 @@ class CoverArtResizeService {
             for (final f in files)
               if (outcomes.any((o) => o.path == f.path)) f.path: f.albumArt,
           },
-          newArt: outcomes.first.newArt,
+          // Each file keeps its own resized image. Passing a single
+          // newArt would overwrite every file's cover with the first one's.
+          newArtByPath: {for (final o in outcomes) o.path: o.newArt},
           operationType: AlbumArtOperationType.add,
         ),
       );

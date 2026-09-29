@@ -224,8 +224,13 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         if (!_cancelled) {
           state = state.copyWith(coverArt: art, coverArtLoading: false);
         }
-      } catch (_) {
+      } catch (e) {
         state = state.copyWith(coverArtLoading: false);
+        // Every other failure in this class is routed to the error log.
+        // This one was not, so a failed cover-art fetch was completely
+        // invisible: the apply panel then offered an "apply cover art"
+        // checkbox that would silently do nothing.
+        _logLookupFailure('cover art', e);
       }
     } else {
       state = state.copyWith(coverArtLoading: false);

@@ -6,6 +6,7 @@ import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/tag_sync_service.dart';
 import '../../tag_editor/data/providers/editor_state_provider.dart';
+import '../../tag_editor/data/providers/file_list_provider.dart';
 import '../../tag_editor/data/providers/service_providers.dart';
 
 /// Direction for the tag synchronization wizard.
@@ -78,7 +79,13 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
     status.state = 'Synchronizing tags...';
 
     try {
-      final service = TagSyncService(tagWriter: ref.read(tagWriterProvider));
+      final service = TagSyncService(
+        tagWriter: ref.read(tagWriterProvider),
+        // Keep the grid in step with the write, otherwise a v1-to-v2 sync
+        // fills the file on disk and the UI still shows the empty tags.
+        onFileUpdated: (updated) =>
+            ref.read(fileListProvider.notifier).updateFile(updated),
+      );
       final result = _direction == _SyncDirection.v2toV1
           ? await service.syncToId3v1(_selected)
           : await service.syncFromId3v1(_selected);
@@ -96,8 +103,11 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
       if (result.failures.isNotEmpty) {
         ref.read(errorLogProvider.notifier).addEntries([
           for (final f in result.failures)
-            ErrorEntryFactory.fromLookupFailure(
-              summary: f.path,
+            // These are tag *write* failures, not lookup failures. Filing
+            // them as lookups stamped them non-retryable, so the error panel
+            // refused to retry what is a perfectly retryable write.
+            ErrorEntryFactory.fromWriteFailure(
+              path: f.path,
               message: f.error ?? 'Unknown sync error',
             ),
         ]);

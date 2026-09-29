@@ -43,10 +43,18 @@ class TagSyncResult {
 /// Non-MP3 files are always reported as skipped.
 class TagSyncService {
   /// Creates a [TagSyncService] with the given writer.
-  TagSyncService({required TagWriterService tagWriter})
+  ///
+  /// [onFileUpdated] is called with the re-baselined file after each
+  /// successful write that changes tags, so the caller can keep the in-memory
+  /// list in step with disk. The service deliberately does not depend on the
+  /// file-list notifier itself, which keeps it testable.
+  TagSyncService({required TagWriterService tagWriter, this.onFileUpdated})
     : _tagWriter = tagWriter;
 
   final TagWriterService _tagWriter;
+
+  /// Invoked with the updated file after a successful tag-changing write.
+  final void Function(AudioFile file)? onFileUpdated;
 
   /// Copies current (v2) tags down into each file's ID3v1 block.
   Future<TagSyncResult> syncToId3v1(List<AudioFile> files) async {
@@ -93,6 +101,20 @@ class TagSyncService {
 
         await _tagWriter.writeTags(file.path, delta);
         updated++;
+        // The bytes are on disk now, so the in-memory copy must be
+        // re-baselined. Without this the grid keeps showing the empty
+        // values the sync just filled, the file is not marked clean, and
+        // the user has no way to undo the write.
+        onFileUpdated?.call(
+          file.copyWith(
+            tags: Map<String, String>.unmodifiable({...file.tags, ...delta}),
+            originalTags: Map<String, String>.unmodifiable({
+              ...(file.originalTags ?? file.tags),
+              ...delta,
+            }),
+            isModified: false,
+          ),
+        );
       } catch (e) {
         failures.add(
           TagSyncFileResult(
