@@ -6,6 +6,19 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — online lookup (PRD 21)
+- **A preserved-tags list** for online metadata applies, with ReplayGain
+  preserved by default. An apply is the one place where ReplayGain is
+  unambiguously destroyed: a lookup result cannot regenerate loudness data,
+  so overwriting it loses real work and leaves the file silently wrong.
+- The preserved set is applied *after* the per-field selection, so it wins
+  when a user has ticked both "apply rating" and "preserve my ratings".
+- Four presets (ReplayGain, Ratings & Mood, Personal notes, Identifiers)
+  plus individual field chips. A preset ticks only when its whole group is
+  preserved, so the checkbox never misreports a partial group.
+- The applicator takes the preserved set by injection and the provider
+  watches the setting, so a change takes effect without a restart.
+
 ### Fixed — multi-value tags (PRD 20)
 - **Editing a multi-value field no longer flattens it on the next save.**
   Reading already joined values with `"; "`, but the writer passed that

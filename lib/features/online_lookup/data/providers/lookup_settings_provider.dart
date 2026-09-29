@@ -18,6 +18,7 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
   static const _keyFpcalcPath = 'lookup_fpcalc_path';
   static const _keyDefaultSource = 'lookup_default_source';
   static const _keyAutoFetchArt = 'lookup_auto_fetch_art';
+  static const _keyPreservedFields = 'lookup_preserved_fields';
 
   /// Loads settings from SharedPreferences.
   Future<void> loadFromPrefs() async {
@@ -28,6 +29,9 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
         fpcalcPath: prefs.getString(_keyFpcalcPath) ?? '',
         defaultSource: _parseSource(prefs.getString(_keyDefaultSource)),
         autoFetchCoverArt: prefs.getBool(_keyAutoFetchArt) ?? true,
+        preservedFields: prefs.getStringList(_keyPreservedFields) == null
+            ? LookupSettings.defaultPreservedFields
+            : prefs.getStringList(_keyPreservedFields)!.toSet(),
       );
     } catch (e) {
       // Keep defaults on error — log for debugging
@@ -63,6 +67,34 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
     _persist();
   }
 
+  /// Replaces the whole preserved-field set.
+  void setPreservedFields(Set<String> fields) {
+    state = state.copyWith(preservedFields: fields);
+    _persist();
+  }
+
+  /// Adds or removes a single preserved field.
+  void togglePreservedField(String field, bool preserved) {
+    final next = Set<String>.from(state.preservedFields);
+    if (preserved) {
+      next.add(field);
+    } else {
+      next.remove(field);
+    }
+    setPreservedFields(next);
+  }
+
+  /// Adds or removes every field in [preset].
+  void togglePreset(PreservedFieldPreset preset, bool enabled) {
+    final next = Set<String>.from(state.preservedFields);
+    if (enabled) {
+      next.addAll(preset.fields);
+    } else {
+      next.removeAll(preset.fields);
+    }
+    setPreservedFields(next);
+  }
+
   /// Resets all lookup settings to their factory defaults and persists.
   void resetToDefaults() {
     state = const LookupSettings();
@@ -81,6 +113,12 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
       await prefs.setString(_keyFpcalcPath, state.fpcalcPath);
       await prefs.setString(_keyDefaultSource, state.defaultSource.name);
       await prefs.setBool(_keyAutoFetchArt, state.autoFetchCoverArt);
+      // Sorted so the persisted value is stable, which keeps an unchanged
+      // settings object from looking like a change after a reload.
+      await prefs.setStringList(
+        _keyPreservedFields,
+        [...state.preservedFields]..sort(),
+      );
     } catch (_) {
       // Best-effort persistence
     }

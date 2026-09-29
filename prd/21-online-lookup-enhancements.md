@@ -1,5 +1,43 @@
 # PRD 21: Online Lookup Enhancements (P2)
 
+## Status: preserved-tags shipped; clustering not started
+
+Already delivered before this review: the search/match/apply flow across
+Discogs and MusicBrainz, a before/after comparison of every field that will
+change, per-field opt-in chips, per-file opt-out, and confidence badges.
+
+Delivered here:
+
+- **A preserved-tags list.** `LookupSettings.preservedFields` names the tag
+  fields an online apply must never overwrite. The list is applied *after*
+  the per-field selection, so it wins: a user who ticked both "apply rating"
+  and "preserve my ratings" keeps their rating.
+- **ReplayGain is preserved by default.** It is the one case where an apply
+  is unambiguously destructive — a lookup result cannot regenerate loudness
+  data, so overwriting it loses work a scanner produced and leaves the file
+  silently wrong.
+- **Four presets** (ReplayGain, Ratings & Mood, Personal notes, Identifiers)
+  plus individual field chips. Presets tick only when the whole group is
+  preserved, so the checkbox never lies about a partial group.
+- The applicator takes the preserved set by injection, and the provider
+  *watches* the setting, so editing it takes effect without a restart.
+
+Not delivered, and why:
+
+- **Album clustering (Ctrl+Shift+C).** This is the larger half of the PRD: a
+  group-by view over the custom-painted grid, collapsible group rows,
+  fuzzy-tolerance clustering, and drag-out. It is a substantial feature with
+  real risk to the grid's scroll and selection model, and it is recorded
+  here rather than half-landed after the preserved-tags work.
+- **Per-apply "include preserved tags" override.** The applicator accepts the
+  set per instance, so the seam exists; the checkbox in the apply panel does
+  not.
+- **Colour-coded add/change/remove diff and a "show changes only" filter.**
+  The comparison already shows old struck through and new in bold, which
+  conveys direction without relying on colour.
+- **Per-file field-level exclusion.** The field chips are global to the
+  apply; per-file opt-out already exists.
+
 ## Problem Statement
 
 PRD 04 covers the core online metadata lookup workflow (search, match, apply). However, several features that make this workflow robust for real-world use are missing: there's no way to automatically group files by album before lookup, no visual comparison of what will change, and no mechanism to protect specific tags from being overwritten. These gaps mean users must manually organize files, can't easily review changes, and risk losing personal metadata (genres, ratings, ReplayGain) when applying online data.

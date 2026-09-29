@@ -91,6 +91,9 @@ final metadataApplicatorProvider = Provider<MetadataApplicator>((ref) {
   return MetadataApplicator(
     tagWriter: ref.read(tagWriterProvider),
     fileListNotifier: ref.read(fileListProvider.notifier),
+    // Watched so the applicator is rebuilt when the preserved list changes,
+    // rather than holding a stale copy from startup.
+    preservedFields: ref.watch(lookupSettingsProvider).preservedFields,
   );
 });
 

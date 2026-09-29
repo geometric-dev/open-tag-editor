@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../online_lookup/data/models/lookup_settings.dart';
 import '../../../online_lookup/data/providers/lookup_settings_provider.dart';
 import '../../data/models/general_settings.dart';
 import '../../data/models/id3v2_version.dart';
@@ -367,7 +368,100 @@ class _OnlineLookupPane extends StatelessWidget {
           onChanged: (v) =>
               ref.read(lookupSettingsProvider.notifier).setAutoFetchCoverArt(v),
         ),
+        _PreservedFieldsSection(preserved: settings.preservedFields),
       ],
+    );
+  }
+}
+
+/// Checkboxes for the tag fields an online lookup must never overwrite.
+///
+/// Laid out as preset groups rather than one flat list of every tag field:
+/// the field list is long, the presets match how people think about it
+/// ("don't touch my ratings"), and an individual field is still one click
+/// away inside its group.
+class _PreservedFieldsSection extends ConsumerWidget {
+  const _PreservedFieldsSection({required this.preserved});
+
+  final Set<String> preserved;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final notifier = ref.read(lookupSettingsProvider.notifier);
+    final count = preserved.length;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Preserve these tags when applying online metadata',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            count == 0
+                ? 'Nothing is protected: an apply overwrites every field it can set.'
+                : '$count field(s) protected',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
+          for (final preset in PreservedFieldPreset.values) ...[
+            _CheckboxRow(
+              label: preset.label,
+              subtitle: preset.description,
+              // Fully on only when every field in the group is preserved, so
+              // the tick never lies about a partially-protected group.
+              value: preset.fields.every(preserved.contains),
+              onChanged: (v) => notifier.togglePreset(preset, v),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 24, bottom: 6),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  for (final field in preset.fields.toList()..sort())
+                    _FieldChip(
+                      label: field,
+                      selected: preserved.contains(field),
+                      onChanged: (v) => notifier.togglePreservedField(field, v),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FieldChip extends StatelessWidget {
+  const _FieldChip({
+    required this.label,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final String label;
+  final bool selected;
+  final void Function(bool) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return FilterChip(
+      label: Text(label, style: const TextStyle(fontSize: 11)),
+      selected: selected,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      onSelected: onChanged,
+      selectedColor: theme.colorScheme.secondaryContainer,
     );
   }
 }

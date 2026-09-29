@@ -13,11 +13,20 @@ class MetadataApplicator {
   MetadataApplicator({
     required TagWriterService tagWriter,
     required FileListNotifier fileListNotifier,
+    Set<String>? preservedFields,
   }) : _tagWriter = tagWriter,
-       _fileListNotifier = fileListNotifier;
+       _fileListNotifier = fileListNotifier,
+       _preservedFields = preservedFields ?? const {};
 
   final TagWriterService _tagWriter;
   final FileListNotifier _fileListNotifier;
+
+  /// Tag fields an online lookup must never overwrite.
+  ///
+  /// Injected rather than read from a provider so the applicator stays
+  /// testable, and so the caller decides what "preserved" means for this
+  /// particular apply — the apply panel can offer a one-off override.
+  final Set<String> _preservedFields;
 
   /// Applies selected fields from matched tracks to files.
   ///
@@ -139,6 +148,13 @@ class MetadataApplicator {
     }
     if (selectedFields.contains('discNumber') && track.discNumber > 0) {
       tags['discNumber'] = track.discNumber.toString();
+    }
+
+    // The preserved list is applied last so it wins over the per-field
+    // selection above. A user who ticked both "apply rating" and "preserve
+    // my ratings" should end up with their ratings intact.
+    if (_preservedFields.isNotEmpty) {
+      tags.removeWhere((field, _) => _preservedFields.contains(field));
     }
 
     return tags;
