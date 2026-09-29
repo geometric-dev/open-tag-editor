@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/features/settings/data/models/general_settings.dart';
 import 'package:open_tag_editor/features/settings/data/notifiers/general_settings_notifier.dart';
 import 'package:open_tag_editor/features/settings/data/providers/settings_providers.dart';
-import 'package:open_tag_editor/features/tag_editor/data/providers/editor_state_provider.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/file_list_provider.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 import 'package:open_tag_editor/shared/widgets/save_confirmation.dart';
