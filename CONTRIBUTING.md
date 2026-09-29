@@ -41,10 +41,20 @@ The three commands above are exactly what the `format`, `analyze` and
 ## Toolchain version
 
 Use the Flutter SDK version pinned in `.fvmrc`; CI reads that same file.
-This matters more than usual because `dart format` is not stable across SDK
-releases — a different version locally can make the `format` job fail on
-files you never touched. [FVM](https://fvm.app) and the Flutter VS Code
-extension both read `.fvmrc` automatically.
+This matters more than usual because `dart format` is **not** stable across
+SDK releases — the tall-style formatter changes its output between them, so
+running a different version locally can make the `format` job fail on files
+you never touched. [FVM](https://fvm.app) and the Flutter VS Code extension
+both read `.fvmrc` automatically.
+
+If the `format` job fails on files you did not touch, compare
+`dart --version` with `.fvmrc` before anything else. If they differ, the
+fix is to align the SDK, not to reformat the tree by hand.
+
+Two more things the format job needs, both of which it now does for you:
+`flutter pub get` must run first, because `dart format` reads
+`analysis_options.yaml` to determine the language version and cannot resolve
+`package:flutter_lints` without a `package_config.json`.
 
 ## Reporting Issues
 
