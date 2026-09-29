@@ -66,18 +66,9 @@ class ClearTagsCommand implements UndoableCommand {
       }
       if (!changed) continue;
 
-      final original = file.originalTags;
-      final stillModified = original == null || !_mapsEqual(newTags, original);
+      final stillModified = file.differsFromOriginal(newTags);
       updated.add(file.copyWith(tags: newTags, isModified: stillModified));
     }
     if (updated.isNotEmpty) fileListNotifier.updateFiles(updated);
-  }
-
-  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
-    if (a.length != b.length) return false;
-    for (final entry in a.entries) {
-      if (b[entry.key] != entry.value) return false;
-    }
-    return true;
   }
 }

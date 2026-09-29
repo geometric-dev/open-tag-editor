@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/undo/undo_redo_manager.dart';
-import '../../features/error_handling/providers/error_providers.dart';
-import '../../features/error_handling/utils/error_entry_factory.dart';
 import '../../features/tag_editor/data/providers/editor_state_provider.dart';
-import '../../features/tag_editor/data/providers/service_providers.dart';
 import 'save_confirmation.dart';
+import 'save_flow.dart';
 import 'unsaved_changes_dialog.dart';
 
 /// Utility that checks for unsaved changes and shows a guard dialog if needed.
@@ -55,39 +53,12 @@ class UnsavedChangesGuard {
   static Future<bool> _executeSave(BuildContext context, WidgetRef ref) async {
     // The user has already committed to saving by choosing "Save" in the
     // unsaved-changes dialog, so this re-prompt only applies when the
-    // setting is on and the count changed; it stays consistent with every
-    // other save route.
+    // setting is on; it stays consistent with every other save route.
     if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
       return false;
     }
     if (!context.mounted) return false;
 
-    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
-    if (summary == null) return true;
-    if (summary.allSuccess) return true;
-
-    // Report failures to error log
-    final entries = ErrorEntryFactory.fromWriteResults(
-      summary.results,
-      summary.attemptedTags,
-    );
-    ref.read(errorLogProvider.notifier).addEntries(entries);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${summary.failureCount} file(s) failed to save'),
-          duration: const Duration(seconds: 30),
-          showCloseIcon: true,
-          action: SnackBarAction(
-            label: 'View Details',
-            onPressed: () {
-              ref.read(errorPanelVisibleProvider.notifier).state = true;
-            },
-          ),
-        ),
-      );
-    }
-    return false;
+    return SaveFlow.saveAndProceed(context, ref);
   }
 }

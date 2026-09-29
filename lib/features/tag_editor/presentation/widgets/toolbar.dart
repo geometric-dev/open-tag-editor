@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
-import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
 import '../../../../features/tools/data/clear_tags_command.dart';
 import '../../../../features/tools/data/replay_gain.dart';
@@ -21,7 +20,7 @@ import '../../../../features/tools/presentation/tag_sync_dialog.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
-import '../../../../shared/widgets/save_confirmation.dart';
+import '../../../../shared/widgets/save_flow.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
@@ -123,59 +122,7 @@ class EditorToolbar extends ConsumerWidget {
   }
 
   Future<void> _saveChanges(WidgetRef ref, BuildContext context) async {
-    final statusNotifier = ref.read(statusMessageProvider.notifier);
-
-    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
-      statusNotifier.state = 'Save cancelled';
-      return;
-    }
-
-    if (!context.mounted) return;
-    statusNotifier.state = 'Saving...';
-
-    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
-
-    if (summary == null) {
-      statusNotifier.state = 'No changes to save';
-      return;
-    }
-
-    if (!summary.allSuccess) {
-      // Report failures to error log
-      final entries = ErrorEntryFactory.fromWriteResults(
-        summary.results,
-        summary.attemptedTags,
-      );
-      ref.read(errorLogProvider.notifier).addEntries(entries);
-      statusNotifier.state =
-          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${summary.failureCount} file(s) failed to save'),
-            duration: const Duration(seconds: 30),
-            showCloseIcon: true,
-            action: SnackBarAction(
-              label: 'View Details',
-              onPressed: () {
-                ref.read(errorPanelVisibleProvider.notifier).state = true;
-              },
-            ),
-          ),
-        );
-      }
-    } else {
-      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${summary.successCount} file(s) saved successfully'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
+    await SaveFlow.saveAll(context, ref);
   }
 
   /// Opens the cover-art resize/convert dialog and runs the batch with

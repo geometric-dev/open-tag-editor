@@ -3,18 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
-import '../../../../features/error_handling/providers/error_providers.dart';
-import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/sibling_navigation_service.dart';
 import '../../../../features/folder_panel/data/sibling_resolver.dart';
 import '../../../../features/folder_panel/presentation/quick_switcher_overlay.dart';
-import '../../../../shared/widgets/save_confirmation.dart';
+import '../../../../shared/widgets/save_flow.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
-import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/selection_provider.dart';
-import '../../data/providers/service_providers.dart';
 
 /// Wraps a child widget with keyboard shortcut handlers for the editor.
 class EditorKeyboardShortcuts extends ConsumerWidget {
@@ -87,33 +83,6 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
   }
 
   Future<void> _saveAll(BuildContext context, WidgetRef ref) async {
-    final statusNotifier = ref.read(statusMessageProvider.notifier);
-
-    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
-      statusNotifier.state = 'Save cancelled';
-      return;
-    }
-
-    statusNotifier.state = 'Saving...';
-
-    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
-
-    if (summary == null) {
-      statusNotifier.state = 'No changes to save';
-      return;
-    }
-
-    if (!summary.allSuccess) {
-      // Report failures to error log (parity with the toolbar save path).
-      final entries = ErrorEntryFactory.fromWriteResults(
-        summary.results,
-        summary.attemptedTags,
-      );
-      ref.read(errorLogProvider.notifier).addEntries(entries);
-      statusNotifier.state =
-          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
-    } else {
-      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
-    }
+    await SaveFlow.saveAll(context, ref);
   }
 }

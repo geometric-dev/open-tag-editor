@@ -6,13 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
-import '../../../../features/error_handling/providers/error_providers.dart';
-import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/tools/data/replay_gain.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/providers/tag_field_validation_provider.dart';
 import '../../../../shared/services/taglib/taglib_types.dart';
-import '../../../../shared/widgets/save_confirmation.dart';
+import '../../../../shared/widgets/save_flow.dart';
 import '../../../../shared/widgets/validation_indicator.dart';
 import '../../../album_art/data/image_validator.dart';
 import '../../../album_art/data/mixed_art_detector.dart';
@@ -24,14 +22,8 @@ import '../../../album_art/presentation/widgets/image_preview_modal.dart';
 import '../../../tools/data/multi_value.dart';
 import '../../data/commands/tag_edit_command.dart';
 import '../../data/providers/editor_state_provider.dart'
-    show
-        TagPanelTab,
-        selectedFilesProvider,
-        statusMessageProvider,
-        tagPanelActiveTabProvider;
+    show TagPanelTab, selectedFilesProvider, tagPanelActiveTabProvider;
 import '../../data/providers/file_list_provider.dart' show fileListProvider;
-import '../../data/providers/service_providers.dart'
-    show tagSaveServiceProvider;
 
 /// Panel for editing tag fields of the selected file(s).
 ///
@@ -46,34 +38,7 @@ class TagEditPanel extends ConsumerStatefulWidget {
 
 class _TagEditPanelState extends ConsumerState<TagEditPanel> {
   Future<void> _saveChanges(BuildContext context, WidgetRef ref) async {
-    final statusNotifier = ref.read(statusMessageProvider.notifier);
-
-    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
-      statusNotifier.state = 'Save cancelled';
-      return;
-    }
-
-    statusNotifier.state = 'Saving...';
-
-    final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
-
-    if (summary == null) {
-      statusNotifier.state = 'No changes to save';
-      return;
-    }
-
-    if (summary.failureCount > 0) {
-      // Surface failures in the error log (parity with toolbar/Ctrl+S).
-      final entries = ErrorEntryFactory.fromWriteResults(
-        summary.results,
-        summary.attemptedTags,
-      );
-      ref.read(errorLogProvider.notifier).addEntries(entries);
-      statusNotifier.state =
-          'Saved ${summary.successCount} file(s), ${summary.failureCount} failed';
-    } else {
-      statusNotifier.state = 'Saved ${summary.successCount} file(s)';
-    }
+    await SaveFlow.saveAll(context, ref);
   }
 
   @override

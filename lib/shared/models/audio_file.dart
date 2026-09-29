@@ -154,6 +154,31 @@ class AudioFile extends Equatable {
     }
     return changed;
   }
+
+  /// Whether [candidate] still differs from the on-disk state.
+  ///
+  /// Every undo command needs to answer the same question -- "after
+  /// restoring these values, is this file still dirty?" -- and each was
+  /// carrying its own copy of the comparison. Lives next to [modifiedTags],
+  /// which performs the same comparison in the other direction.
+  ///
+  /// A file with no [originalTags] is always considered modified: the
+  /// on-disk state is unknown, so it cannot be proven clean.
+  bool differsFromOriginal(Map<String, String> candidate) {
+    final original = originalTags;
+    if (original == null) return true;
+    return !mapsEqual(candidate, original);
+  }
+}
+
+/// Whether two tag maps hold the same keys and values.
+bool mapsEqual(Map<String, String> a, Map<String, String> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final entry in a.entries) {
+    if (!b.containsKey(entry.key) || b[entry.key] != entry.value) return false;
+  }
+  return true;
 }
 
 /// Holds album art image data.

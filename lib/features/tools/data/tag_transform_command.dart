@@ -64,8 +64,7 @@ class TagTransformCommand implements UndoableCommand {
       }
       if (file == null) continue;
 
-      final original = file.originalTags;
-      final stillModified = original == null || !_mapsEqual(prev, original);
+      final stillModified = file.differsFromOriginal(prev);
       updated.add(
         file.copyWith(
           tags: Map<String, String>.from(prev),
@@ -74,13 +73,5 @@ class TagTransformCommand implements UndoableCommand {
       );
     }
     if (updated.isNotEmpty) fileListNotifier.updateFiles(updated);
-  }
-
-  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
-    if (a.length != b.length) return false;
-    for (final entry in a.entries) {
-      if (b[entry.key] != entry.value) return false;
-    }
-    return true;
   }
 }

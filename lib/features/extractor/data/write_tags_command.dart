@@ -87,8 +87,7 @@ class WriteTagsCommand implements UndoableCommand {
       final prevTags = previousValues[file.path];
       if (prevTags == null) continue;
 
-      final original = file.originalTags;
-      final stillModified = original == null || !_mapsEqual(prevTags, original);
+      final stillModified = file.differsFromOriginal(prevTags);
       updatedFiles.add(
         file.copyWith(
           tags: Map<String, String>.from(prevTags),
@@ -100,14 +99,6 @@ class WriteTagsCommand implements UndoableCommand {
     if (updatedFiles.isNotEmpty) {
       fileListNotifier.updateFiles(updatedFiles);
     }
-  }
-
-  bool _mapsEqual(Map<String, String> a, Map<String, String> b) {
-    if (a.length != b.length) return false;
-    for (final entry in a.entries) {
-      if (b[entry.key] != entry.value) return false;
-    }
-    return true;
   }
 
   /// Executes the write and returns a summary result.
