@@ -21,6 +21,7 @@ import '../../../inline_cell_editing/widgets/editable_cell.dart';
 import '../../helpers/grid_navigation.dart';
 import '../address_bar.dart';
 import 'column_headers.dart';
+import 'empty_state_view.dart';
 import 'folder_separator_row.dart';
 import 'marquee_overlay.dart';
 
@@ -102,32 +103,7 @@ class DataGrid extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.audio_file_outlined,
-            size: 64,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Drop files or folders here\nor use the toolbar to open',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildEmptyState(BuildContext context) => const EmptyStateView();
 
   void _handleRowTap(
     WidgetRef ref,

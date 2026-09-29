@@ -22,7 +22,6 @@ import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/widgets/save_confirmation.dart';
-import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
@@ -32,73 +31,19 @@ import '../../data/providers/column_config_provider.dart';
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/filtered_sorted_file_list_provider.dart';
-import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/service_providers.dart';
+import '../../data/services/editor_open_service.dart';
 import '../widgets/address_bar.dart';
 
 /// Main toolbar with common actions.
 class EditorToolbar extends ConsumerWidget {
   const EditorToolbar({super.key});
 
-  Future<void> _openFolder(WidgetRef ref, BuildContext context) async {
-    // Guard against unsaved changes before opening a new folder.
-    if (!context.mounted) return;
-    final proceed = await UnsavedChangesGuard.check(
-      context: context,
-      ref: ref,
-      clearUndoOnDiscard: true,
-    );
-    if (!proceed || !context.mounted) return;
+  Future<void> _openFolder(WidgetRef ref, BuildContext context) =>
+      EditorOpenService(ref.read).openFolder(context, ref);
 
-    final result = await FilePicker.getDirectoryPath(
-      dialogTitle: 'Select Music Folder',
-    );
-    if (result == null || !context.mounted) return;
-
-    // Route through the shared loading service so the toolbar honours the
-    // recursive toggle, the threshold guard, and recent-folder persistence
-    // exactly like every other entry point.
-    final service = FolderLoadingService(ref.read);
-    await service.loadFolder(context, result);
-  }
-
-  Future<void> _openFiles(WidgetRef ref, BuildContext context) async {
-    // Guard against unsaved changes before opening new files.
-    if (!context.mounted) return;
-    final proceed = await UnsavedChangesGuard.check(
-      context: context,
-      ref: ref,
-      clearUndoOnDiscard: true,
-    );
-    if (!proceed || !context.mounted) return;
-
-    final result = await FilePicker.pickFiles(
-      dialogTitle: 'Select Audio Files',
-      type: FileType.custom,
-      allowedExtensions: [
-        'mp3',
-        'flac',
-        'ogg',
-        'm4a',
-        'mp4',
-        'wma',
-        'wav',
-        'ape',
-        'opus',
-        'aac',
-      ],
-      allowMultiple: true,
-    );
-    if (result == null || result.files.isEmpty || !context.mounted) return;
-
-    final paths = result.files
-        .where((f) => f.path != null)
-        .map((f) => f.path!)
-        .toList();
-
-    final service = FolderLoadingService(ref.read);
-    await service.loadFromDrop(context, paths);
-  }
+  Future<void> _openFiles(WidgetRef ref, BuildContext context) =>
+      EditorOpenService(ref.read).openFiles(context, ref);
 
   Future<void> _exportPlaylist(WidgetRef ref, BuildContext context) async {
     final allFiles = ref.read(fileListProvider);

@@ -6,6 +6,16 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — empty state and onboarding (PRD 13)
+- A real empty state: app icon, drop hint, the supported-format list
+  generated from `SupportedFormats` (so it cannot drift from what actually
+  opens), Open Folder / Open Files buttons, a Settings link, up to 6 recent
+  folders, and four feature highlights.
+- `EditorOpenService` now owns the open-folder and open-files logic, shared
+  by the toolbar and the empty state. Recent-folder entries load through the
+  same `FolderLoadingService` and the same unsaved-changes guard, so no entry
+  point can quietly skip them.
+
 ### Added — keyboard navigation (PRD 10)
 - **Ctrl+Arrow** moves the cell focus without changing the selection. Plain
   arrows collapse the selection onto the focused row, so there was no way to
