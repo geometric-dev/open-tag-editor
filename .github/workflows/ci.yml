@@ -26,8 +26,27 @@ jobs:
           flutter-version-file: .flutter-version
           cache: true
 
+      - name: Report toolchain
+        run: |
+          flutter --version
+          dart --version
+
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: |
+          if ! dart format --output=none --set-exit-if-changed .; then
+            # Print one representative diff so a failure is diagnosable from
+            # the job log instead of only saying "29 files differ".
+            echo "::group::formatter disagreement sample"
+            dart format --output=show --set-exit-if-changed lib 2>/dev/null \
+              | head -n 40 || true
+            echo "::endgroup::"
+            dart format --output=show lib/features/folder_panel/presentation/folder_panel.dart \
+              > formatter-output.dart 2>/dev/null || true
+            diff -u lib/features/folder_panel/presentation/folder_panel.dart \
+              formatter-output.dart | head -n 60 || true
+            rm -f formatter-output.dart
+            exit 1
+          fi
 
   analyze:
     name: Analyze (${{ matrix.os }})
