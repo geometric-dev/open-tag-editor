@@ -10,9 +10,14 @@ import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
+import '../../../../features/tools/data/clear_tags_command.dart';
+import '../../../../features/tools/data/strip_id3v1_command.dart';
 import '../../../../features/tools/data/tag_case_tools.dart';
+import '../../../../features/tools/data/tag_deletion_plan.dart';
 import '../../../../features/tools/data/tag_transform_command.dart';
+import '../../../../features/tools/presentation/clear_fields_dialog.dart';
 import '../../../../features/tools/presentation/tag_sync_dialog.dart';
+import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
@@ -390,6 +395,179 @@ class EditorToolbar extends ConsumerWidget {
       );
       return;
     }
+
+    if (value == 'tags:clearAll') {
+      await _clearAllTags(context, ref);
+      return;
+    }
+
+    if (value == 'tags:clearFields') {
+      await _clearFields(context, ref);
+      return;
+    }
+
+    if (value == 'tags:stripId3v1') {
+      await _stripId3v1(context, ref);
+      return;
+    }
+  }
+
+  /// Targets for a tag-removal action: the current selection, or every
+  /// loaded file when nothing is selected.
+  List<AudioFile> _targetFiles(WidgetRef ref) {
+    final selected = ref.read(selectedFilesProvider);
+    return selected.isNotEmpty ? selected : ref.read(fileListProvider);
+  }
+
+  /// "Clear All Tags" — removes every field the app manages from the
+  /// targets, after an explicit confirmation that states the real counts.
+  Future<void> _clearAllTags(BuildContext context, WidgetRef ref) async {
+    final targets = _targetFiles(ref);
+    if (targets.isEmpty) {
+      _setStatus(ref, 'No files loaded');
+      return;
+    }
+
+    final plan = planClear(targets, null);
+    if (plan.isEmpty) {
+      _setStatus(ref, 'No tag fields to clear');
+      return;
+    }
+
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Clear All Tags'),
+        content: Text(
+          'Remove ${plan.fieldCount} tag field(s) from '
+          '${plan.affectedFileCount} of ${plan.fileCount} file(s)?\n\n'
+          'This is undoable, and is only written to disk when you save. '
+          'Frames the editor does not manage (for example custom ID3v2 '
+          'frames) are left in place.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Clear Tags'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          ClearTagsCommand(
+            fileListNotifier: ref.read(fileListProvider.notifier),
+            plan: plan,
+            description: 'Clear all tags (${plan.affectedFileCount} file(s))',
+          ),
+        );
+    _setStatus(
+      ref,
+      'Cleared ${plan.fieldCount} field(s) in '
+      '${plan.affectedFileCount} file(s) - unsaved',
+    );
+  }
+
+  /// "Clear Fields..." — lets the user pick which fields to remove.
+  Future<void> _clearFields(BuildContext context, WidgetRef ref) async {
+    final targets = _targetFiles(ref);
+    if (targets.isEmpty) {
+      _setStatus(ref, 'No files loaded');
+      return;
+    }
+
+    if (!context.mounted) return;
+    final fields = await ClearFieldsDialog.show(context, files: targets);
+    if (fields == null || fields.isEmpty) return;
+
+    final plan = planClear(targets, fields);
+    if (plan.isEmpty) {
+      _setStatus(ref, 'Nothing to clear in the selection');
+      return;
+    }
+
+    ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          ClearTagsCommand(
+            fileListNotifier: ref.read(fileListProvider.notifier),
+            plan: plan,
+            description:
+                'Clear ${plan.fieldCount} field(s) '
+                '(${plan.affectedFileCount} file(s))',
+          ),
+        );
+    _setStatus(
+      ref,
+      'Cleared ${plan.fieldCount} field(s) in '
+      '${plan.affectedFileCount} file(s) - unsaved',
+    );
+  }
+
+  /// "Remove ID3v1 Tag" — deletes the trailing ID3v1 block from MP3s.
+  ///
+  /// This one writes to disk immediately: an ID3v1 trailer is not reachable
+  /// through TagLib's Properties API, so it cannot ride the normal save path.
+  Future<void> _stripId3v1(BuildContext context, WidgetRef ref) async {
+    final targets = _targetFiles(ref);
+    if (targets.isEmpty) {
+      _setStatus(ref, 'No files loaded');
+      return;
+    }
+
+    final command = StripId3v1Command.planFor(targets);
+    if (command == null) {
+      _setStatus(ref, 'No ID3v1 tags found in the selection');
+      return;
+    }
+
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove ID3v1 Tag'),
+        content: Text(
+          'Delete the ID3v1 block from ${command.files.length} MP3 file(s)?\n\n'
+          'ID3v2 and other tags are preserved. This is undoable, and writes '
+          'to disk immediately.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    ref.read(undoRedoProvider.notifier).execute(command);
+
+    final summary =
+        '${command.files.length} file(s) processed, '
+        '${command.previousTags.length} ID3v1 tag(s) removed';
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(summary)));
+    }
+    _setStatus(ref, summary);
+  }
+
+  void _setStatus(WidgetRef ref, String message) {
+    ref.read(statusMessageProvider.notifier).state = message;
   }
 
   @override
@@ -536,6 +714,31 @@ class EditorToolbar extends ConsumerWidget {
                 value: 'sync:wizard',
                 child: Text(
                   'Tags Synchronization…',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'tags:clearAll',
+                enabled: ref.read(fileListProvider).isNotEmpty,
+                child: const Text(
+                  'Clear All Tags…',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tags:clearFields',
+                enabled: ref.read(fileListProvider).isNotEmpty,
+                child: const Text(
+                  'Clear Fields…',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tags:stripId3v1',
+                enabled: ref.read(fileListProvider).isNotEmpty,
+                child: const Text(
+                  'Remove ID3v1 Tag',
                   style: TextStyle(fontSize: 12),
                 ),
               ),

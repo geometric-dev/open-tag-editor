@@ -22,7 +22,10 @@ Direction agreed for the 0.2 → 0.3 lines. 0.2 (current) is the
       optional clear/normalize actions
 - [ ] Drag-reorder column headers (menu-based reorder shipped in 0.2)
 - [ ] Lookup applicators on background isolates with progress ports
-- [ ] Tag deletion & cleanup PRD (strip ID3v1, remove empty frames)
+- [ ] Tag deletion & cleanup PRD (strip ID3v1, remove empty frames) —
+      Clear All Tags / Clear Fields / Remove ID3v1 shipped; whole-block
+      ID3v2, APEv2 and Vorbis removal is blocked on the native library
+      exposing a removal call (see `native/taglib_c.h`, which has none)
 - [x] macOS/Linux CI jobs that build TagLib and attach native artifacts;
       Xcode copy-phase + Linux packaging so both platforms ship like Windows
 - [ ] Installer (MSIX or Inno) bundling DLLs + VC++ runtime, signed builds

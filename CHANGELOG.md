@@ -24,6 +24,22 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - `.cdg` karaoke companions now follow their audio file on rename.
 - Multi-value tag properties join with `; ` on read instead of silently
   dropping all but the first value.
+- **Tag deletion & cleanup (PRD 18)**: Tools menu gains *Clear All Tags…*,
+  *Clear Fields…* and *Remove ID3v1 Tag*.
+  - *Clear All Tags…* confirms with real counts, and clears only the
+    fields the editor manages — frames TagLib does not surface (custom
+    ID3v2 frames, for instance) are deliberately left alone rather than
+    silently claimed as removed.
+  - *Clear Fields…* lists only fields that actually carry a value, marks
+    partial fields with an `in N of M files` count, and shows a live
+    affected-file preview that recomputes from the same planner the
+    command will use, so the number cannot drift from what the button does.
+  - *Remove ID3v1 Tag* deletes the 128-byte trailer and reports
+    modified/skipped/errors per file.
+  - All three are undoable. Clearing rides the normal save path, so
+    backups, atomic writes and validation behave exactly as for an edit
+    and nothing touches disk until you save; ID3v1 removal writes
+    immediately because TagLib's Properties API cannot address that block.
 
 ### Added — release engineering
 - `scripts/build-taglib.sh` builds the TagLib C bindings from upstream
@@ -57,6 +73,9 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
   already correct; the assertions were Windows-only.
 
 ### Fixed
+- Undoing a "Clear Tags" no longer discards tag edits made after the clear:
+  the command restores the fields it removed rather than the whole tag map.
+  (The existing batch-edit and transform commands still restore whole maps.)
 - ID3v1 `_hasTag` read its signature from the wrong offset, breaking
   replace-in-place; append mode no longer resurrects deleted files.
 - Toolbar folder/file pickers used `BuildContext` after an `await` without
