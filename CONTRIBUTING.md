@@ -40,11 +40,11 @@ The three commands above are exactly what the `format`, `analyze` and
 
 ## Toolchain version
 
-Use the Flutter SDK version in `.flutter-version`; CI reads that same file.
+Use the Flutter SDK version pinned in `.fvmrc`; CI reads that same file.
 This matters more than usual because `dart format` is not stable across SDK
-patch releases — running a different version locally can make the `format`
-job fail on files you never touched. [FVM](https://fvm.app) and the Flutter
-VS Code extension both read `.flutter-version` automatically.
+releases — a different version locally can make the `format` job fail on
+files you never touched. [FVM](https://fvm.app) and the Flutter VS Code
+extension both read `.fvmrc` automatically.
 
 ## Reporting Issues
 

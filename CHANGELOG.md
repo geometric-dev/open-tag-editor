@@ -59,7 +59,7 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - CI: `format` and `analyze` gates, tests on Windows and Linux, and
   verified release bundles for Windows, macOS and Linux uploaded as
   artifacts. macOS/Linux TagLib is rebuilt from source on every run.
-  The SDK is pinned in `.flutter-version`, which every job reads.
+  The SDK is pinned in `.fvmrc`, which every job reads.
 - `docs/known-issues.md` records defects that CI has confirmed but that
   are not yet fixed, so a test skip can never quietly hide a regression.
 - **ReplayGain (PRD 19)**: the four ReplayGain values are now read, shown

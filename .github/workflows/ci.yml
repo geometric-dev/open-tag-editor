@@ -18,12 +18,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          # Read from .flutter-version so the pinned SDK has exactly one
-          # home. Do NOT also set channel here: with both present,
-          # subosito/flutter-action resolves the channel instead and silently
-          # installs whatever the newest stable is, which produces formatter
-          # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          # MUST be one of the paths subosito/flutter-action recognises:
+          # pubspec.yaml, .fvmrc or .fvm/fvm_config.json. An unsupported
+          # path is ignored *silently*, after which the action installs the
+          # newest stable instead. That disagrees with a developer's local
+          # formatter and turns the format gate red on untouched files.
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Report toolchain
@@ -65,7 +65,7 @@ jobs:
           # subosito/flutter-action resolves the channel instead and silently
           # installs whatever the newest stable is, which produces formatter
           # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -95,7 +95,7 @@ jobs:
           # subosito/flutter-action resolves the channel instead and silently
           # installs whatever the newest stable is, which produces formatter
           # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -118,7 +118,7 @@ jobs:
           # subosito/flutter-action resolves the channel instead and silently
           # installs whatever the newest stable is, which produces formatter
           # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -165,7 +165,7 @@ jobs:
           # subosito/flutter-action resolves the channel instead and silently
           # installs whatever the newest stable is, which produces formatter
           # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -203,7 +203,7 @@ jobs:
           # subosito/flutter-action resolves the channel instead and silently
           # installs whatever the newest stable is, which produces formatter
           # output that disagrees with a developer's local run.
-          flutter-version-file: .flutter-version
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install Linux build dependencies
