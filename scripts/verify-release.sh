@@ -94,6 +94,14 @@ if [ -f "$lib" ]; then
       fi
       case "$dep" in
         @*)
+          # @rpath / @loader_path: resolved through the binary's rpath.
+          continue
+          ;;
+        /usr/lib/* | /System/*)
+          # System and SDK libraries. otool prints absolute /usr/lib paths
+          # for these, but on a build machine the SDK entries are linker
+          # stubs rather than real files, so a filesystem test would report
+          # a false failure. They are guaranteed present at load time.
           continue
           ;;
         /*)

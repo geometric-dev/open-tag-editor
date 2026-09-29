@@ -102,7 +102,11 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
   and a direct glob, covering both the `VC/Tools/MSVC/*/Redist` and
   VS 18's `VC/Redist` layouts, and requires the x64 payload.
 - `verify-release.sh` no longer uses a `case` statement inside a
-  command substitution, which the bash 3.2 that macOS ships cannot parse.
+  command substitution, which the bash 3.2 that macOS ships cannot parse,
+  and no longer treats `/usr/lib` and `/System` dependencies as missing.
+  `otool -L` reports SDK libraries by absolute path, but on a build machine
+  those are linker stubs rather than real files, so the check reported a
+  false failure on every macOS bundle.
 
 
 
