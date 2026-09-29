@@ -9,12 +9,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Pinned so CI and local development agree. The tree currently lints clean
-  # only on 3.44+ (RadioGroup / onReorderItem replaced deprecated APIs), so
-  # bumping this major-version-locked line is a deliberate act.
-  FLUTTER_VERSION: "3.44.4"
-
 jobs:
   format:
     name: Format
@@ -24,8 +18,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Check formatting
@@ -43,8 +41,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Install dependencies
@@ -69,8 +71,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Install dependencies
@@ -88,8 +94,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Install dependencies
@@ -131,8 +141,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Install dependencies
@@ -165,8 +179,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
+          # Read from .flutter-version so the pinned SDK has exactly one
+          # home. Do NOT also set channel here: with both present,
+          # subosito/flutter-action resolves the channel instead and silently
+          # installs whatever the newest stable is, which produces formatter
+          # output that disagrees with a developer's local run.
+          flutter-version-file: .flutter-version
           cache: true
 
       - name: Install Linux build dependencies

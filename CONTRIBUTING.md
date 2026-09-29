@@ -38,6 +38,14 @@ Thanks for your interest in contributing! Here's how to get started.
 The three commands above are exactly what the `format`, `analyze` and
 `test` CI jobs run, so a green local run means a green pipeline.
 
+## Toolchain version
+
+Use the Flutter SDK version in `.flutter-version`; CI reads that same file.
+This matters more than usual because `dart format` is not stable across SDK
+patch releases — running a different version locally can make the `format`
+job fail on files you never touched. [FVM](https://fvm.app) and the Flutter
+VS Code extension both read `.flutter-version` automatically.
+
 ## Reporting Issues
 
 - Use GitHub Issues
