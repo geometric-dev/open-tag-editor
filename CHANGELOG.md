@@ -6,6 +6,17 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — error handling (PRD 12)
+- Toolbar **Error Log** button showing the live error count, so the error
+  panel is always reachable. The status bar already toggled the panel, but
+  it only renders when errors exist, so a user who had dismissed the panel
+  could not reopen it without producing a new failure.
+
+### Removed
+- `NotificationService`, which was never instantiated. Its snackbar logic
+  had been inlined at the call sites, so it only looked like the project's
+  notification abstraction.
+
 ### Added — unsaved-changes work (PRD 07)
 - **Confirm before saving tags** setting (General ▸ General). All four save
   entry points — toolbar, Ctrl+S, tag panel, and the unsaved-changes guard —

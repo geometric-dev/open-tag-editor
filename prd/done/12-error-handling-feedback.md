@@ -1,5 +1,27 @@
 # PRD 12: Error Handling & User Feedback (P3)
 
+## Status: shipped
+
+Delivered: the error details panel with per-row and bulk retry, the 500-entry
+bounded log, corrupt-file handling via `readError`, snackbar notifications
+with a "View Details" action, and a status-bar error count.
+
+Added after the initial review:
+
+- A toolbar **Error Log** button carrying the live count, so the panel stays
+  reachable. The status bar toggles it on click, but it only renders when
+  there are errors — a user who had dismissed the panel had no way to find
+  it again without producing a new failure.
+- Removed `NotificationService`, which was never instantiated. Its logic was
+  inlined at its call sites, so it was dead weight that looked like the
+  project's snackbar abstraction while being nothing of the sort.
+
+Not delivered, and why:
+
+- **Per-row retry as a right-click action.** It is a button on each row
+  instead, which works on every platform. A grid context menu is wanted by
+  PRD 18 too and is better built once.
+
 ## Problem Statement
 
 Errors during batch operations (tag reading, writing, renaming) are either silently swallowed or shown as a brief snackbar with no detail. Users have no way to see which specific files failed, why they failed, or retry the failed subset.

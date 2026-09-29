@@ -658,6 +658,7 @@ class EditorToolbar extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final undoState = ref.watch(undoRedoProvider);
     final hasUnsaved = ref.watch(hasUnsavedChangesProvider);
+    final errorCount = ref.watch(errorCountProvider);
 
     return Container(
       height: 40,
@@ -844,6 +845,20 @@ class EditorToolbar extends ConsumerWidget {
             },
           ),
           const Spacer(),
+          // Persistent entry point to the error panel. The status bar already
+          // toggles it on click, but it only renders when there are errors,
+          // so a user with the panel closed had no way to find it again
+          // without producing a new error. This shows the count inline so
+          // the panel is always reachable.
+          _ToolbarButton(
+            icon: Icons.report_gmailerrorred,
+            tooltip:
+                'Error Log ($errorCount error${errorCount == 1 ? '' : 's'})',
+            onPressed: () {
+              final notifier = ref.read(errorPanelVisibleProvider.notifier);
+              notifier.state = !notifier.state;
+            },
+          ),
           _ToolbarButton(
             icon: Icons.settings,
             tooltip: 'Settings',
