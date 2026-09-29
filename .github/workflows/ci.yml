@@ -5,9 +5,36 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned so CI and local development agree. The tree currently lints clean
+  # only on 3.44+ (RadioGroup / onReorderItem replaced deprecated APIs), so
+  # bumping this major-version-locked line is a deliberate act.
+  FLUTTER_VERSION: "3.44.4"
+
 jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
   analyze:
+    name: Analyze (${{ matrix.os }})
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -16,27 +43,152 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze (no errors allowed)
-        run: flutter analyze --no-fatal-infos
+      # --fatal-infos: the tree is lint-clean under analysis_options.yaml, so
+      # a new info is as much a regression as a warning.
+      - name: Analyze
+        run: flutter analyze
 
   test:
-    # Primary dev target first. Extend to a macos-latest/linux-latest
-    # matrix once platform-specific tests are validated there.
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # windows additionally exercises the real-TagLib round-trip suite
+        # (auto-skipped when the DLL is absent).
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Test
+        run: flutter test --reporter=expanded
+
+  build-windows:
+    name: Windows release bundle
+    needs: [analyze]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Test
-        run: flutter test
+      - name: Build release
+        run: flutter build windows --release
+
+      # The TagLib DLLs are committed under windows/ and installed by
+      # windows/CMakeLists.txt; assert that stayed true.
+      - name: Verify bundle structure
+        shell: pwsh
+        run: ./scripts/verify-release.ps1
+
+      # TagLib is built with MSVC, so end users need the VC++ runtime. Stage
+      # it from the runner's licensed toolchain payload, then re-verify with
+      # the runtime now mandatory.
+      - name: Stage VC++ runtime
+        shell: pwsh
+        run: ./scripts/bundle-crt.ps1
+
+      - name: Verify bundle with runtime required
+        shell: pwsh
+        run: ./scripts/verify-release.ps1 -RequireCrt
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: open_tag_editor-windows-x64
+          path: build/windows/x64/runner/Release
+          retention-days: 14
+
+  build-macos:
+    name: macOS release bundle
+    needs: [analyze]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # No prebuilt binary is committed; build the C bindings from source so
+      # the trust chain is source -> artifact.
+      - name: Build TagLib
+        run: bash scripts/build-taglib.sh
+
+      - name: Build release
+        run: flutter build macos --release
+
+      - name: Verify bundle
+        run: bash scripts/verify-release.sh
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: open_tag_editor-macos-universal
+          path: build/macos/Build/Products/Release/open_tag_editor.app
+          retention-days: 14
+
+  build-linux:
+    name: Linux release bundle
+    needs: [analyze]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install TagLib build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libicu-dev libutfcpp-dev zlib1g-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build TagLib
+        run: bash scripts/build-taglib.sh
+
+      - name: Build release
+        run: flutter build linux --release
+
+      - name: Verify bundle
+        run: bash scripts/verify-release.sh
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: open_tag_editor-linux-x64
+          path: build/linux/x64/release/bundle
+          retention-days: 14

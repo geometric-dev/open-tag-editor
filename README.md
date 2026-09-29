@@ -30,7 +30,7 @@ An open-source music tag editor and file renamer built with Flutter (Windows tod
 
 ## Windows Prerequisites
 
-End-user machines need the [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe) installed (the TagLib native library links against it). A future installer will bundle these DLLs.
+End-user machines need the [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe) installed (the TagLib native library links against it). Release bundles stage these DLLs automatically; a future installer will bundle them too.
 
 After building, verify the bundle layout:
 
@@ -38,6 +38,10 @@ After building, verify the bundle layout:
 flutter build windows --release
 powershell -ExecutionPolicy Bypass -File scripts/verify-release.ps1
 ```
+
+macOS and Linux need TagLib built from source first — see
+[docs/platforms.md](docs/platforms.md), or just run
+`bash scripts/build-taglib.sh`.
 
 ## Screenshots
 
@@ -156,9 +160,13 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 Quick start:
 1. Fork the repo and create a feature branch
-2. Run `flutter analyze` — no analyzer errors allowed
-3. Run `flutter test` — all tests must pass
-4. Open a PR with a clear description
+2. Run `dart format .` — formatting is enforced in CI
+3. Run `flutter analyze` — zero issues allowed, including lints
+4. Run `flutter test` — all tests must pass
+5. Open a PR with a clear description
+
+CI additionally builds release bundles for Windows, macOS and Linux, and
+verifies each one. See [docs/platforms.md](docs/platforms.md).
 
 ## License
 

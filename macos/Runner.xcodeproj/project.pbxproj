@@ -12,6 +12,7 @@
 			buildConfigurationList = 33CC111B2044C6BA0003C045 /* Build configuration list for PBXAggregateTarget "Flutter Assemble" */;
 			buildPhases = (
 				33CC111E2044C6BF0003C045 /* ShellScript */,
+		AE01C0DE2F0000010000TA1 /* Embed TagLib */,
 			);
 			dependencies = (
 			);
@@ -208,6 +209,7 @@
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
+				AE01C0DE2F0000010000TA1 /* Embed TagLib */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 			);
 			buildRules = (
@@ -328,6 +330,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
+		};
+		AE01C0DE2F0000010000TA1 /* Embed TagLib */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed TagLib";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copies the prebuilt TagLib C bindings into Contents/Frameworks so that\n# NativeLibraryLoader's first macOS candidate resolves. Absent is fine:\n# the app degrades to the pure-Dart reader with writing disabled.\nset -e\nSRC=\"$PROJECT_DIR/Frameworks/libtaglib_c.dylib\"\nif [ -f \"$SRC\" ]; then\n  mkdir -p \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\n  cp -f \"$SRC\" \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/libtaglib_c.dylib\"\n  # Ad-hoc signature keeps Gatekeeper quiet for locally built bundles.\n  codesign --force --sign - \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/libtaglib_c.dylib\" 2>/dev/null || true\nelse\n  echo \"warning: libtaglib_c.dylib not found in macos/Frameworks - tag writing will be disabled.\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

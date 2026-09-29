@@ -3,12 +3,15 @@
 #      (NativeLibraryLoader's primary search path).
 #   2. No stray TagLib DLLs under data\ (the pre-fix install location).
 #   3. taglib_c.dll's tag.dll dependency is satisfied from the same folder.
-#   4. Warns when the VC++ runtime DLLs are not bundled (end-user machines
-#      then require the Microsoft Visual C++ Redistributable installed).
+#   4. The VC++ runtime DLLs are bundled.  A warning by default so a developer
+#      machine (which has them in System32) is not blocked; pass
+#      -RequireCrt in CI, where scripts/bundle-crt.ps1 stages them, to make
+#      it a hard failure.
 #
-# Usage: powershell -File scripts/verify-release.ps1 [-BuildDir path]
+# Usage: powershell -File scripts/verify-release.ps1 [-BuildDir path] [-RequireCrt]
 param(
-    [string]$BuildDir = "build/windows/x64/runner/Release"
+    [string]$BuildDir = "build/windows/x64/runner/Release",
+    [switch]$RequireCrt
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,12 +45,19 @@ if ((Test-Path "$BuildDir/taglib_c.dll") -and (Test-Path $tagDll)) {
     Write-Host "OK   tag.dll dependency colocated with taglib_c.dll"
 }
 
-# 4. VC++ runtime bundling check (warning only)
+# 4. VC++ runtime bundling check
 $crtMissing = @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll") |
     Where-Object { -not (Test-Path "$BuildDir/$_") }
-if ($crtMissing) {
-    Write-Warning ("VC++ runtime DLLs not bundled: {0}" -f ($crtMissing -join ", "))
-    Write-Warning "End users need the Microsoft Visual C++ 2015-2022 Redistributable (x64), or these files must be added to the installer."
+if ($crtMissing.Count -gt 0) {
+    $message = "VC++ runtime DLLs not bundled: $($crtMissing -join ', ')"
+    if ($RequireCrt) {
+        $failures += "$message - end users would need the Microsoft Visual C++ 2015-2022 Redistributable (x64) installed"
+    } else {
+        Write-Warning $message
+        Write-Warning "End users need the Microsoft Visual C++ 2015-2022 Redistributable (x64). Stage them with scripts/bundle-crt.ps1, or re-run with -RequireCrt to make this a failure."
+    }
+} else {
+    Write-Host "OK   VC++ runtime DLLs bundled"
 }
 
 if ($failures.Count -gt 0) {

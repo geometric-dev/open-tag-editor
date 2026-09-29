@@ -5,8 +5,9 @@ Direction agreed for the 0.2 → 0.3 lines. 0.2 (current) is the
 
 ## 0.2.x — hardening
 
-- [ ] Run `scripts/verify-release.ps1` in CI on a built artifact (not just locally)
-- [ ] Bundle or auto-install VC++ runtime in the Windows installer
+- [x] Run `scripts/verify-release.ps1` in CI on a built artifact (not just locally)
+- [x] Bundle or auto-install VC++ runtime in the Windows installer
+      (`scripts/bundle-crt.ps1`; the installer itself is still 0.3 work)
 - [ ] Surface "native TagLib missing — writes disabled" as a status-bar state
       instead of silent degradation (architect follow-up from platform review)
 - [ ] Golden tests for the data grid; large-library (10k rows) perf pass
@@ -22,7 +23,7 @@ Direction agreed for the 0.2 → 0.3 lines. 0.2 (current) is the
 - [ ] Drag-reorder column headers (menu-based reorder shipped in 0.2)
 - [ ] Lookup applicators on background isolates with progress ports
 - [ ] Tag deletion & cleanup PRD (strip ID3v1, remove empty frames)
-- [ ] macOS/Linux CI jobs that build TagLib and attach native artifacts;
+- [x] macOS/Linux CI jobs that build TagLib and attach native artifacts;
       Xcode copy-phase + Linux packaging so both platforms ship like Windows
 - [ ] Installer (MSIX or Inno) bundling DLLs + VC++ runtime, signed builds
 - [ ] Accessibility audit: Semantics coverage beyond tooltips, high-contrast

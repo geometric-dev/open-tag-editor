@@ -30,9 +30,13 @@ Thanks for your interest in contributing! Here's how to get started.
 
 1. Fork the repo and create a feature branch
 2. Make your changes with clear commit messages
-3. Ensure `flutter analyze` passes with no errors
-4. Ensure `flutter test` passes
-5. Open a PR with a description of what changed and why
+3. Run `dart format .` — CI fails on any formatting drift
+4. Run `flutter analyze` — CI fails on *any* issue, lints included
+5. Run `flutter test` — all tests must pass
+6. Open a PR with a description of what changed and why
+
+The three commands above are exactly what the `format`, `analyze` and
+`test` CI jobs run, so a green local run means a green pipeline.
 
 ## Reporting Issues
 

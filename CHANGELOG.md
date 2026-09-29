@@ -25,9 +25,37 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - Multi-value tag properties join with `; ` on read instead of silently
   dropping all but the first value.
 
+### Added — release engineering
+- `scripts/build-taglib.sh` builds the TagLib C bindings from upstream
+  source (universal on macOS) into the location each platform's packaging
+  expects, so no prebuilt blob has to be trusted or committed.
+- `scripts/bundle-crt.ps1` stages the Microsoft Visual C++ runtime into a
+  Windows bundle from a licensed toolchain payload, and refuses to
+  redistribute the System32 copy.
+- `scripts/verify-release.sh` is the POSIX counterpart to the existing
+  Windows verifier: it checks the native library's location, architecture
+  agreement with the app binary, and that its dependencies actually resolve.
+- macOS ships a universal `libtaglib_c.dylib` via a new "Embed TagLib"
+  Xcode build phase that runs *before* Flutter's signing phase, so the
+  library is covered by the bundle signature.
+- Linux packaging installs `libtaglib_c.so` next to the executable (the
+  loader's first probe) and the bundle rpath is `$ORIGIN/lib`.
+- CI: `format` and `analyze` gates, tests on Windows and Linux, and
+  verified release bundles for Windows, macOS and Linux uploaded as
+  artifacts. macOS/Linux TagLib is rebuilt from source on every run.
+
+### Changed
+- SDK floor raised to Flutter 3.41 / Dart 3.10 (the version that replaced
+  the APIs this project now uses) and the tree reformatted for the
+  modern tall-style formatter; the tree is now analyzer-clean including
+  lints, which CI enforces.
+
 ### Fixed
 - ID3v1 `_hasTag` read its signature from the wrong offset, breaking
   replace-in-place; append mode no longer resurrects deleted files.
+- Toolbar folder/file pickers used `BuildContext` after an `await` without
+  re-checking `mounted`.
+
 
 ## [0.2.0] - 2026-08-23
 
