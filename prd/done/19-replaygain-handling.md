@@ -1,5 +1,28 @@
 # PRD 19: ReplayGain Tag Handling (P3)
 
+## Status: shipped
+
+Delivered:
+
+- Read-only "ReplayGain" section in the tag panel, collapsed by default,
+  showing `varies` for a mixed selection and `Not set` when absent.
+- Optional `RG Track Gain` / `RG Album Gain` columns, hidden by default.
+- Tools ▸ *Clear ReplayGain…*, undoable, clearing only those four fields.
+- "Clear All Tags" names the ReplayGain count in its confirmation; "Clear
+  Fields…" lists the fields individually (via PRD 18).
+- Mapped in `TagPropertyMapper` in both directions, so the values are
+  explicit rather than surviving only incidentally. Verified against the
+  real library on ID3v2 and Vorbis Comment files.
+
+Not delivered, and why:
+
+- **ID3v2 vs APEv2 discrepancy display.** The Properties API exposes one
+  value per field; it cannot report which container a value came from, so
+  "display ID3v2 and note the discrepancy" is not achievable without
+  dropping to TagLib's per-container API.
+- **Normalize / recalculate.** Out of scope per this PRD — it requires
+  decoding audio.
+
 ## Problem Statement
 
 ReplayGain tags store loudness normalization data calculated from audio analysis. Many users rely on these values for consistent playback volume across their library. Tag editors that don't explicitly handle ReplayGain risk silently destroying these values during tag operations, or confusing users by displaying them alongside editable metadata without context.

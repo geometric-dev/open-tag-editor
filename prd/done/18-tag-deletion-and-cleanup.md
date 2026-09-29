@@ -1,5 +1,31 @@
 # PRD 18: Tag Deletion & Cleanup (P2)
 
+## Status: shipped, with two parts blocked
+
+Delivered (Tools menu, all undoable):
+
+- **Clear All Tags…** — confirms with real counts, and names the ReplayGain
+  values when any are in scope.
+- **Clear Fields…** — lists only fields that carry a value, marks partial
+  fields `in N of M files`, live affected-file preview.
+- **Remove ID3v1 Tag** — strips the 128-byte trailer, reports
+  modified / skipped / errors.
+
+Not delivered, and why:
+
+- **Whole-block removal of ID3v2, APEv2 and Vorbis Comments.** The bundled
+  `native/taglib_c.h` exposes no removal call at all — only
+  `taglib_property_set`, which addresses fields rather than blocks. This
+  needs a native change and a rebuilt `tag.dll`. Clearing a *field* works;
+  removing a whole *format* does not, and the UI says so rather than
+  pretending otherwise.
+- **Right-click context menu on grid rows.** The grid is custom-painted and
+  has no context menu today. PRD 12 also wants one, so it is better built
+  once for both.
+- **Background progress overlay for large batches.** The clears route
+  through the existing save path, which already runs writes off the UI
+  thread; a separate progress dialog would duplicate that.
+
 ## Problem Statement
 
 Users frequently need to strip tags from files — either removing all metadata to start fresh before applying online data, removing specific unwanted tag fields, or cleaning up legacy tag formats (e.g., removing APEv2 tags from MP3 files that should only have ID3v2, or stripping ID3 tags from FLAC files that should only use Vorbis Comments). Currently there is no explicit operation for tag removal or format cleanup.
