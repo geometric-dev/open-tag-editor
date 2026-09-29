@@ -65,10 +65,39 @@ build_slice() {
   cmake --build "$build_dir" --config Release --parallel >/dev/null
 }
 
+# TagLib 2.x names the C-binding target `tag_c`, but the on-disk output
+# varies by platform and by whether a version suffix is applied:
+#   Linux  libtag_c.so  (or libtag_c.so.1)
+#   macOS  libtag_c.dylib, libtag_c.<soversion>.dylib, or libtag_c.<ver>.dylib
+# and it may sit either in the build root or under taglib/. Prefer an
+# unversioned name, then fall back to any match.
 find_binding() {
-  # TagLib has moved the output between libtag/ and taglib/ across releases.
-  find "$1" -name 'tag_c.dylib' -o -name 'libtag_c.so' -o -name 'tag_c.so' \
-    | head -n 1
+  local dir="$1"
+  local candidates
+  candidates="$(find "$dir" -type f \
+      \( -name 'libtag_c*.dylib' -o -name 'tag_c*.dylib' \
+         -o -name 'libtag_c*.so*'  -o -name 'tag_c*.so*' \) 2>/dev/null | sort)"
+
+  if [ -z "$candidates" ]; then
+    echo ""
+    return
+  fi
+
+  # Exact unversioned names first.
+  local exact
+  exact="$(printf '%s\n' "$candidates" | grep -E '/(lib)?tag_c\.(dylib|so)$' || true)"
+  if [ -n "$exact" ]; then
+    printf '%s\n' "$exact" | head -n 1
+  else
+    printf '%s\n' "$candidates" | head -n 1
+  fi
+}
+
+# Printed when discovery fails, so the CI log shows what was actually built
+# instead of just "not found".
+dump_binding_candidates() {
+  echo "--- files CMake produced under $1 matching *tag*:" >&2
+  find "$1" -type f -iname '*tag*' 2>/dev/null | head -n 30 >&2
 }
 
 case "$(uname -s)" in
@@ -80,9 +109,11 @@ case "$(uname -s)" in
       build_slice "$arch" "$TAGLIB_WORKDIR/build-$arch"
       found="$(find_binding "$TAGLIB_WORKDIR/build-$arch")"
       if [ -z "$found" ]; then
+        dump_binding_candidates "$TAGLIB_WORKDIR/build-$arch"
         echo "error: could not locate the TagLib C binding in build-$arch" >&2
         exit 1
       fi
+      echo "==> $arch binding: $found"
       slices+=("$found")
     done
 
@@ -104,9 +135,11 @@ case "$(uname -s)" in
     build_slice "native" "$TAGLIB_WORKDIR/build-linux"
     found="$(find_binding "$TAGLIB_WORKDIR/build-linux")"
     if [ -z "$found" ]; then
+      dump_binding_candidates "$TAGLIB_WORKDIR/build-linux"
       echo "error: could not locate the TagLib C binding" >&2
       exit 1
     fi
+    echo "==> binding: $found"
     mkdir -p "$REPO_ROOT/linux/lib"
     out="$REPO_ROOT/linux/lib/libtaglib_c.so"
     cp -f "$found" "$out"

@@ -36,6 +36,9 @@ void main() {
   late TagLibWriterService writer;
 
   setUpAll(() {
+    // setUpAll still runs even when every test below is skipped, so the
+    // platform gate has to be repeated here before touching the DLL.
+    if (!dllAvailable) return;
     // Load tag.dll first so taglib_c.dll's dependency resolves even though
     // the test runner executable lives elsewhere (flutter cache).
     final tagDll = File(p.join(Directory.current.path, 'windows', 'tag.dll'));
