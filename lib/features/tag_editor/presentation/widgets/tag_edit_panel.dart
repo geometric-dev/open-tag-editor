@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
+import '../../../../features/tools/data/replay_gain.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/providers/tag_field_validation_provider.dart';
 import '../../../../shared/services/taglib/taglib_types.dart';
@@ -436,7 +437,83 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
             ],
           ),
           _buildField('comment'),
+          _buildReplayGainSection(),
         ],
+      ),
+    );
+  }
+
+  /// Read-only ReplayGain readout.
+  ///
+  /// These are scanner-calculated values, so they are deliberately not
+  /// editable here: offering a text box would invite users to type a gain
+  /// that no longer matches the audio. They only change when an external
+  /// tool rewrites them, or via the explicit "Clear ReplayGain" action.
+  Widget _buildReplayGainSection() {
+    final rows = <Widget>[];
+    for (final field in ReplayGainField.values) {
+      final summary = summariseReplayGain(field, widget.selectedFiles);
+      final isNotSet = summary.state == ReplayGainDisplay.notSet;
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(
+                  field.label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  summary.display,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontStyle: isNotSet
+                        ? FontStyle.italic
+                        : (summary.state == ReplayGainDisplay.varies
+                              ? FontStyle.italic
+                              : FontStyle.normal),
+                    color: isNotSet || summary.state == ReplayGainDisplay.varies
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final withData = countWithReplayGain(widget.selectedFiles);
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        // Collapsed by default: the values are reference data, not
+        // something most edits need to see.
+        initiallyExpanded: false,
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 8),
+        title: Text(
+          'ReplayGain',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          withData == 0
+              ? 'No ReplayGain data'
+              : 'in $withData of ${widget.selectedFiles.length} file(s) - '
+                    'read-only',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+        ),
+        children: rows,
       ),
     );
   }

@@ -35,6 +35,16 @@ class TagPropertyMapper {
     'catalogNumber': 'CATALOGNUMBER',
     'isrc': 'ISRC',
     'url': 'URL',
+
+    // ReplayGain is calculated data, not authored metadata, but it has to
+    // be addressable for two reasons: the panel shows it read-only, and
+    // "Clear ReplayGain" needs a real write. TagLib surfaces these as
+    // TXXX frames on ID3v2 and as plain keys on Vorbis Comment / APEv2,
+    // using this same spelling in both cases.
+    'replayGainTrackGain': 'REPLAYGAIN_TRACK_GAIN',
+    'replayGainTrackPeak': 'REPLAYGAIN_TRACK_PEAK',
+    'replayGainAlbumGain': 'REPLAYGAIN_ALBUM_GAIN',
+    'replayGainAlbumPeak': 'REPLAYGAIN_ALBUM_PEAK',
   };
 
   /// Maps TagLib property keys to app field names.
@@ -69,6 +79,10 @@ class TagPropertyMapper {
     'CATALOGNUMBER': 'catalogNumber',
     'ISRC': 'isrc',
     'URL': 'url',
+    'REPLAYGAIN_TRACK_GAIN': 'replayGainTrackGain',
+    'REPLAYGAIN_TRACK_PEAK': 'replayGainTrackPeak',
+    'REPLAYGAIN_ALBUM_GAIN': 'replayGainAlbumGain',
+    'REPLAYGAIN_ALBUM_PEAK': 'replayGainAlbumPeak',
   };
 
   /// Converts an app field name to the corresponding TagLib property key.

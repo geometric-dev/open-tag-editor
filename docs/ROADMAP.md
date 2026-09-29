@@ -18,8 +18,10 @@ Direction agreed for the 0.2 → 0.3 lines. 0.2 (current) is the
 
 - [ ] Multi-value tag fields (multiple artists/genres) end-to-end:
       model, grid display, panel editor, TagLib mapping
-- [ ] ReplayGain: read/display RG info, preserve verified (done), add
-      optional clear/normalize actions
+- [x] ReplayGain: read/display RG info, preserve verified, add
+      optional clear/normalize actions — read-only panel section, optional
+      columns and a Clear ReplayGain action shipped; *normalize* (i.e.
+      recalculating the values) is out of scope, it needs decoding
 - [ ] Drag-reorder column headers (menu-based reorder shipped in 0.2)
 - [ ] Lookup applicators on background isolates with progress ports
 - [ ] Tag deletion & cleanup PRD (strip ID3v1, remove empty frames) —

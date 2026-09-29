@@ -61,6 +61,21 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
   artifacts. macOS/Linux TagLib is rebuilt from source on every run.
 - `docs/known-issues.md` records defects that CI has confirmed but that
   are not yet fixed, so a test skip can never quietly hide a regression.
+- **ReplayGain (PRD 19)**: the four ReplayGain values are now read, shown
+  and clearable.
+  - Read-only "ReplayGain" section in the tag panel, collapsed by default,
+    showing `varies` for a mixed selection and `Not set` when absent.
+    Read-only because these are scanner-calculated values; a text box would
+    invite a gain that no longer matches the audio.
+  - Optional `RG Track Gain` / `RG Album Gain` columns, hidden by default.
+  - Tools ▸ *Clear ReplayGain…* removes only those four fields and is
+    undoable, for when an external scanner needs to recalculate.
+  - "Clear All Tags" now names the ReplayGain values in its confirmation
+    and points at "Clear Fields…" for keeping them.
+  - The values previously survived saves only *incidentally* (the writer
+    never touched unmapped keys). They are now mapped in both directions
+    and therefore explicit, and are still preserved across unrelated
+    edits because writes stay delta-based.
 
 ### Changed
 - SDK floor raised to Flutter 3.41 / Dart 3.10 (the version that replaced
@@ -85,6 +100,8 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - `bundle-crt.ps1` locates the VC++ redistributable payload via `vswhere`
   and a direct glob, covering both the `VC/Tools/MSVC/*/Redist` and
   VS 18's `VC/Redist` layouts, and requires the x64 payload.
+- `verify-release.sh` no longer uses a `case` statement inside a
+  command substitution, which the bash 3.2 that macOS ships cannot parse.
 
 
 

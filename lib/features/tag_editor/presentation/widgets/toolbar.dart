@@ -11,6 +11,7 @@ import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
 import '../../../../features/tools/data/clear_tags_command.dart';
+import '../../../../features/tools/data/replay_gain.dart';
 import '../../../../features/tools/data/strip_id3v1_command.dart';
 import '../../../../features/tools/data/tag_case_tools.dart';
 import '../../../../features/tools/data/tag_deletion_plan.dart';
@@ -410,6 +411,72 @@ class EditorToolbar extends ConsumerWidget {
       await _stripId3v1(context, ref);
       return;
     }
+
+    if (value == 'tags:clearReplayGain') {
+      await _clearReplayGain(context, ref);
+      return;
+    }
+  }
+
+  /// "Clear ReplayGain..." — removes only the four ReplayGain fields, so an
+  /// external scanner (loudgain, foobar2000, mp3gain) can recalculate them.
+  Future<void> _clearReplayGain(BuildContext context, WidgetRef ref) async {
+    final targets = _targetFiles(ref);
+    if (targets.isEmpty) {
+      _setStatus(ref, 'No files loaded');
+      return;
+    }
+
+    // Only the fields actually present can be cleared; clearing a field that
+    // is already absent would show up as a phantom modification.
+    final plan = planClear(
+      targets,
+      ReplayGainField.values.map((f) => f.appField).toSet(),
+    );
+    if (plan.isEmpty) {
+      _setStatus(ref, 'No ReplayGain data in the selection');
+      return;
+    }
+
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Clear ReplayGain'),
+        content: Text(
+          'Remove ${plan.fieldCount} ReplayGain value(s) from '
+          '${plan.affectedFileCount} of ${plan.fileCount} file(s)?\n\n'
+          'This is undoable, and only written to disk when you save. All '
+          'other tags are left untouched.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Clear'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          ClearTagsCommand(
+            fileListNotifier: ref.read(fileListProvider.notifier),
+            plan: plan,
+            description: 'Clear ReplayGain (${plan.affectedFileCount} file(s))',
+          ),
+        );
+    _setStatus(
+      ref,
+      'Cleared ${plan.fieldCount} ReplayGain value(s) in '
+      '${plan.affectedFileCount} file(s) - unsaved',
+    );
   }
 
   /// Targets for a tag-removal action: the current selection, or every
@@ -435,6 +502,14 @@ class EditorToolbar extends ConsumerWidget {
     }
 
     if (!context.mounted) return;
+    // ReplayGain is calculated data a user may have gone to real trouble to
+    // acquire, so the confirmation names it explicitly rather than hiding
+    // it behind "all metadata".
+    final rgFields = ReplayGainField.values.map((f) => f.appField).toSet();
+    final rgCount = plan.fieldsToClearByPath.values.fold<int>(
+      0,
+      (sum, fields) => sum + fields.where(rgFields.contains).length,
+    );
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -442,7 +517,8 @@ class EditorToolbar extends ConsumerWidget {
         content: Text(
           'Remove ${plan.fieldCount} tag field(s) from '
           '${plan.affectedFileCount} of ${plan.fileCount} file(s)?\n\n'
-          'This is undoable, and is only written to disk when you save. '
+          'This is undoable, and is only written to disk when you save.'
+          '${rgCount > 0 ? '\n\n$rgCount of these are ReplayGain loudness values; use "Clear Fields..." to keep them.' : ''}\n\n'
           'Frames the editor does not manage (for example custom ID3v2 '
           'frames) are left in place.',
         ),
@@ -739,6 +815,14 @@ class EditorToolbar extends ConsumerWidget {
                 enabled: ref.read(fileListProvider).isNotEmpty,
                 child: const Text(
                   'Remove ID3v1 Tag',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'tags:clearReplayGain',
+                enabled: ref.read(fileListProvider).isNotEmpty,
+                child: const Text(
+                  'Clear ReplayGain…',
                   style: TextStyle(fontSize: 12),
                 ),
               ),

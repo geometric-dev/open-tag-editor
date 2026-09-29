@@ -107,6 +107,22 @@ final List<ColumnDefinition> defaultColumns = <ColumnDefinition>[
     valueExtractor: (file, {rootFolder}) =>
         FormatUtils.formatDuration(file.duration),
   ),
+  // ReplayGain columns are available but not in `defaultVisible`: they are
+  // niche, and useful mainly for spotting files a scanner has not covered.
+  ColumnDefinition(
+    id: 'replayGainTrackGain',
+    label: 'RG Track Gain',
+    defaultWidth: 100,
+    valueExtractor: (file, {rootFolder}) =>
+        file.tags['replayGainTrackGain'] ?? '',
+  ),
+  ColumnDefinition(
+    id: 'replayGainAlbumGain',
+    label: 'RG Album Gain',
+    defaultWidth: 100,
+    valueExtractor: (file, {rootFolder}) =>
+        file.tags['replayGainAlbumGain'] ?? '',
+  ),
   ColumnDefinition(
     id: 'albumArtist',
     label: 'Album Artist',

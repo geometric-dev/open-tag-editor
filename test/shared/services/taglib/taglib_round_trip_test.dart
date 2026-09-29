@@ -72,49 +72,41 @@ void main() {
   );
 
   group('real TagLib pipeline', () {
-    test(
-      'MP3 write -> read round trip preserves all written fields',
-      () async {
-        final path = fixturePath('mp3');
-        File(path).writeAsBytesSync(generateMinimalMp3());
+    test('MP3 write -> read round trip preserves all written fields', () async {
+      final path = fixturePath('mp3');
+      File(path).writeAsBytesSync(generateMinimalMp3());
 
-        const title = 'Röund Trip — 日本語 🎵';
-        await writer.writeTags(path, {
-          'title': title,
-          'artist': 'Artist & Sons',
-          'album': 'Album',
-          'genre': 'Test',
-          'trackNumber': '7',
-          'year': '2024',
-        });
+      const title = 'Röund Trip — 日本語 🎵';
+      await writer.writeTags(path, {
+        'title': title,
+        'artist': 'Artist & Sons',
+        'album': 'Album',
+        'genre': 'Test',
+        'trackNumber': '7',
+        'year': '2024',
+      });
 
-        final file = await reader.readTags(path);
-        expect(file.tags['title'], title);
-        expect(file.tags['artist'], 'Artist & Sons');
-        expect(file.tags['album'], 'Album');
-        expect(file.tags['genre'], 'Test');
-        expect(file.tags['trackNumber'], '7');
-        expect(file.tags['year'], '2024');
-        expect(file.bitrate, greaterThan(0));
-        expect(file.tagFormat, isNotNull);
-      },
-      skip: !dllAvailable ? 'taglib_c.dll not found' : null,
-    );
+      final file = await reader.readTags(path);
+      expect(file.tags['title'], title);
+      expect(file.tags['artist'], 'Artist & Sons');
+      expect(file.tags['album'], 'Album');
+      expect(file.tags['genre'], 'Test');
+      expect(file.tags['trackNumber'], '7');
+      expect(file.tags['year'], '2024');
+      expect(file.bitrate, greaterThan(0));
+      expect(file.tagFormat, isNotNull);
+    }, skip: !dllAvailable ? 'taglib_c.dll not found' : null);
 
-    test(
-      'FLAC vorbis comments survive a write cycle',
-      () async {
-        final path = fixturePath('flac');
-        File(path).writeAsBytesSync(generateMinimalFlac());
+    test('FLAC vorbis comments survive a write cycle', () async {
+      final path = fixturePath('flac');
+      File(path).writeAsBytesSync(generateMinimalFlac());
 
-        await writer.writeTags(path, {'title': 'Flac Round Trip'});
+      await writer.writeTags(path, {'title': 'Flac Round Trip'});
 
-        final file = await reader.readTags(path);
-        expect(file.tags['title'], 'Flac Round Trip');
-        expect(file.tagFormat?.name, 'vorbisComment');
-      },
-      skip: !dllAvailable ? 'taglib_c.dll not found' : null,
-    );
+      final file = await reader.readTags(path);
+      expect(file.tags['title'], 'Flac Round Trip');
+      expect(file.tagFormat?.name, 'vorbisComment');
+    }, skip: !dllAvailable ? 'taglib_c.dll not found' : null);
 
     test(
       'writing tags preserves unknown ID3v2 frames (ReplayGain TXXX)',

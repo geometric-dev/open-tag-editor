@@ -84,18 +84,31 @@ fi
 # 3. The library actually resolves all of its own dependencies.
 if [ -f "$lib" ]; then
   if command -v otool >/dev/null 2>&1; then
-    if otool -L "$lib" >/dev/null 2>&1; then
-      missing="$(otool -L "$lib" | tail -n +2 | awk '{print $1}' | while read -r dep; do
-        case "$dep" in
-          @*) continue ;;                       # system paths resolve via rpath
-          /*) [ -e "$dep" ] || echo "$dep" ;;
-        esac
-      done)"
-      if [ -n "$missing" ]; then
-        fail "unresolved library dependencies: $missing"
-      else
-        ok "all dylib dependencies resolve"
+    deps="$(otool -L "$lib" | tail -n +2 | awk '{print $1}')"
+    unresolved=""
+    # Fed via a heredoc rather than a pipeline: this is a subshell, and the
+    # pipeline form is not parseable by the bash 3.2 that macOS ships.
+    while IFS= read -r dep; do
+      if [ -z "$dep" ]; then
+        continue
       fi
+      case "$dep" in
+        @*)
+          continue
+          ;;
+        /*)
+          if [ ! -e "$dep" ]; then
+            unresolved="$unresolved $dep"
+          fi
+          ;;
+      esac
+    done <<EOF
+$deps
+EOF
+    if [ -n "$unresolved" ]; then
+      fail "unresolved library dependencies:$unresolved"
+    else
+      ok "all dylib dependencies resolve"
     fi
   else
     if ldd "$lib" >/dev/null 2>&1 && ! ldd "$lib" 2>/dev/null | grep -q 'not found'; then
