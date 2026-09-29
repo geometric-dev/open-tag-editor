@@ -6,6 +6,16 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — keyboard navigation (PRD 10)
+- **Ctrl+Arrow** moves the cell focus without changing the selection. Plain
+  arrows collapse the selection onto the focused row, so there was no way to
+  reach a row to act on it *outside* the current selection. The anchor stays
+  put so a later Shift+click still extends from where the user expects.
+- **Ctrl+Space** toggles the focused row in or out of the selection.
+- **F5** re-reads tags from disk, preserving the selection, undo history and
+  loaded folder. Files with unsaved edits are skipped rather than
+  overwritten, and the status bar says how many were skipped.
+
 ### Added — error handling (PRD 12)
 - Toolbar **Error Log** button showing the live error count, so the error
   panel is always reachable. The status bar already toggled the panel, but

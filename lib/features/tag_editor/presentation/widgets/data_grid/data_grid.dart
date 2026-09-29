@@ -232,6 +232,9 @@ class DataGrid extends ConsumerWidget {
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       if (isShift) {
         selNotifier.extendDown(orderedPaths);
+      } else if (isCtrl) {
+        // Ctrl+Arrow: move focus without collapsing the selection.
+        selNotifier.moveFocusDown(orderedPaths);
       } else {
         selNotifier.moveDown(orderedPaths);
       }
@@ -242,9 +245,17 @@ class DataGrid extends ConsumerWidget {
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       if (isShift) {
         selNotifier.extendUp(orderedPaths);
+      } else if (isCtrl) {
+        selNotifier.moveFocusUp(orderedPaths);
       } else {
         selNotifier.moveUp(orderedPaths);
       }
+      return KeyEventResult.handled;
+    }
+
+    // Ctrl+Space: toggle the focused row in or out of the selection.
+    if (isCtrl && event.logicalKey == LogicalKeyboardKey.space) {
+      selNotifier.toggleActivePathSelection();
       return KeyEventResult.handled;
     }
 

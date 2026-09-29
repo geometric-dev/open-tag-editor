@@ -126,7 +126,60 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     select(orderedPaths[currentIndex - 1]);
   }
 
-  /// Extend selection one row down (Shift+Down).
+  /// Moves the *focus* one row down without changing which rows are
+  /// selected (Ctrl+Down).
+  ///
+  /// The focus/anchor pair is decoupled here: the active cell moves so the
+  /// grid scrolls and subsequent typing lands on the new row, but the
+  /// selected set is untouched. This is the standard way to reach a row in
+  /// order to act on it *outside* the current selection, which plain
+  /// arrow-key navigation cannot do — it collapses the selection instead.
+  void moveFocusDown(List<String> orderedPaths) {
+    _moveFocus(orderedPaths, 1);
+  }
+
+  /// Moves the *focus* one row up without changing the selection (Ctrl+Up).
+  void moveFocusUp(List<String> orderedPaths) {
+    _moveFocus(orderedPaths, -1);
+  }
+
+  void _moveFocus(List<String> orderedPaths, int direction) {
+    if (orderedPaths.isEmpty) return;
+
+    final indexes = buildIndexMap(orderedPaths);
+    final current = state.activePath ?? state.anchorPath;
+    if (current == null) {
+      final target = direction < 0 ? orderedPaths.last : orderedPaths.first;
+      state = state.copyWith(
+        activePath: target,
+        selectedPaths: state.selectedPaths,
+      );
+      return;
+    }
+
+    final currentIndex = indexes[current] ?? -1;
+    if (currentIndex < 0) return;
+
+    final target = (currentIndex + direction).clamp(0, orderedPaths.length - 1);
+    if (target == currentIndex) return;
+
+    state = state.copyWith(
+      activePath: orderedPaths[target],
+      selectedPaths: state.selectedPaths,
+    );
+  }
+
+  /// Toggles the active row in or out of the selection (Ctrl+Space).
+  ///
+  /// [state.activePath] is the row the focus is on, which after
+  /// [moveFocusDown] / [moveFocusUp] need not be part of the selection.
+  void toggleActivePathSelection() {
+    final target = state.activePath;
+    if (target == null) return;
+    toggleSelect(target);
+  }
+
+  /// Extends selection one row down (Shift+Down).
   ///
   /// Extends the selection edge away from the anchor downward, or contracts
   /// it if the edge is above the anchor.

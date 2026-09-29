@@ -48,6 +48,19 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
               .read(selectionProvider.notifier)
               .selectAll(files.map((f) => f.path).toList());
         },
+        // F5: re-read tags from disk. Placed here rather than in the grid's
+        // key handler because the grid is not focused when the user reaches
+        // for a global refresh, and this is a session-level action.
+        const SingleActivator(LogicalKeyboardKey.f5): () {
+          // Refresh is a read-only operation, but it replaces in-memory
+          // tags, so route it through the same unsaved-changes guard as any
+          // other action that can discard pending edits.
+          UnsavedChangesGuard.check(context: context, ref: ref).then((ok) {
+            if (!ok) return;
+            final service = FolderLoadingService(ref.read);
+            service.reloadTagsFromDisk();
+          });
+        },
         const SingleActivator(LogicalKeyboardKey.keyG, control: true): () {
           QuickSwitcherOverlay.show(context, ref, (path) async {
             final proceed = await UnsavedChangesGuard.check(

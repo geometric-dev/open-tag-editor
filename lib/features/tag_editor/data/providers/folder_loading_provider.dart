@@ -6,6 +6,7 @@ import '../../../../core/utils/format_utils.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/settings/data/providers/settings_providers.dart';
+import '../../../../shared/models/audio_file.dart';
 import '../../presentation/widgets/address_bar.dart';
 import '../../presentation/widgets/threshold_guard_dialog.dart';
 import 'editor_state_provider.dart';
@@ -140,6 +141,56 @@ class FolderLoadingService {
 
     _read(fileListProvider.notifier).addFiles(files);
     statusNotifier.state = 'Loaded ${files.length} file(s)';
+  }
+
+  /// Re-reads tags for the files currently in the list, in place (F5).
+  ///
+  /// Unlike a folder reload this preserves the selection, the undo history
+  /// and the loaded-folder state, because nothing about *which* files are
+  /// open has changed — only their contents. Files with unsaved edits are
+  /// skipped rather than overwritten: re-reading them would silently discard
+  /// work the user has not saved, and a "refresh" that destroys unsaved
+  /// changes is worse than no refresh.
+  ///
+  /// Returns the number of files re-read, or `null` when there was nothing
+  /// to do.
+  Future<int?> reloadTagsFromDisk() async {
+    final statusNotifier = _read(statusMessageProvider.notifier);
+    final fileNotifier = _read(fileListProvider.notifier);
+    final current = fileNotifier.currentFiles;
+    if (current.isEmpty) return null;
+
+    final dirty = current.where((f) => f.isModified).toSet();
+    final candidates = current
+        .where((f) => !dirty.contains(f))
+        .map((f) => f.path)
+        .toList();
+
+    if (candidates.isEmpty) {
+      statusNotifier.state = dirty.isEmpty
+          ? 'No files to refresh'
+          : 'All ${dirty.length} file(s) have unsaved changes - not refreshed';
+      return null;
+    }
+
+    statusNotifier.state = 'Refreshing ${candidates.length} file(s)...';
+    final reread = await _read(tagReaderProvider).readTagsBatch(candidates);
+
+    // Merge by path: the re-read results replace the entry wholesale, so
+    // audio properties and the fresh originalTags both come along.
+    final byPath = {for (final file in reread) file.path: file};
+    final updated = <AudioFile>[];
+    for (final file in current) {
+      final fresh = byPath[file.path];
+      if (fresh != null) updated.add(fresh);
+    }
+    fileNotifier.updateFiles(updated);
+
+    statusNotifier.state = dirty.isEmpty
+        ? 'Refreshed ${updated.length} file(s)'
+        : 'Refreshed ${updated.length} file(s); ${dirty.length} with unsaved '
+              'changes were skipped';
+    return updated.length;
   }
 
   Future<void> _loadFiles(String folderPath, {required bool recursive}) async {
