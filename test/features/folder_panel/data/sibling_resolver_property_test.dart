@@ -35,8 +35,7 @@ void main() {
 
   final resolver = SiblingResolver();
 
-  group('Property 9: Sibling folder resolution with hidden folder exclusion',
-      () {
+  group('Property 9: Sibling folder resolution with hidden folder exclusion', () {
     test('filterAndSort excludes all hidden names (dot-prefixed)', () {
       final rng = Random(42);
 
@@ -48,7 +47,8 @@ void main() {
           expect(
             name.startsWith('.'),
             isFalse,
-            reason: 'Filtered list should not contain hidden name "$name" '
+            reason:
+                'Filtered list should not contain hidden name "$name" '
                 '(iteration $i, input: $names)',
           );
         }
@@ -64,12 +64,13 @@ void main() {
 
         for (var j = 0; j < result.length - 1; j++) {
           final cmp = result[j].toLowerCase().compareTo(
-                result[j + 1].toLowerCase(),
-              );
+            result[j + 1].toLowerCase(),
+          );
           expect(
             cmp <= 0,
             isTrue,
-            reason: 'Expected "${result[j]}" <= "${result[j + 1]}" '
+            reason:
+                'Expected "${result[j]}" <= "${result[j + 1]}" '
                 '(case-insensitive) at index $j (iteration $i)',
           );
         }
@@ -88,86 +89,94 @@ void main() {
         expect(
           result.toSet(),
           equals(expectedVisible.toSet()),
-          reason: 'Filtered result should contain exactly the non-hidden names '
+          reason:
+              'Filtered result should contain exactly the non-hidden names '
               '(iteration $i)',
         );
       }
     });
 
-    test('resolve next returns entry immediately after current in sorted order',
-        () {
-      final rng = Random(99);
+    test(
+      'resolve next returns entry immediately after current in sorted order',
+      () {
+        final rng = Random(99);
 
-      for (var i = 0; i < 100; i++) {
-        final names = _randomDirectoryNames(rng);
-        final sorted = resolver.filterAndSort(names);
-        if (sorted.isEmpty) continue;
+        for (var i = 0; i < 100; i++) {
+          final names = _randomDirectoryNames(rng);
+          final sorted = resolver.filterAndSort(names);
+          if (sorted.isEmpty) continue;
 
-        // Pick a random current name from the sorted list
-        final currentIndex = rng.nextInt(sorted.length);
-        final currentName = sorted[currentIndex];
+          // Pick a random current name from the sorted list
+          final currentIndex = rng.nextInt(sorted.length);
+          final currentName = sorted[currentIndex];
 
-        final result = resolver.resolve(
-          siblingNames: sorted,
-          currentName: currentName,
-          direction: SiblingDirection.next,
-        );
-
-        if (currentIndex >= sorted.length - 1) {
-          expect(
-            result,
-            isNull,
-            reason: 'Expected null for last element "$currentName" '
-                '(iteration $i, list: $sorted)',
+          final result = resolver.resolve(
+            siblingNames: sorted,
+            currentName: currentName,
+            direction: SiblingDirection.next,
           );
-        } else {
-          expect(
-            result,
-            equals(sorted[currentIndex + 1]),
-            reason: 'Expected next sibling "${sorted[currentIndex + 1]}" '
-                'after "$currentName" (iteration $i, list: $sorted)',
-          );
+
+          if (currentIndex >= sorted.length - 1) {
+            expect(
+              result,
+              isNull,
+              reason:
+                  'Expected null for last element "$currentName" '
+                  '(iteration $i, list: $sorted)',
+            );
+          } else {
+            expect(
+              result,
+              equals(sorted[currentIndex + 1]),
+              reason:
+                  'Expected next sibling "${sorted[currentIndex + 1]}" '
+                  'after "$currentName" (iteration $i, list: $sorted)',
+            );
+          }
         }
-      }
-    });
+      },
+    );
 
     test(
-        'resolve previous returns entry immediately before current in sorted order',
-        () {
-      final rng = Random(256);
+      'resolve previous returns entry immediately before current in sorted order',
+      () {
+        final rng = Random(256);
 
-      for (var i = 0; i < 100; i++) {
-        final names = _randomDirectoryNames(rng);
-        final sorted = resolver.filterAndSort(names);
-        if (sorted.isEmpty) continue;
+        for (var i = 0; i < 100; i++) {
+          final names = _randomDirectoryNames(rng);
+          final sorted = resolver.filterAndSort(names);
+          if (sorted.isEmpty) continue;
 
-        // Pick a random current name from the sorted list
-        final currentIndex = rng.nextInt(sorted.length);
-        final currentName = sorted[currentIndex];
+          // Pick a random current name from the sorted list
+          final currentIndex = rng.nextInt(sorted.length);
+          final currentName = sorted[currentIndex];
 
-        final result = resolver.resolve(
-          siblingNames: sorted,
-          currentName: currentName,
-          direction: SiblingDirection.previous,
-        );
-
-        if (currentIndex <= 0) {
-          expect(
-            result,
-            isNull,
-            reason: 'Expected null for first element "$currentName" '
-                '(iteration $i, list: $sorted)',
+          final result = resolver.resolve(
+            siblingNames: sorted,
+            currentName: currentName,
+            direction: SiblingDirection.previous,
           );
-        } else {
-          expect(
-            result,
-            equals(sorted[currentIndex - 1]),
-            reason: 'Expected previous sibling "${sorted[currentIndex - 1]}" '
-                'before "$currentName" (iteration $i, list: $sorted)',
-          );
+
+          if (currentIndex <= 0) {
+            expect(
+              result,
+              isNull,
+              reason:
+                  'Expected null for first element "$currentName" '
+                  '(iteration $i, list: $sorted)',
+            );
+          } else {
+            expect(
+              result,
+              equals(sorted[currentIndex - 1]),
+              reason:
+                  'Expected previous sibling "${sorted[currentIndex - 1]}" '
+                  'before "$currentName" (iteration $i, list: $sorted)',
+            );
+          }
         }
-      }
-    });
+      },
+    );
 
     test('resolve returns null at last boundary (next direction)', () {
       final rng = Random(500);
@@ -187,7 +196,8 @@ void main() {
         expect(
           result,
           isNull,
-          reason: 'Expected null when resolving next from last entry '
+          reason:
+              'Expected null when resolving next from last entry '
               '"$lastEntry" (iteration $i)',
         );
       }
@@ -211,7 +221,8 @@ void main() {
         expect(
           result,
           isNull,
-          reason: 'Expected null when resolving previous from first entry '
+          reason:
+              'Expected null when resolving previous from first entry '
               '"$firstEntry" (iteration $i)',
         );
       }

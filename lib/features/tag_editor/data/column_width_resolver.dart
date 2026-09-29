@@ -28,7 +28,9 @@ double calculateAutoFitWidth({
   double maxWidth = 500.0,
   double padding = 16.0,
 }) {
-  final maxContent = <double>[headerLabelWidth, ...cellWidths]
-      .fold(0.0, (max, w) => w > max ? w : max);
+  final maxContent = <double>[
+    headerLabelWidth,
+    ...cellWidths,
+  ].fold(0.0, (max, w) => w > max ? w : max);
   return (maxContent + padding).clamp(minWidth, maxWidth);
 }

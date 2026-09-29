@@ -20,10 +20,11 @@ void main() {
       });
 
       test('splits path with drive letter into segments', () {
-        expect(
-          parser.splitSegments(r'C:\Users\Music'),
-          ['C:\\', 'Users', 'Music'],
-        );
+        expect(parser.splitSegments(r'C:\Users\Music'), [
+          'C:\\',
+          'Users',
+          'Music',
+        ]);
       });
 
       test('splits deep path into segments', () {
@@ -34,17 +35,15 @@ void main() {
       });
 
       test('handles trailing separator', () {
-        expect(
-          parser.splitSegments(r'C:\Users\Music\'),
-          ['C:\\', 'Users', 'Music'],
-        );
+        expect(parser.splitSegments(r'C:\Users\Music\'), [
+          'C:\\',
+          'Users',
+          'Music',
+        ]);
       });
 
       test('handles single folder under drive', () {
-        expect(
-          parser.splitSegments(r'C:\Users'),
-          ['C:\\', 'Users'],
-        );
+        expect(parser.splitSegments(r'C:\Users'), ['C:\\', 'Users']);
       });
     });
 
@@ -99,17 +98,21 @@ void main() {
       });
 
       test('splits path into segments', () {
-        expect(
-          parser.splitSegments('/home/user/music'),
-          ['/', 'home', 'user', 'music'],
-        );
+        expect(parser.splitSegments('/home/user/music'), [
+          '/',
+          'home',
+          'user',
+          'music',
+        ]);
       });
 
       test('handles trailing separator', () {
-        expect(
-          parser.splitSegments('/home/user/music/'),
-          ['/', 'home', 'user', 'music'],
-        );
+        expect(parser.splitSegments('/home/user/music/'), [
+          '/',
+          'home',
+          'user',
+          'music',
+        ]);
       });
     });
 

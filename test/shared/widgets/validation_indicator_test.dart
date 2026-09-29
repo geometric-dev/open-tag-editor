@@ -8,9 +8,7 @@ void main() {
     testWidgets('renders nothing for empty issues list', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: ValidationIndicator(issues: []),
-          ),
+          home: Scaffold(body: ValidationIndicator(issues: [])),
         ),
       );
 
@@ -29,9 +27,7 @@ void main() {
 
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: ValidationIndicator(issues: issues),
-          ),
+          home: Scaffold(body: ValidationIndicator(issues: issues)),
         ),
       );
 
@@ -40,8 +36,9 @@ void main() {
       expect(icon.color, equals(Colors.orange));
     });
 
-    testWidgets('renders error icon when any error-severity issue exists',
-        (tester) async {
+    testWidgets('renders error icon when any error-severity issue exists', (
+      tester,
+    ) async {
       const issues = [
         TagFieldIssue(
           severity: TagFieldSeverity.warning,
@@ -57,9 +54,7 @@ void main() {
 
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: ValidationIndicator(issues: issues),
-          ),
+          home: Scaffold(body: ValidationIndicator(issues: issues)),
         ),
       );
 
@@ -83,9 +78,7 @@ void main() {
 
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: ValidationIndicator(issues: issues),
-          ),
+          home: Scaffold(body: ValidationIndicator(issues: issues)),
         ),
       );
 
@@ -128,9 +121,7 @@ void main() {
           theme: ThemeData(
             colorScheme: const ColorScheme.light(error: Colors.purple),
           ),
-          home: const Scaffold(
-            body: ValidationIndicator(issues: issues),
-          ),
+          home: const Scaffold(body: ValidationIndicator(issues: issues)),
         ),
       );
 

@@ -89,19 +89,15 @@ class _VerticalResizableSplitterState extends State<VerticalResizableSplitter> {
                 child: Container(
                   height: _splitterHeight,
                   color: _isDragging || _isHovering
-                      ? Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.3)
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.3)
                       : Theme.of(context).colorScheme.outlineVariant,
                 ),
               ),
             ),
             // Bottom child
-            SizedBox(
-              height: effectiveBottomHeight,
-              child: widget.bottomChild,
-            ),
+            SizedBox(height: effectiveBottomHeight, child: widget.bottomChild),
           ],
         );
       },

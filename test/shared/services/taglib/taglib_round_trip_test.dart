@@ -36,9 +36,7 @@ void main() {
     if (!dllAvailable) return;
     // Load tag.dll first so taglib_c.dll's dependency resolves even though
     // the test runner executable lives elsewhere (flutter cache).
-    final tagDll = File(
-      p.join(Directory.current.path, 'windows', 'tag.dll'),
-    );
+    final tagDll = File(p.join(Directory.current.path, 'windows', 'tag.dll'));
     if (tagDll.existsSync()) {
       DynamicLibrary.open(tagDll.path);
     }
@@ -61,7 +59,9 @@ void main() {
   });
 
   String fixturePath(String suffix) => p.join(
-      tempDir.path, 'song_${DateTime.now().microsecondsSinceEpoch}.$suffix');
+    tempDir.path,
+    'song_${DateTime.now().microsecondsSinceEpoch}.$suffix',
+  );
 
   group('real TagLib pipeline', () {
     test(
@@ -125,7 +125,8 @@ void main() {
         expect(
           _indexOfBytes(bytes, _rgMarker),
           greaterThan(-1),
-          reason: 'A Properties-API write dropped the custom TXXX frame. '
+          reason:
+              'A Properties-API write dropped the custom TXXX frame. '
               'Users would lose ReplayGain data on every save.',
         );
 
@@ -138,8 +139,9 @@ void main() {
 }
 
 /// ASCII bytes of the ReplayGain description we embed in the fixture.
-final Uint8List _rgMarker =
-    Uint8List.fromList('REPLAYGAIN_TRACK_GAIN'.codeUnits);
+final Uint8List _rgMarker = Uint8List.fromList(
+  'REPLAYGAIN_TRACK_GAIN'.codeUnits,
+);
 
 /// Synchsafe integer encoding used by ID3v2 tag sizes.
 Uint8List _synchsafe(int value) {

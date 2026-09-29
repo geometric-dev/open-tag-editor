@@ -45,98 +45,95 @@ void main() {
     // Feature: folder-selection-ux, Property 2: Bookmark add is append-only and idempotent
     // **Validates: Requirements 2.2, 2.3**
 
-    test(
-      'adding a new path appends to end when list < 50',
-      () {
-        final rng = Random(42);
+    test('adding a new path appends to end when list < 50', () {
+      final rng = Random(42);
 
-        for (var i = 0; i < 100; i++) {
-          SharedPreferences.setMockInitialValues({});
-          final initialCount = rng.nextInt(49); // 0 to 48
-          final paths = generateUniquePaths(rng, initialCount);
-          final notifier = createNotifierWithPaths(paths);
+      for (var i = 0; i < 100; i++) {
+        SharedPreferences.setMockInitialValues({});
+        final initialCount = rng.nextInt(49); // 0 to 48
+        final paths = generateUniquePaths(rng, initialCount);
+        final notifier = createNotifierWithPaths(paths);
 
-          final newPath = 'C:\\NewFolder_${rng.nextInt(10000) + 1000}';
+        final newPath = 'C:\\NewFolder_${rng.nextInt(10000) + 1000}';
 
-          // Ensure newPath is not already in the list
-          final isNew = !paths.contains(newPath);
-          if (!isNew) {
-            notifier.dispose();
-            continue;
-          }
-
-          final stateBefore = List<BookmarkEntry>.from(notifier.state);
-          notifier.addBookmark(newPath);
-          final stateAfter = notifier.state;
-
-          // Should have one more element
-          expect(
-            stateAfter.length,
-            equals(stateBefore.length + 1),
-            reason: 'Adding new path should increase list size by 1 '
-                '(iteration $i)',
-          );
-
-          // Last element should be the new path
-          expect(
-            stateAfter.last.path,
-            equals(newPath),
-            reason: 'New path should be appended to end (iteration $i)',
-          );
-
-          // All previous elements should be unchanged
-          for (var j = 0; j < stateBefore.length; j++) {
-            expect(
-              stateAfter[j].path,
-              equals(stateBefore[j].path),
-              reason: 'Existing elements should be unchanged (iteration $i)',
-            );
-          }
-
+        // Ensure newPath is not already in the list
+        final isNew = !paths.contains(newPath);
+        if (!isNew) {
           notifier.dispose();
+          continue;
         }
-      },
-    );
 
-    test(
-      'adding a duplicate path leaves list unchanged (idempotent)',
-      () {
-        final rng = Random(43);
+        final stateBefore = List<BookmarkEntry>.from(notifier.state);
+        notifier.addBookmark(newPath);
+        final stateAfter = notifier.state;
 
-        for (var i = 0; i < 100; i++) {
-          SharedPreferences.setMockInitialValues({});
-          final count = rng.nextInt(49) + 1; // 1 to 49
-          final paths = generateUniquePaths(rng, count);
-          final notifier = createNotifierWithPaths(paths);
+        // Should have one more element
+        expect(
+          stateAfter.length,
+          equals(stateBefore.length + 1),
+          reason:
+              'Adding new path should increase list size by 1 '
+              '(iteration $i)',
+        );
 
-          // Pick a random existing path to add again
-          final duplicatePath = paths[rng.nextInt(paths.length)];
-          final stateBefore = List<BookmarkEntry>.from(notifier.state);
+        // Last element should be the new path
+        expect(
+          stateAfter.last.path,
+          equals(newPath),
+          reason: 'New path should be appended to end (iteration $i)',
+        );
 
-          notifier.addBookmark(duplicatePath);
-          final stateAfter = notifier.state;
-
-          // List should be unchanged
+        // All previous elements should be unchanged
+        for (var j = 0; j < stateBefore.length; j++) {
           expect(
-            stateAfter.length,
-            equals(stateBefore.length),
-            reason: 'Adding duplicate should not change list size '
-                '(iteration $i)',
+            stateAfter[j].path,
+            equals(stateBefore[j].path),
+            reason: 'Existing elements should be unchanged (iteration $i)',
           );
-
-          for (var j = 0; j < stateBefore.length; j++) {
-            expect(
-              stateAfter[j].path,
-              equals(stateBefore[j].path),
-              reason: 'Adding duplicate should not change any element '
-                  '(iteration $i, index $j)',
-            );
-          }
-
-          notifier.dispose();
         }
-      },
-    );
+
+        notifier.dispose();
+      }
+    });
+
+    test('adding a duplicate path leaves list unchanged (idempotent)', () {
+      final rng = Random(43);
+
+      for (var i = 0; i < 100; i++) {
+        SharedPreferences.setMockInitialValues({});
+        final count = rng.nextInt(49) + 1; // 1 to 49
+        final paths = generateUniquePaths(rng, count);
+        final notifier = createNotifierWithPaths(paths);
+
+        // Pick a random existing path to add again
+        final duplicatePath = paths[rng.nextInt(paths.length)];
+        final stateBefore = List<BookmarkEntry>.from(notifier.state);
+
+        notifier.addBookmark(duplicatePath);
+        final stateAfter = notifier.state;
+
+        // List should be unchanged
+        expect(
+          stateAfter.length,
+          equals(stateBefore.length),
+          reason:
+              'Adding duplicate should not change list size '
+              '(iteration $i)',
+        );
+
+        for (var j = 0; j < stateBefore.length; j++) {
+          expect(
+            stateAfter[j].path,
+            equals(stateBefore[j].path),
+            reason:
+                'Adding duplicate should not change any element '
+                '(iteration $i, index $j)',
+          );
+        }
+
+        notifier.dispose();
+      }
+    });
   });
 
   group('Property 3: Bookmark remove', () {
@@ -165,7 +162,8 @@ void main() {
           expect(
             stateAfter.length,
             equals(sizeBefore - 1),
-            reason: 'Removing present path should decrease size by 1 '
+            reason:
+                'Removing present path should decrease size by 1 '
                 '(iteration $i)',
           );
 
@@ -181,45 +179,44 @@ void main() {
       },
     );
 
-    test(
-      'removing an absent path leaves list unchanged',
-      () {
-        final rng = Random(45);
+    test('removing an absent path leaves list unchanged', () {
+      final rng = Random(45);
 
-        for (var i = 0; i < 100; i++) {
-          SharedPreferences.setMockInitialValues({});
-          final count = rng.nextInt(50); // 0 to 49
-          final paths = generateUniquePaths(rng, count);
-          final notifier = createNotifierWithPaths(paths);
+      for (var i = 0; i < 100; i++) {
+        SharedPreferences.setMockInitialValues({});
+        final count = rng.nextInt(50); // 0 to 49
+        final paths = generateUniquePaths(rng, count);
+        final notifier = createNotifierWithPaths(paths);
 
-          // Use a path that is definitely not in the list
-          final absentPath = 'C:\\NonExistent_${rng.nextInt(10000) + 5000}';
-          final stateBefore = List<BookmarkEntry>.from(notifier.state);
+        // Use a path that is definitely not in the list
+        final absentPath = 'C:\\NonExistent_${rng.nextInt(10000) + 5000}';
+        final stateBefore = List<BookmarkEntry>.from(notifier.state);
 
-          notifier.removeBookmark(absentPath);
-          final stateAfter = notifier.state;
+        notifier.removeBookmark(absentPath);
+        final stateAfter = notifier.state;
 
-          // List should be unchanged
+        // List should be unchanged
+        expect(
+          stateAfter.length,
+          equals(stateBefore.length),
+          reason:
+              'Removing absent path should not change size '
+              '(iteration $i)',
+        );
+
+        for (var j = 0; j < stateBefore.length; j++) {
           expect(
-            stateAfter.length,
-            equals(stateBefore.length),
-            reason: 'Removing absent path should not change size '
-                '(iteration $i)',
+            stateAfter[j].path,
+            equals(stateBefore[j].path),
+            reason:
+                'Removing absent path should not change any element '
+                '(iteration $i, index $j)',
           );
-
-          for (var j = 0; j < stateBefore.length; j++) {
-            expect(
-              stateAfter[j].path,
-              equals(stateBefore[j].path),
-              reason: 'Removing absent path should not change any element '
-                  '(iteration $i, index $j)',
-            );
-          }
-
-          notifier.dispose();
         }
-      },
-    );
+
+        notifier.dispose();
+      }
+    });
   });
 
   group('Property 4: Bookmark persistence round-trip preserving order', () {
@@ -259,13 +256,15 @@ void main() {
             expect(
               decoded[j].path,
               equals(entries[j].path),
-              reason: 'Round-trip should preserve path at index $j '
+              reason:
+                  'Round-trip should preserve path at index $j '
                   '(iteration $i)',
             );
             expect(
               decoded[j].name,
               equals(entries[j].name),
-              reason: 'Round-trip should preserve name at index $j '
+              reason:
+                  'Round-trip should preserve name at index $j '
                   '(iteration $i)',
             );
           }
@@ -273,56 +272,53 @@ void main() {
       },
     );
 
-    test(
-      'notifier persist and reload preserves bookmarks in order',
-      () async {
-        final rng = Random(47);
+    test('notifier persist and reload preserves bookmarks in order', () async {
+      final rng = Random(47);
 
-        for (var i = 0; i < 100; i++) {
-          SharedPreferences.setMockInitialValues({});
-          final count = rng.nextInt(20) + 1; // 1 to 20 (keep fast)
-          final paths = generateUniquePaths(rng, count);
-          final notifier = createNotifierWithPaths(paths);
+      for (var i = 0; i < 100; i++) {
+        SharedPreferences.setMockInitialValues({});
+        final count = rng.nextInt(20) + 1; // 1 to 20 (keep fast)
+        final paths = generateUniquePaths(rng, count);
+        final notifier = createNotifierWithPaths(paths);
 
-          // Allow async persist to complete
-          await Future<void>.delayed(Duration.zero);
+        // Allow async persist to complete
+        await Future<void>.delayed(Duration.zero);
 
-          // Get the current prefs state
-          final prefs = await SharedPreferences.getInstance();
-          final savedJson = prefs.getString('bookmarks_v1');
+        // Get the current prefs state
+        final prefs = await SharedPreferences.getInstance();
+        final savedJson = prefs.getString('bookmarks_v1');
 
-          // Create a fresh notifier and load from prefs
-          SharedPreferences.setMockInitialValues(
-            savedJson != null ? {'bookmarks_v1': savedJson} : {},
-          );
-          final reloaded = BookmarksNotifier();
-          await reloaded.loadFromPrefs();
+        // Create a fresh notifier and load from prefs
+        SharedPreferences.setMockInitialValues(
+          savedJson != null ? {'bookmarks_v1': savedJson} : {},
+        );
+        final reloaded = BookmarksNotifier();
+        await reloaded.loadFromPrefs();
 
-          // Should have same entries in same order
+        // Should have same entries in same order
+        expect(
+          reloaded.state.length,
+          equals(notifier.state.length),
+          reason: 'Reloaded notifier should have same count (iteration $i)',
+        );
+
+        for (var j = 0; j < notifier.state.length; j++) {
           expect(
-            reloaded.state.length,
-            equals(notifier.state.length),
-            reason: 'Reloaded notifier should have same count (iteration $i)',
+            reloaded.state[j].path,
+            equals(notifier.state[j].path),
+            reason: 'Reloaded path should match at index $j (iteration $i)',
           );
-
-          for (var j = 0; j < notifier.state.length; j++) {
-            expect(
-              reloaded.state[j].path,
-              equals(notifier.state[j].path),
-              reason: 'Reloaded path should match at index $j (iteration $i)',
-            );
-            expect(
-              reloaded.state[j].name,
-              equals(notifier.state[j].name),
-              reason: 'Reloaded name should match at index $j (iteration $i)',
-            );
-          }
-
-          notifier.dispose();
-          reloaded.dispose();
+          expect(
+            reloaded.state[j].name,
+            equals(notifier.state[j].name),
+            reason: 'Reloaded name should match at index $j (iteration $i)',
+          );
         }
-      },
-    );
+
+        notifier.dispose();
+        reloaded.dispose();
+      }
+    });
   });
 
   group('Property 5: Bookmark reorder preserves elements', () {
@@ -355,7 +351,8 @@ void main() {
           expect(
             stateAfter.length,
             equals(stateBefore.length),
-            reason: 'Reorder should preserve list size '
+            reason:
+                'Reorder should preserve list size '
                 '(iteration $i, old=$oldIndex, new=$newIndex)',
           );
 
@@ -366,7 +363,8 @@ void main() {
           expect(
             pathsAfter,
             equals(pathsBefore),
-            reason: 'Reorder should preserve the same set of elements '
+            reason:
+                'Reorder should preserve the same set of elements '
                 '(iteration $i, old=$oldIndex, new=$newIndex)',
           );
 
@@ -405,7 +403,8 @@ void main() {
           expect(
             notifier.state.length,
             lessThanOrEqualTo(50),
-            reason: 'Adding to full list should not exceed max capacity '
+            reason:
+                'Adding to full list should not exceed max capacity '
                 '(iteration $i)',
           );
 
@@ -413,7 +412,8 @@ void main() {
           expect(
             notifier.state.any((e) => e.path == newPath),
             isFalse,
-            reason: 'New path should not be added when at capacity '
+            reason:
+                'New path should not be added when at capacity '
                 '(iteration $i)',
           );
 

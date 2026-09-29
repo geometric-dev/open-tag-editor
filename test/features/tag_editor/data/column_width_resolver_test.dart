@@ -5,21 +5,9 @@ import 'package:open_tag_editor/features/tag_editor/data/models/column_definitio
 void main() {
   group('resolveEffectiveWidth', () {
     final columns = [
-      const ColumnDefinition(
-        id: 'title',
-        label: 'Title',
-        defaultWidth: 150,
-      ),
-      const ColumnDefinition(
-        id: 'artist',
-        label: 'Artist',
-        defaultWidth: 120,
-      ),
-      const ColumnDefinition(
-        id: 'album',
-        label: 'Album',
-        defaultWidth: 180,
-      ),
+      const ColumnDefinition(id: 'title', label: 'Title', defaultWidth: 150),
+      const ColumnDefinition(id: 'artist', label: 'Artist', defaultWidth: 120),
+      const ColumnDefinition(id: 'album', label: 'Album', defaultWidth: 180),
     ];
 
     test('column with override returns override value', () {
@@ -39,10 +27,7 @@ void main() {
     test('unknown column ID falls back to defaultWidth of first column', () {
       final overrides = <String, double>{};
 
-      expect(
-        resolveEffectiveWidth('nonexistent', overrides, columns),
-        150.0,
-      );
+      expect(resolveEffectiveWidth('nonexistent', overrides, columns), 150.0);
     });
 
     test('empty overrides map returns defaultWidth for all columns', () {

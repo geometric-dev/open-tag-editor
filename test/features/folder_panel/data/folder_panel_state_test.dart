@@ -36,7 +36,8 @@ void main() {
           expect(
             reloaded.state,
             equals(value),
-            reason: 'Round-trip failed for value=$value (iteration $i): '
+            reason:
+                'Round-trip failed for value=$value (iteration $i): '
                 'persisted $value but loaded ${reloaded.state}',
           );
 

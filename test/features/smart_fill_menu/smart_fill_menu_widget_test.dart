@@ -80,9 +80,7 @@ void main() {
 
   /// Helper to hover over the cell and tap the fill arrow to open the menu.
   Future<TestGesture> openFillMenu(WidgetTester tester) async {
-    final gesture = await tester.createGesture(
-      kind: PointerDeviceKind.mouse,
-    );
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await gesture.addPointer(location: Offset.zero);
     await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
     await tester.pump();
@@ -114,9 +112,7 @@ void main() {
       expect(find.byIcon(Icons.arrow_drop_down), findsNothing);
 
       // Hover over the cell.
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();
@@ -129,9 +125,7 @@ void main() {
     testWidgets('fill arrow hides on hover exit', (tester) async {
       await tester.pumpWidget(buildTestWidget(files: testFiles));
 
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();
@@ -148,25 +142,24 @@ void main() {
     });
 
     testWidgets('fill arrow hidden during edit mode', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       // Enter edit mode via the provider.
       final providerContainer = ProviderScope.containerOf(
         tester.element(find.byType(EditableCell)),
       );
-      providerContainer.read(inlineCellEditProvider.notifier).enterEditMode(
+      providerContainer
+          .read(inlineCellEditProvider.notifier)
+          .enterEditMode(
             const CellCoordinate(columnId: 'genre', rowIndex: 0),
             prePopulate: true,
           );
       await tester.pump();
 
       // Hover over the cell.
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();
@@ -178,16 +171,16 @@ void main() {
     });
 
     testWidgets('fill arrow hidden on read-only columns', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        coordinate: const CellCoordinate(columnId: 'filename', rowIndex: 0),
-        value: 'song1.mp3',
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          files: testFiles,
+          coordinate: const CellCoordinate(columnId: 'filename', rowIndex: 0),
+          value: 'song1.mp3',
+        ),
+      );
 
       // Hover over the cell.
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();
@@ -199,15 +192,12 @@ void main() {
     });
 
     testWidgets('click fill arrow does not trigger edit mode', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       // Hover to show the arrow.
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();
@@ -228,10 +218,9 @@ void main() {
     });
 
     testWidgets('menu opens on fill arrow click', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       final gesture = await openFillMenu(tester);
 
@@ -247,12 +236,12 @@ void main() {
   });
 
   group('5.2 Fill action and undo/redo', () {
-    testWidgets('fill action creates TagEditCommand and updates file',
-        (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+    testWidgets('fill action creates TagEditCommand and updates file', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       final providerContainer = ProviderScope.containerOf(
         tester.element(find.byType(EditableCell)),
@@ -265,9 +254,7 @@ void main() {
 
       // Verify the file's genre was updated.
       final files = providerContainer.read(fileListProvider);
-      final updatedFile = files.firstWhere(
-        (f) => f.path == '/music/song1.mp3',
-      );
+      final updatedFile = files.firstWhere((f) => f.path == '/music/song1.mp3');
       expect(updatedFile.tags['genre'], 'Pop');
 
       // Verify a command was added to the undo stack.
@@ -278,10 +265,9 @@ void main() {
     });
 
     testWidgets('Ctrl+Z undoes fill action', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       final providerContainer = ProviderScope.containerOf(
         tester.element(find.byType(EditableCell)),
@@ -314,10 +300,9 @@ void main() {
     });
 
     testWidgets('Ctrl+Y redoes fill action', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       final providerContainer = ProviderScope.containerOf(
         tester.element(find.byType(EditableCell)),
@@ -354,10 +339,9 @@ void main() {
     });
 
     testWidgets('active edit cancelled before menu opens', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        files: testFiles,
-        selectedPaths: {testFiles[0].path},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(files: testFiles, selectedPaths: {testFiles[0].path}),
+      );
 
       final providerContainer = ProviderScope.containerOf(
         tester.element(find.byType(EditableCell)),
@@ -365,7 +349,9 @@ void main() {
 
       // Enter edit mode on a different cell (artist column).
       // The _openSmartFillMenu method checks for active edits and cancels them.
-      providerContainer.read(inlineCellEditProvider.notifier).enterEditMode(
+      providerContainer
+          .read(inlineCellEditProvider.notifier)
+          .enterEditMode(
             const CellCoordinate(columnId: 'artist', rowIndex: 0),
             prePopulate: true,
           );
@@ -380,9 +366,7 @@ void main() {
       // Hover to show the fill arrow on the genre cell.
       // Since we're editing 'artist' not 'genre', the genre cell's arrow
       // should still be visible (isEditing checks widget.coordinate).
-      final gesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-      );
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.byType(EditableCell)));
       await tester.pump();

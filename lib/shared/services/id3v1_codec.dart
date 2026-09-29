@@ -175,8 +175,9 @@ class Id3v1Codec {
   /// Encodes to Latin-1, mapping unmappable characters to '?' so ID3v1's
   /// single-byte fields never throw (ID3v1 cannot represent Unicode).
   static Uint8List latin1SafeBytes(String value, int maxLength) {
-    final clamped =
-        value.length > maxLength ? value.substring(0, maxLength) : value;
+    final clamped = value.length > maxLength
+        ? value.substring(0, maxLength)
+        : value;
     final out = Uint8List(clamped.length);
     for (var i = 0; i < clamped.length; i++) {
       final unit = clamped.codeUnitAt(i);

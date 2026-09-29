@@ -118,10 +118,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
               borderRadius: BorderRadius.circular(4),
               onTap: () => ref.read(recursiveLoadingProvider.notifier).toggle(),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -202,14 +199,10 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
       },
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(
-            LogicalKeyboardKey.keyL,
-            control: true,
-          ): _startEditing,
+          const SingleActivator(LogicalKeyboardKey.keyL, control: true):
+              _startEditing,
         },
-        child: Focus(
-          child: _buildBreadcrumbs(context, folderPath),
-        ),
+        child: Focus(child: _buildBreadcrumbs(context, folderPath)),
       ),
     );
   }
@@ -240,11 +233,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
         }
 
         // Overflow: collapse leading segments into a dropdown
-        return _buildOverflowBreadcrumbs(
-          context,
-          segments,
-          availableWidth,
-        );
+        return _buildOverflowBreadcrumbs(context, segments, availableWidth);
       },
     );
   }
@@ -261,10 +250,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
         children.add(
           Text(
             segments[i],
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             overflow: TextOverflow.ellipsis,
           ),
         );
@@ -296,10 +282,9 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
             child: Icon(
               Icons.chevron_right,
               size: 14,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         );
@@ -368,10 +353,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
       children.add(
         PopupMenuButton<int>(
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
           tooltip: 'Show hidden path segments',
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
@@ -400,8 +382,9 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
           child: Icon(
             Icons.chevron_right,
             size: 14,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
       );
@@ -417,10 +400,7 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
           Flexible(
             child: Text(
               visibleSegments[i],
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -452,19 +432,15 @@ class _BreadcrumbBarState extends ConsumerState<BreadcrumbBar> {
             child: Icon(
               Icons.chevron_right,
               size: 14,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         );
       }
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
+    return Row(mainAxisSize: MainAxisSize.min, children: children);
   }
 }

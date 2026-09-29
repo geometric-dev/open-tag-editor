@@ -22,21 +22,20 @@ class DisabledWriterService implements TagWriterService {
 
   @override
   Future<void> removeAlbumArt(String path) => throw TagWriteException(
-        'Native TagLib library not available. Writing is disabled.',
-        path,
-      );
+    'Native TagLib library not available. Writing is disabled.',
+    path,
+  );
 
   @override
   Future<List<TagWriteResult>> writeTagsBatch(
     Map<String, Map<String, String>> fileTagsMap,
-  ) async =>
-      fileTagsMap.keys
-          .map(
-            (p) => TagWriteResult(
-              path: p,
-              success: false,
-              error: 'Native TagLib library not available.',
-            ),
-          )
-          .toList();
+  ) async => fileTagsMap.keys
+      .map(
+        (p) => TagWriteResult(
+          path: p,
+          success: false,
+          error: 'Native TagLib library not available.',
+        ),
+      )
+      .toList();
 }

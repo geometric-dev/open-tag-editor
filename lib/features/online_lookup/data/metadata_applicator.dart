@@ -13,8 +13,8 @@ class MetadataApplicator {
   MetadataApplicator({
     required TagWriterService tagWriter,
     required FileListNotifier fileListNotifier,
-  })  : _tagWriter = tagWriter,
-        _fileListNotifier = fileListNotifier;
+  }) : _tagWriter = tagWriter,
+       _fileListNotifier = fileListNotifier;
 
   final TagWriterService _tagWriter;
   final FileListNotifier _fileListNotifier;

@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider for the recent folders list.
 final recentFoldersProvider =
     StateNotifierProvider<RecentFoldersNotifier, List<String>>((ref) {
-  return RecentFoldersNotifier();
-});
+      return RecentFoldersNotifier();
+    });
 
 /// Manages a bounded list of recently loaded folder paths (max 20).
 ///

@@ -35,8 +35,9 @@ class LookupHelpers {
   }
 
   /// Merges any number of per-source result lists, preserving order.
-  static List<SearchResult> mergeAll(List<List<SearchResult>> batches) =>
-      [for (final batch in batches) ...batch];
+  static List<SearchResult> mergeAll(List<List<SearchResult>> batches) => [
+    for (final batch in batches) ...batch,
+  ];
 
   /// Groups a list of tracks by disc number.
   ///

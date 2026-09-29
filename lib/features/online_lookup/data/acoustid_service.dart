@@ -14,9 +14,7 @@ import 'rate_limiter.dart';
 /// recording IDs sorted by confidence.
 class AcoustIDService {
   /// Creates an [AcoustIDService] with the given [rateLimiter].
-  AcoustIDService({
-    required this.rateLimiter,
-  });
+  AcoustIDService({required this.rateLimiter});
 
   /// Rate limiter for AcoustID requests.
   final RateLimiter rateLimiter;

@@ -223,9 +223,7 @@ class _QuickSwitcherOverlayState extends ConsumerState<QuickSwitcherOverlay> {
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -296,8 +294,9 @@ class _FolderEntryTile extends StatelessWidget {
       type: MaterialType.transparency,
       child: ListTile(
         dense: true,
-        tileColor:
-            isHighlighted ? theme.colorScheme.surfaceContainerHighest : null,
+        tileColor: isHighlighted
+            ? theme.colorScheme.surfaceContainerHighest
+            : null,
         leading: Icon(
           entry.source == FolderEntrySource.bookmark
               ? Icons.bookmark

@@ -20,9 +20,9 @@ class MusicBrainzService {
       'OpenTagEditor/0.1.0 (https://github.com/open-tag-editor)';
 
   Map<String, String> get _headers => {
-        'User-Agent': _userAgent,
-        'Accept': 'application/json',
-      };
+    'User-Agent': _userAgent,
+    'Accept': 'application/json',
+  };
 
   /// Searches for releases matching the given criteria.
   ///
@@ -68,8 +68,9 @@ class MusicBrainzService {
             : null;
 
         final date = r['date'] as String?;
-        final releaseYear =
-            date != null && date.length >= 4 ? date.substring(0, 4) : null;
+        final releaseYear = date != null && date.length >= 4
+            ? date.substring(0, 4)
+            : null;
 
         final media = r['media'] as List<dynamic>?;
         final trackCount = media?.fold<int>(
@@ -99,10 +100,7 @@ class MusicBrainzService {
   /// Returns an empty list on failure.
   Future<List<TrackInfo>> getReleaseTracks(String releaseId) async {
     final url = Uri.parse('$_baseUrl/release/$releaseId').replace(
-      queryParameters: {
-        'inc': 'recordings+artist-credits',
-        'fmt': 'json',
-      },
+      queryParameters: {'inc': 'recordings+artist-credits', 'fmt': 'json'},
     );
 
     try {
@@ -166,12 +164,9 @@ class MusicBrainzService {
   /// Used after AcoustID identification to get full metadata.
   /// Returns a map of tag field names to values, or null on failure.
   Future<Map<String, String>?> getRecordingMetadata(String recordingId) async {
-    final url = Uri.parse('$_baseUrl/recording/$recordingId').replace(
-      queryParameters: {
-        'inc': 'artists+releases',
-        'fmt': 'json',
-      },
-    );
+    final url = Uri.parse(
+      '$_baseUrl/recording/$recordingId',
+    ).replace(queryParameters: {'inc': 'artists+releases', 'fmt': 'json'});
 
     try {
       final response = await rateLimiter.get(url, headers: _headers);

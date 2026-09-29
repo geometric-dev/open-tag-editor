@@ -35,13 +35,14 @@ class ValidationEngine {
         // number portion when the expected value contains a slash.
         final effectiveExpected =
             (field == 'trackNumber' || field == 'discNumber') &&
-                    expected.contains('/')
-                ? expected.split('/').first
-                : expected;
+                expected.contains('/')
+            ? expected.split('/').first
+            : expected;
 
         if (actual != effectiveExpected) {
-          mismatches
-              .add('$field expected \'$effectiveExpected\' got \'$actual\'');
+          mismatches.add(
+            '$field expected \'$effectiveExpected\' got \'$actual\'',
+          );
         }
       }
     }

@@ -16,39 +16,40 @@ void main() {
   // **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 7.3, 7.4, 7.5**
   group('Property 2: buildFillMenuLabel scope determination', () {
     test(
-        'label contains "all" iff selectedCount == 0 or selectedCount == totalCount',
-        () {
-      for (var i = 0; i < 100; i++) {
-        final totalCount = 1 + random.nextInt(50);
-        final selectedCount = random.nextInt(totalCount + 1);
-        final value = randomString(1 + random.nextInt(30));
+      'label contains "all" iff selectedCount == 0 or selectedCount == totalCount',
+      () {
+        for (var i = 0; i < 100; i++) {
+          final totalCount = 1 + random.nextInt(50);
+          final selectedCount = random.nextInt(totalCount + 1);
+          final value = randomString(1 + random.nextInt(30));
 
-        final label = buildFillMenuLabel(
-          value: value,
-          selectedCount: selectedCount,
-          totalCount: totalCount,
-        );
-
-        final isAllScope = selectedCount == 0 || selectedCount == totalCount;
-
-        if (isAllScope) {
-          expect(
-            label.contains('all'),
-            isTrue,
-            reason:
-                'Expected "all" in label when selectedCount=$selectedCount, '
-                'totalCount=$totalCount, but got: $label',
+          final label = buildFillMenuLabel(
+            value: value,
+            selectedCount: selectedCount,
+            totalCount: totalCount,
           );
-          expect(
-            label.contains('selected'),
-            isFalse,
-            reason:
-                'Expected no "selected" in label when selectedCount=$selectedCount, '
-                'totalCount=$totalCount, but got: $label',
-          );
+
+          final isAllScope = selectedCount == 0 || selectedCount == totalCount;
+
+          if (isAllScope) {
+            expect(
+              label.contains('all'),
+              isTrue,
+              reason:
+                  'Expected "all" in label when selectedCount=$selectedCount, '
+                  'totalCount=$totalCount, but got: $label',
+            );
+            expect(
+              label.contains('selected'),
+              isFalse,
+              reason:
+                  'Expected no "selected" in label when selectedCount=$selectedCount, '
+                  'totalCount=$totalCount, but got: $label',
+            );
+          }
         }
-      }
-    });
+      },
+    );
 
     test('label contains "selected" iff 0 < selectedCount < totalCount', () {
       for (var i = 0; i < 100; i++) {
@@ -95,7 +96,8 @@ void main() {
         expect(
           label.endsWith('blank'),
           isTrue,
-          reason: 'Expected label to end with "blank" when isBlank=true, '
+          reason:
+              'Expected label to end with "blank" when isBlank=true, '
               'but got: $label',
         );
       }
@@ -120,7 +122,8 @@ void main() {
         expect(
           label.contains(expectedTruncated),
           isTrue,
-          reason: 'Expected label to contain truncated value '
+          reason:
+              'Expected label to contain truncated value '
               '"${str.substring(0, 40)}…" for string of length $length, '
               'but got: $label',
         );
@@ -141,13 +144,15 @@ void main() {
         expect(
           label.contains(str),
           isTrue,
-          reason: 'Expected label to contain original value "$str" '
+          reason:
+              'Expected label to contain original value "$str" '
               'for string of length $length, but got: $label',
         );
         expect(
           label.contains('\u2026'),
           isFalse,
-          reason: 'Expected no ellipsis in label for string of length $length, '
+          reason:
+              'Expected no ellipsis in label for string of length $length, '
               'but got: $label',
         );
       }

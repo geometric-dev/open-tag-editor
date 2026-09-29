@@ -40,11 +40,7 @@ abstract class TagWriterService {
 
 /// Result of a tag write operation.
 class TagWriteResult {
-  const TagWriteResult({
-    required this.path,
-    required this.success,
-    this.error,
-  });
+  const TagWriteResult({required this.path, required this.success, this.error});
 
   final String path;
   final bool success;

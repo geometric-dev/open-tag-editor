@@ -228,8 +228,10 @@ class TagLibReaderService implements TagReaderService {
     final pictureKey = 'PICTURE'.toNativeUtf8();
 
     try {
-      final complexProps =
-          _bindings.taglib_complex_property_get(tagFile, pictureKey);
+      final complexProps = _bindings.taglib_complex_property_get(
+        tagFile,
+        pictureKey,
+      );
 
       if (complexProps == nullptr) return null;
 

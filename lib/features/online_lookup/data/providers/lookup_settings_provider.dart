@@ -7,8 +7,8 @@ import '../models/search_result.dart';
 /// Provider for lookup settings.
 final lookupSettingsProvider =
     StateNotifierProvider<LookupSettingsNotifier, LookupSettings>((ref) {
-  return LookupSettingsNotifier();
-});
+      return LookupSettingsNotifier();
+    });
 
 /// Manages lookup settings with SharedPreferences persistence.
 class LookupSettingsNotifier extends StateNotifier<LookupSettings> {

@@ -6,5 +6,5 @@ import '../notifiers/inline_cell_edit_notifier.dart';
 /// Provider for inline cell edit state.
 final inlineCellEditProvider =
     StateNotifierProvider<InlineCellEditNotifier, InlineCellEditState>((ref) {
-  return InlineCellEditNotifier(ref: ref);
-});
+      return InlineCellEditNotifier(ref: ref);
+    });

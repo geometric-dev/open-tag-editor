@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 /// Shared synthetic audio fixtures for tests that need real files.

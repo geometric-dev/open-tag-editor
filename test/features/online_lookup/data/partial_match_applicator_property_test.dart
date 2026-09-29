@@ -34,8 +34,7 @@ class MockTagWriterService implements TagWriterService {
   @override
   Future<List<TagWriteResult>> writeTagsBatch(
     Map<String, Map<String, String>> fileTagsMap,
-  ) async =>
-      [];
+  ) async => [];
 }
 
 /// Property-based tests for PartialMatchApplicator.
@@ -121,10 +120,7 @@ void main() {
 
   /// Generates TrackFileMatch entries: some files matched, some unmatched.
   /// Returns matches where each track is assigned to a file from [files].
-  List<TrackFileMatch> randomMatches(
-    List<AudioFile> files,
-    int trackCount,
-  ) {
+  List<TrackFileMatch> randomMatches(List<AudioFile> files, int trackCount) {
     // Assign first trackCount files to tracks (or fewer if files < trackCount).
     final assignable = min(trackCount, files.length);
     final shuffled = List<AudioFile>.from(files)..shuffle(random);
@@ -145,7 +141,8 @@ void main() {
     MockTagWriterService tagWriter,
     FileListNotifier fileListNotifier,
     PartialMatchApplicator applicator,
-  }) createApplicator(List<AudioFile> files) {
+  })
+  createApplicator(List<AudioFile> files) {
     final tagWriter = MockTagWriterService();
     final fileListNotifier = FileListNotifier();
     fileListNotifier.addFiles(files);
@@ -167,8 +164,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   /// **Validates: Requirements 3.1, 3.3, 3.4, 5.2**
-  group('Property 7: Album metadata applied to exactly non-opted-out files',
-      () {
+  group('Property 7: Album metadata applied to exactly non-opted-out files', () {
     test(
       'album-level metadata written to all non-opted-out files, not to opted-out',
       () async {
@@ -198,10 +194,12 @@ void main() {
             year: year,
           );
 
-          final nonOptedOutPaths =
-              files.where((f) => !optedOut.contains(f.path)).map((f) => f.path);
-          final optedOutPathsList =
-              files.where((f) => optedOut.contains(f.path)).map((f) => f.path);
+          final nonOptedOutPaths = files
+              .where((f) => !optedOut.contains(f.path))
+              .map((f) => f.path);
+          final optedOutPathsList = files
+              .where((f) => optedOut.contains(f.path))
+              .map((f) => f.path);
 
           // Every non-opted-out file should have received album metadata.
           for (final path in nonOptedOutPaths) {
@@ -209,19 +207,22 @@ void main() {
             expect(
               tags,
               isNotNull,
-              reason: 'Non-opted-out file "$path" should have received writes '
+              reason:
+                  'Non-opted-out file "$path" should have received writes '
                   '(iteration $i)',
             );
             expect(
               tags!['album'],
               equals(albumTitle),
-              reason: 'Album title should be written to "$path" '
+              reason:
+                  'Album title should be written to "$path" '
                   '(iteration $i)',
             );
             expect(
               tags['albumArtist'],
               equals(albumArtist),
-              reason: 'Album artist should be written to "$path" '
+              reason:
+                  'Album artist should be written to "$path" '
                   '(iteration $i)',
             );
             expect(
@@ -236,7 +237,8 @@ void main() {
             expect(
               setup.tagWriter.writtenTags.containsKey(path),
               isFalse,
-              reason: 'Opted-out file "$path" should NOT have received writes '
+              reason:
+                  'Opted-out file "$path" should NOT have received writes '
                   '(iteration $i)',
             );
           }
@@ -272,17 +274,20 @@ void main() {
             albumTitle: 'Test Album',
           );
 
-          final nonOptedOutPaths =
-              files.where((f) => !optedOut.contains(f.path)).map((f) => f.path);
-          final optedOutPathsList =
-              files.where((f) => optedOut.contains(f.path)).map((f) => f.path);
+          final nonOptedOutPaths = files
+              .where((f) => !optedOut.contains(f.path))
+              .map((f) => f.path);
+          final optedOutPathsList = files
+              .where((f) => optedOut.contains(f.path))
+              .map((f) => f.path);
 
           // Every non-opted-out file should have received cover art.
           for (final path in nonOptedOutPaths) {
             expect(
               setup.tagWriter.writtenArt.contains(path),
               isTrue,
-              reason: 'Non-opted-out file "$path" should have received '
+              reason:
+                  'Non-opted-out file "$path" should have received '
                   'cover art (iteration $i)',
             );
           }
@@ -292,7 +297,8 @@ void main() {
             expect(
               setup.tagWriter.writtenArt.contains(path),
               isFalse,
-              reason: 'Opted-out file "$path" should NOT have received '
+              reason:
+                  'Opted-out file "$path" should NOT have received '
                   'cover art (iteration $i)',
             );
           }
@@ -309,106 +315,113 @@ void main() {
 
   /// **Validates: Requirements 4.1, 4.3**
   group(
-      'Property 8: Track metadata applied only to matched non-opted-out files',
-      () {
-    test(
-      'track-level metadata written only to files with assignment and not opted out',
-      () async {
-        for (var i = 0; i < 100; i++) {
-          final fileCount = 4 + random.nextInt(8); // 4–11 files
-          final trackCount = 1 + random.nextInt(fileCount - 2); // fewer tracks
-          final files = randomFileList(fileCount);
-          final matches = randomMatches(files, trackCount);
-          final optedOut = randomOptedOutPaths(files);
+    'Property 8: Track metadata applied only to matched non-opted-out files',
+    () {
+      test(
+        'track-level metadata written only to files with assignment and not opted out',
+        () async {
+          for (var i = 0; i < 100; i++) {
+            final fileCount = 4 + random.nextInt(8); // 4–11 files
+            final trackCount =
+                1 + random.nextInt(fileCount - 2); // fewer tracks
+            final files = randomFileList(fileCount);
+            final matches = randomMatches(files, trackCount);
+            final optedOut = randomOptedOutPaths(files);
 
-          // Include track fields in selected fields.
-          final selectedFields = {
-            'album',
-            'albumArtist',
-            'title',
-            'artist',
-            'discNumber',
-            'trackNumber',
-          };
+            // Include track fields in selected fields.
+            final selectedFields = {
+              'album',
+              'albumArtist',
+              'title',
+              'artist',
+              'discNumber',
+              'trackNumber',
+            };
 
-          final setup = createApplicator(files);
+            final setup = createApplicator(files);
 
-          await setup.applicator.apply(
-            matches: matches,
-            allFiles: files,
-            selectedFields: selectedFields,
-            optedOutPaths: optedOut,
-            totalFileCount: fileCount,
-            albumTitle: 'Test Album',
-            albumArtist: 'Test Artist',
-          );
+            await setup.applicator.apply(
+              matches: matches,
+              allFiles: files,
+              selectedFields: selectedFields,
+              optedOutPaths: optedOut,
+              totalFileCount: fileCount,
+              albumTitle: 'Test Album',
+              albumArtist: 'Test Artist',
+            );
 
-          // Determine which files are matched.
-          final matchedPaths = <String>{};
-          for (final match in matches) {
-            if (match.file != null) {
-              matchedPaths.add(match.file!.path);
+            // Determine which files are matched.
+            final matchedPaths = <String>{};
+            for (final match in matches) {
+              if (match.file != null) {
+                matchedPaths.add(match.file!.path);
+              }
             }
-          }
 
-          // Check each file.
-          for (final file in files) {
-            final tags = setup.tagWriter.writtenTags[file.path];
-            final isOptedOut = optedOut.contains(file.path);
-            final isMatched = matchedPaths.contains(file.path);
+            // Check each file.
+            for (final file in files) {
+              final tags = setup.tagWriter.writtenTags[file.path];
+              final isOptedOut = optedOut.contains(file.path);
+              final isMatched = matchedPaths.contains(file.path);
 
-            if (isOptedOut) {
-              // Opted-out files should have no writes at all.
-              expect(
-                tags,
-                isNull,
-                reason: 'Opted-out file "${file.path}" should have no writes '
-                    '(iteration $i)',
-              );
-            } else if (isMatched) {
-              // Matched non-opted-out files should have track metadata.
-              expect(
-                tags,
-                isNotNull,
-                reason: 'Matched file "${file.path}" should have writes '
-                    '(iteration $i)',
-              );
-              // Should have title (if track has non-empty title).
-              final match = matches.firstWhere(
-                (m) => m.file?.path == file.path,
-              );
-              if (match.track.title.isNotEmpty) {
+              if (isOptedOut) {
+                // Opted-out files should have no writes at all.
                 expect(
-                  tags!.containsKey('title'),
-                  isTrue,
-                  reason: 'Matched file should have title written '
+                  tags,
+                  isNull,
+                  reason:
+                      'Opted-out file "${file.path}" should have no writes '
                       '(iteration $i)',
                 );
-              }
-            } else {
-              // Unmatched non-opted-out files should NOT have track metadata
-              // (title, trackNumber). Album-level fields (artist, discNumber,
-              // trackTotal) are expected to be present.
-              if (tags != null) {
+              } else if (isMatched) {
+                // Matched non-opted-out files should have track metadata.
                 expect(
-                  tags.containsKey('title'),
-                  isFalse,
-                  reason: 'Unmatched file "${file.path}" should NOT have '
-                      'title written (iteration $i)',
+                  tags,
+                  isNotNull,
+                  reason:
+                      'Matched file "${file.path}" should have writes '
+                      '(iteration $i)',
                 );
-                expect(
-                  tags.containsKey('trackNumber'),
-                  isFalse,
-                  reason: 'Unmatched file "${file.path}" should NOT have '
-                      'trackNumber written (iteration $i)',
+                // Should have title (if track has non-empty title).
+                final match = matches.firstWhere(
+                  (m) => m.file?.path == file.path,
                 );
+                if (match.track.title.isNotEmpty) {
+                  expect(
+                    tags!.containsKey('title'),
+                    isTrue,
+                    reason:
+                        'Matched file should have title written '
+                        '(iteration $i)',
+                  );
+                }
+              } else {
+                // Unmatched non-opted-out files should NOT have track metadata
+                // (title, trackNumber). Album-level fields (artist, discNumber,
+                // trackTotal) are expected to be present.
+                if (tags != null) {
+                  expect(
+                    tags.containsKey('title'),
+                    isFalse,
+                    reason:
+                        'Unmatched file "${file.path}" should NOT have '
+                        'title written (iteration $i)',
+                  );
+                  expect(
+                    tags.containsKey('trackNumber'),
+                    isFalse,
+                    reason:
+                        'Unmatched file "${file.path}" should NOT have '
+                        'trackNumber written (iteration $i)',
+                  );
+                }
               }
             }
           }
-        }
-      },
-    );
-  });
+        },
+      );
+    },
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // Property 9: Track number formatting
@@ -458,13 +471,15 @@ void main() {
               expect(
                 tags,
                 isNotNull,
-                reason: 'Matched file "${file.path}" should have writes '
+                reason:
+                    'Matched file "${file.path}" should have writes '
                     '(iteration $i)',
               );
               expect(
                 tags!['trackNumber'],
                 equals(expectedTrackNumber),
-                reason: 'Track number should be "$expectedTrackNumber" for '
+                reason:
+                    'Track number should be "$expectedTrackNumber" for '
                     'matched file (iteration $i)',
               );
             } else {
@@ -473,7 +488,8 @@ void main() {
                 expect(
                   tags.containsKey('trackNumber'),
                   isFalse,
-                  reason: 'Unmatched file "${file.path}" should NOT have '
+                  reason:
+                      'Unmatched file "${file.path}" should NOT have '
                       'trackNumber written (iteration $i)',
                 );
               }
@@ -517,11 +533,10 @@ void main() {
           );
 
           // Count files that actually received writes.
-          final filesWithWrites = setup.tagWriter.writtenTags.keys.length +
+          final filesWithWrites =
+              setup.tagWriter.writtenTags.keys.length +
               setup.tagWriter.writtenArt
-                  .where(
-                    (p) => !setup.tagWriter.writtenTags.containsKey(p),
-                  )
+                  .where((p) => !setup.tagWriter.writtenTags.containsKey(p))
                   .length;
 
           // The success count should equal the number of files that received
@@ -529,7 +544,8 @@ void main() {
           expect(
             result.successCount,
             equals(filesWithWrites),
-            reason: 'Success count (${result.successCount}) should equal '
+            reason:
+                'Success count (${result.successCount}) should equal '
                 'files with writes ($filesWithWrites) (iteration $i)\n'
                 '  fileCount=$fileCount, trackCount=$trackCount, '
                 'optedOut=${optedOut.length}',
@@ -538,15 +554,17 @@ void main() {
           // Also verify: successCount + failureCount + skipped = total files
           // where skipped = opted-out + files with nothing to write.
           final totalProcessed = result.successCount + result.failureCount;
-          final nonOptedOutCount =
-              files.where((f) => !optedOut.contains(f.path)).length;
+          final nonOptedOutCount = files
+              .where((f) => !optedOut.contains(f.path))
+              .length;
 
           // All non-opted-out files should be processed (success or failure)
           // since we always have album title selected.
           expect(
             totalProcessed,
             equals(nonOptedOutCount),
-            reason: 'Total processed ($totalProcessed) should equal '
+            reason:
+                'Total processed ($totalProcessed) should equal '
                 'non-opted-out count ($nonOptedOutCount) (iteration $i)',
           );
         }

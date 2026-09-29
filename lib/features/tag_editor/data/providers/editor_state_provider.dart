@@ -55,11 +55,7 @@ final tagPanelOpenProvider = StateProvider<bool>((ref) {
 });
 
 /// The available tabs within the tag edit side panel.
-enum TagPanelTab {
-  tags,
-  albumArt,
-  fileInfo,
-}
+enum TagPanelTab { tags, albumArt, fileInfo }
 
 /// Tracks which tab is currently active in the tag edit panel.
 final tagPanelActiveTabProvider = StateProvider<TagPanelTab>(

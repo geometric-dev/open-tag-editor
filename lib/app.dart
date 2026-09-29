@@ -109,7 +109,9 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
     try {
       final size = await windowManager.getSize();
       final position = await windowManager.getPosition();
-      ref.read(windowStateProvider.notifier).updateGeometry(
+      ref
+          .read(windowStateProvider.notifier)
+          .updateGeometry(
             size.width.round(),
             size.height.round(),
             position.dx.round(),
@@ -129,7 +131,9 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
       try {
         final size = await windowManager.getSize();
         final position = await windowManager.getPosition();
-        ref.read(windowStateProvider.notifier).updateGeometry(
+        ref
+            .read(windowStateProvider.notifier)
+            .updateGeometry(
               size.width.round(),
               size.height.round(),
               position.dx.round(),
@@ -183,9 +187,7 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
         AppThemeMode.light => ThemeMode.light,
         AppThemeMode.dark => ThemeMode.dark,
       },
-      home: const EditorKeyboardShortcuts(
-        child: HomePage(),
-      ),
+      home: const EditorKeyboardShortcuts(child: HomePage()),
     );
   }
 }

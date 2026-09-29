@@ -77,10 +77,7 @@ class FolderLoadingService {
   /// Loads files from dropped paths (files or folders).
   ///
   /// Computes the common parent directory for the address bar.
-  Future<void> loadFromDrop(
-    BuildContext context,
-    List<String> paths,
-  ) async {
+  Future<void> loadFromDrop(BuildContext context, List<String> paths) async {
     final statusNotifier = _read(statusMessageProvider.notifier);
     statusNotifier.state = 'Loading files...';
 
@@ -133,11 +130,11 @@ class FolderLoadingService {
     final failedFiles = files.where((f) => f.readError != null).toList();
     if (failedFiles.isNotEmpty) {
       final failedPaths = failedFiles.map((f) => f.path).toList();
-      final errorMessages = {
-        for (final f in failedFiles) f.path: f.readError!,
-      };
-      final entries =
-          ErrorEntryFactory.fromReadFailures(failedPaths, errorMessages);
+      final errorMessages = {for (final f in failedFiles) f.path: f.readError!};
+      final entries = ErrorEntryFactory.fromReadFailures(
+        failedPaths,
+        errorMessages,
+      );
       _read(errorLogProvider.notifier).addEntries(entries);
     }
 
@@ -172,11 +169,11 @@ class FolderLoadingService {
     final failedFiles = files.where((f) => f.readError != null).toList();
     if (failedFiles.isNotEmpty) {
       final failedPaths = failedFiles.map((f) => f.path).toList();
-      final errorMessages = {
-        for (final f in failedFiles) f.path: f.readError!,
-      };
-      final entries =
-          ErrorEntryFactory.fromReadFailures(failedPaths, errorMessages);
+      final errorMessages = {for (final f in failedFiles) f.path: f.readError!};
+      final entries = ErrorEntryFactory.fromReadFailures(
+        failedPaths,
+        errorMessages,
+      );
       _read(errorLogProvider.notifier).addEntries(entries);
     }
 

@@ -46,8 +46,9 @@ final tagFieldValidationProvider = Provider<TagFieldValidationFn>((ref) {
 });
 
 /// Function signature for the tag field validation provider.
-typedef TagFieldValidationFn = List<TagFieldIssue> Function({
-  required String field,
-  required String value,
-  TagFormat? tagFormat,
-});
+typedef TagFieldValidationFn =
+    List<TagFieldIssue> Function({
+      required String field,
+      required String value,
+      TagFormat? tagFormat,
+    });

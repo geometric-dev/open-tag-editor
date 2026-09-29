@@ -25,9 +25,9 @@ class DiscogsService {
   static const _userAgent = 'OpenTagEditor/0.1.0';
 
   Map<String, String> get _headers => {
-        'Authorization': 'Discogs token=$personalAccessToken',
-        'User-Agent': _userAgent,
-      };
+    'Authorization': 'Discogs token=$personalAccessToken',
+    'User-Agent': _userAgent,
+  };
 
   /// Searches for releases matching the query.
   ///
@@ -51,9 +51,9 @@ class DiscogsService {
     if (queryParts.isNotEmpty) params['q'] = queryParts.join(' ');
     if (year != null) params['year'] = year.toString();
 
-    final url = Uri.parse('$_baseUrl/database/search').replace(
-      queryParameters: params,
-    );
+    final url = Uri.parse(
+      '$_baseUrl/database/search',
+    ).replace(queryParameters: params);
 
     try {
       final response = await rateLimiter.get(url, headers: _headers);
@@ -75,8 +75,9 @@ class DiscogsService {
         // Discogs title format is "Artist - Album"
         final parts = title.split(' - ');
         final resultArtist = parts.length > 1 ? parts.first : null;
-        final resultAlbum =
-            parts.length > 1 ? parts.sublist(1).join(' - ') : title;
+        final resultAlbum = parts.length > 1
+            ? parts.sublist(1).join(' - ')
+            : title;
 
         return SearchResult(
           id: (r['id'] as int).toString(),

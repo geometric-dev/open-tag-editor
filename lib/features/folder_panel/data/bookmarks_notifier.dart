@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider for the bookmarks list.
 final bookmarksProvider =
     StateNotifierProvider<BookmarksNotifier, List<BookmarkEntry>>((ref) {
-  return BookmarksNotifier();
-});
+      return BookmarksNotifier();
+    });
 
 /// Manages user-pinned folder bookmarks with persistence via SharedPreferences.
 ///
@@ -79,6 +79,22 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkEntry>> {
     final updated = [...state];
     final item = updated.removeAt(oldIndex);
     updated.insert(adjustedNewIndex, item);
+    state = updated;
+    _persist();
+  }
+
+  /// Moves the bookmark at [oldIndex] to [newIndex], where [newIndex] already
+  /// refers to a position in the list *after* [oldIndex] has been removed.
+  ///
+  /// This is the convention used by `ReorderableListView.onReorderItem`; use
+  /// [reorder] for the legacy raw-index convention.
+  void moveTo(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.length) return;
+    if (newIndex < 0 || newIndex >= state.length) return;
+    if (oldIndex == newIndex) return;
+    final updated = [...state];
+    final item = updated.removeAt(oldIndex);
+    updated.insert(newIndex, item);
     state = updated;
     _persist();
   }

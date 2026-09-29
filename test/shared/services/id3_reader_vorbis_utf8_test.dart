@@ -110,84 +110,87 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('Bug A: FLAC Vorbis Comment UTF-8 decoding', () {
-    test('CJK characters "東京" are decoded correctly from Vorbis Comment',
-        () async {
-      // "東京" in UTF-8 = [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC]
-      final titleKey = utf8.encode('TITLE=');
-      final titleValue = [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC]; // "東京"
-      final comment = [...titleKey, ...titleValue];
+    test(
+      'CJK characters "東京" are decoded correctly from Vorbis Comment',
+      () async {
+        // "東京" in UTF-8 = [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC]
+        final titleKey = utf8.encode('TITLE=');
+        final titleValue = [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC]; // "東京"
+        final comment = [...titleKey, ...titleValue];
 
-      final flacBytes = buildFlacWithVorbisComments([comment]);
-      final path = writeTempFlac(flacBytes, 'cjk_test');
+        final flacBytes = buildFlacWithVorbisComments([comment]);
+        final path = writeTempFlac(flacBytes, 'cjk_test');
 
-      final audioFile = await reader.readTags(path);
+        final audioFile = await reader.readTags(path);
 
-      // EXPECTED: The title should be "東京"
-      // BUG: String.fromCharCodes interprets each byte as a code point (Latin-1),
-      // producing garbled output like "æ\u009d±äº¬" instead of "東京"
-      expect(
-        audioFile.tags['title'],
-        equals('東京'),
-        reason: 'CJK bytes [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC] should decode '
-            'as "東京" via UTF-8, not as garbled Latin-1',
-      );
-    });
+        // EXPECTED: The title should be "東京"
+        // BUG: String.fromCharCodes interprets each byte as a code point (Latin-1),
+        // producing garbled output like "æ\u009d±äº¬" instead of "東京"
+        expect(
+          audioFile.tags['title'],
+          equals('東京'),
+          reason:
+              'CJK bytes [0xE6, 0x9D, 0xB1, 0xE4, 0xBA, 0xAC] should decode '
+              'as "東京" via UTF-8, not as garbled Latin-1',
+        );
+      },
+    );
 
-    test('Accented Latin "Ñoño" is decoded correctly from Vorbis Comment',
-        () async {
-      // "Ñoño" in UTF-8 = [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F]
-      final artistKey = utf8.encode('ARTIST=');
-      final artistValue = [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F]; // "Ñoño"
-      final comment = [...artistKey, ...artistValue];
+    test(
+      'Accented Latin "Ñoño" is decoded correctly from Vorbis Comment',
+      () async {
+        // "Ñoño" in UTF-8 = [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F]
+        final artistKey = utf8.encode('ARTIST=');
+        final artistValue = [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F]; // "Ñoño"
+        final comment = [...artistKey, ...artistValue];
 
-      final flacBytes = buildFlacWithVorbisComments([comment]);
-      final path = writeTempFlac(flacBytes, 'accented_test');
+        final flacBytes = buildFlacWithVorbisComments([comment]);
+        final path = writeTempFlac(flacBytes, 'accented_test');
 
-      final audioFile = await reader.readTags(path);
+        final audioFile = await reader.readTags(path);
 
-      // EXPECTED: The artist should be "Ñoño"
-      // BUG: String.fromCharCodes produces "Ãoño" or similar garbled output
-      expect(
-        audioFile.tags['artist'],
-        equals('Ñoño'),
-        reason: 'Accented Latin bytes [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F] '
-            'should decode as "Ñoño" via UTF-8, not as garbled Latin-1',
-      );
-    });
+        // EXPECTED: The artist should be "Ñoño"
+        // BUG: String.fromCharCodes produces "Ãoño" or similar garbled output
+        expect(
+          audioFile.tags['artist'],
+          equals('Ñoño'),
+          reason:
+              'Accented Latin bytes [0xC3, 0x91, 0x6F, 0xC3, 0xB1, 0x6F] '
+              'should decode as "Ñoño" via UTF-8, not as garbled Latin-1',
+        );
+      },
+    );
 
-    test('Cyrillic "Москва" is decoded correctly from Vorbis Comment',
-        () async {
-      // "Москва" in UTF-8
-      final albumKey = utf8.encode('ALBUM=');
-      final albumValue = utf8.encode('Москва');
-      final comment = [...albumKey, ...albumValue];
+    test(
+      'Cyrillic "Москва" is decoded correctly from Vorbis Comment',
+      () async {
+        // "Москва" in UTF-8
+        final albumKey = utf8.encode('ALBUM=');
+        final albumValue = utf8.encode('Москва');
+        final comment = [...albumKey, ...albumValue];
 
-      final flacBytes = buildFlacWithVorbisComments([comment]);
-      final path = writeTempFlac(flacBytes, 'cyrillic_test');
+        final flacBytes = buildFlacWithVorbisComments([comment]);
+        final path = writeTempFlac(flacBytes, 'cyrillic_test');
 
-      final audioFile = await reader.readTags(path);
+        final audioFile = await reader.readTags(path);
 
-      // EXPECTED: The album should be "Москва"
-      // BUG: String.fromCharCodes garbles multi-byte UTF-8 sequences
-      expect(
-        audioFile.tags['album'],
-        equals('Москва'),
-        reason: 'Cyrillic UTF-8 bytes should decode as "Москва", '
-            'not as garbled Latin-1',
-      );
-    });
+        // EXPECTED: The album should be "Москва"
+        // BUG: String.fromCharCodes garbles multi-byte UTF-8 sequences
+        expect(
+          audioFile.tags['album'],
+          equals('Москва'),
+          reason:
+              'Cyrillic UTF-8 bytes should decode as "Москва", '
+              'not as garbled Latin-1',
+        );
+      },
+    );
 
     test('Mixed ASCII and non-ASCII tags are all decoded correctly', () async {
       // Multiple comments: one ASCII, one CJK, one accented
       final titleComment = utf8.encode('TITLE=Hello World');
-      final artistComment = [
-        ...utf8.encode('ARTIST='),
-        ...utf8.encode('東京事変'),
-      ];
-      final albumComment = [
-        ...utf8.encode('ALBUM='),
-        ...utf8.encode('café'),
-      ];
+      final artistComment = [...utf8.encode('ARTIST='), ...utf8.encode('東京事変')];
+      final albumComment = [...utf8.encode('ALBUM='), ...utf8.encode('café')];
 
       final flacBytes = buildFlacWithVorbisComments([
         titleComment,
@@ -223,19 +226,19 @@ void main() {
 
       // Simulate initial load (e.g., user opened a folder)
       final initialFiles = [
-        AudioFile(
+        const AudioFile(
           path: '/music/old/song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: '/music/old/song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 2000,
         ),
-        AudioFile(
+        const AudioFile(
           path: '/music/old/song3.mp3',
           filename: 'song3.mp3',
           extension: '.mp3',
@@ -248,13 +251,13 @@ void main() {
       // Simulate the FIXED toolbar "Open Folder" flow:
       // The toolbar now calls clear() before addFiles().
       final newFiles = [
-        AudioFile(
+        const AudioFile(
           path: '/music/new/track1.flac',
           filename: 'track1.flac',
           extension: '.flac',
           fileSize: 5000,
         ),
-        AudioFile(
+        const AudioFile(
           path: '/music/new/track2.flac',
           filename: 'track2.flac',
           extension: '.flac',
@@ -270,7 +273,8 @@ void main() {
       expect(
         notifier.currentFiles.length,
         equals(2),
-        reason: 'After toolbar open with clear, file list should contain ONLY '
+        reason:
+            'After toolbar open with clear, file list should contain ONLY '
             'the new files (2).',
       );
     });
@@ -280,7 +284,7 @@ void main() {
 
       // Load initial files
       final initialFiles = [
-        AudioFile(
+        const AudioFile(
           path: '/old/folder/a.mp3',
           filename: 'a.mp3',
           extension: '.mp3',
@@ -291,13 +295,13 @@ void main() {
 
       // Simulate the FIXED toolbar flow: clear then add new files
       final newFiles = [
-        AudioFile(
+        const AudioFile(
           path: '/new/folder/b.flac',
           filename: 'b.flac',
           extension: '.flac',
           fileSize: 200,
         ),
-        AudioFile(
+        const AudioFile(
           path: '/new/folder/c.flac',
           filename: 'c.flac',
           extension: '.flac',
@@ -314,7 +318,8 @@ void main() {
       expect(
         paths,
         equals(['/new/folder/b.flac', '/new/folder/c.flac']),
-        reason: 'After toolbar open with clear, only new file paths should '
+        reason:
+            'After toolbar open with clear, only new file paths should '
             'remain.',
       );
     });

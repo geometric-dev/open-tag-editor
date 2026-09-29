@@ -93,19 +93,15 @@ class _ResizableSplitterState extends State<ResizableSplitter> {
                 child: Container(
                   width: _splitterWidth,
                   color: _isDragging || _isHovering
-                      ? Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.3)
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.3)
                       : Theme.of(context).colorScheme.outlineVariant,
                 ),
               ),
             ),
             // Right child
-            SizedBox(
-              width: effectiveRightWidth,
-              child: widget.rightChild,
-            ),
+            SizedBox(width: effectiveRightWidth, child: widget.rightChild),
           ],
         );
       },

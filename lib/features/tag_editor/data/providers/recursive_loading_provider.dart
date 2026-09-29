@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider for the recursive loading toggle state.
 final recursiveLoadingProvider =
     StateNotifierProvider<RecursiveLoadingNotifier, bool>((ref) {
-  return RecursiveLoadingNotifier();
-});
+      return RecursiveLoadingNotifier();
+    });
 
 /// Manages the recursive folder loading toggle with persistence.
 class RecursiveLoadingNotifier extends StateNotifier<bool> {

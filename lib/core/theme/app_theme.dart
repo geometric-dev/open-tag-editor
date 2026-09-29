@@ -62,9 +62,7 @@ class AppTheme {
       ),
       // --- Inputs: tight, small radius, system-like borders ---
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(3),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(3),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -74,13 +72,11 @@ class AppTheme {
           borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
         ),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         filled: true,
-        fillColor:
-            isLight ? colorScheme.surface : colorScheme.surfaceContainerLowest,
+        fillColor: isLight
+            ? colorScheme.surface
+            : colorScheme.surfaceContainerLowest,
       ),
       // --- Data table: compact rows ---
       dataTableTheme: DataTableThemeData(
@@ -93,9 +89,7 @@ class AppTheme {
       ),
       // --- Checkboxes: small, square-ish ---
       checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(2),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: _density,
       ),
@@ -104,36 +98,24 @@ class AppTheme {
         style: FilledButton.styleFrom(
           minimumSize: const Size(72, 30),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 13,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          textStyle: const TextStyle(fontSize: 13),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(64, 30),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 13,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          textStyle: const TextStyle(fontSize: 13),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(72, 30),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 13,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          textStyle: const TextStyle(fontSize: 13),
         ),
       ),
       // --- IconButtons: compact ---
@@ -145,9 +127,7 @@ class AppTheme {
       ),
       // --- Dialogs: tight radius, no excessive rounding ---
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         titleTextStyle: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -162,9 +142,7 @@ class AppTheme {
             horizontal: 8,
             vertical: 8,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(3),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
         ),
       ),
       // --- Tooltips: simple, no excessive padding ---
@@ -196,9 +174,7 @@ class AppTheme {
       // --- Snackbar: compact ---
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }

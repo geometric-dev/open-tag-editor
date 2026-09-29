@@ -44,7 +44,7 @@ class TagSyncResult {
 class TagSyncService {
   /// Creates a [TagSyncService] with the given writer.
   TagSyncService({required TagWriterService tagWriter})
-      : _tagWriter = tagWriter;
+    : _tagWriter = tagWriter;
 
   final TagWriterService _tagWriter;
 
@@ -96,7 +96,10 @@ class TagSyncService {
       } catch (e) {
         failures.add(
           TagSyncFileResult(
-              path: file.path, success: false, error: e.toString()),
+            path: file.path,
+            success: false,
+            error: e.toString(),
+          ),
         );
       }
     }
@@ -130,7 +133,10 @@ class TagSyncService {
       } catch (e) {
         failures.add(
           TagSyncFileResult(
-              path: file.path, success: false, error: e.toString()),
+            path: file.path,
+            success: false,
+            error: e.toString(),
+          ),
         );
       }
     }

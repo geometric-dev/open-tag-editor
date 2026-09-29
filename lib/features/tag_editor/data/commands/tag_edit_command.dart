@@ -1,5 +1,5 @@
-import '../../../../shared/models/audio_file.dart';
 import '../../../../core/undo/undo_redo_manager.dart';
+import '../../../../shared/models/audio_file.dart';
 import '../providers/file_list_provider.dart';
 
 /// Command for editing a single tag field on one or more files.

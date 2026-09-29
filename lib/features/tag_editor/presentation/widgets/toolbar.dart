@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/undo/undo_redo_manager.dart';
+import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/folder_panel_state_notifier.dart';
-import '../../../../features/album_art/data/cover_art_resize_service.dart';
 import '../../../../features/tools/data/tag_case_tools.dart';
 import '../../../../features/tools/data/tag_transform_command.dart';
 import '../../../../features/tools/presentation/tag_sync_dialog.dart';
-import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/services/export_service.dart';
+import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
@@ -35,19 +35,18 @@ class EditorToolbar extends ConsumerWidget {
 
   Future<void> _openFolder(WidgetRef ref, BuildContext context) async {
     // Guard against unsaved changes before opening a new folder.
-    if (context.mounted) {
-      final proceed = await UnsavedChangesGuard.check(
-        context: context,
-        ref: ref,
-        clearUndoOnDiscard: true,
-      );
-      if (!proceed) return;
-    }
+    if (!context.mounted) return;
+    final proceed = await UnsavedChangesGuard.check(
+      context: context,
+      ref: ref,
+      clearUndoOnDiscard: true,
+    );
+    if (!proceed || !context.mounted) return;
 
     final result = await FilePicker.getDirectoryPath(
       dialogTitle: 'Select Music Folder',
     );
-    if (result == null) return;
+    if (result == null || !context.mounted) return;
 
     // Route through the shared loading service so the toolbar honours the
     // recursive toggle, the threshold guard, and recent-folder persistence
@@ -58,14 +57,13 @@ class EditorToolbar extends ConsumerWidget {
 
   Future<void> _openFiles(WidgetRef ref, BuildContext context) async {
     // Guard against unsaved changes before opening new files.
-    if (context.mounted) {
-      final proceed = await UnsavedChangesGuard.check(
-        context: context,
-        ref: ref,
-        clearUndoOnDiscard: true,
-      );
-      if (!proceed) return;
-    }
+    if (!context.mounted) return;
+    final proceed = await UnsavedChangesGuard.check(
+      context: context,
+      ref: ref,
+      clearUndoOnDiscard: true,
+    );
+    if (!proceed || !context.mounted) return;
 
     final result = await FilePicker.pickFiles(
       dialogTitle: 'Select Audio Files',
@@ -84,10 +82,12 @@ class EditorToolbar extends ConsumerWidget {
       ],
       allowMultiple: true,
     );
-    if (result == null || result.files.isEmpty) return;
+    if (result == null || result.files.isEmpty || !context.mounted) return;
 
-    final paths =
-        result.files.where((f) => f.path != null).map((f) => f.path!).toList();
+    final paths = result.files
+        .where((f) => f.path != null)
+        .map((f) => f.path!)
+        .toList();
 
     final service = FolderLoadingService(ref.read);
     await service.loadFromDrop(context, paths);
@@ -127,9 +127,9 @@ class EditorToolbar extends ConsumerWidget {
           'Exported playlist (${files.length} tracks)';
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Playlist export failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Playlist export failed: $e')));
       }
     }
   }
@@ -146,9 +146,7 @@ class EditorToolbar extends ConsumerWidget {
     try {
       final files = ref.read(filteredSortedFileListProvider);
       final config = ref.read(columnConfigProvider);
-      final columns = ExportService.columnsFor(
-        config.visibleColumnIds.toSet(),
-      );
+      final columns = ExportService.columnsFor(config.visibleColumnIds.toSet());
       final content = ExportService.serializeFor(outputPath, files, columns);
       if (content is Uint8List) {
         await File(outputPath).writeAsBytes(content);
@@ -165,9 +163,9 @@ class EditorToolbar extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
   }
@@ -314,8 +312,10 @@ class EditorToolbar extends ConsumerWidget {
       fileListNotifier: ref.read(fileListProvider.notifier),
       undoRedoManager: ref.read(undoRedoProvider.notifier),
     );
-    final options =
-        CoverArtResizeOptions(maxDimension: maxDimension, format: format);
+    final options = CoverArtResizeOptions(
+      maxDimension: maxDimension,
+      format: format,
+    );
 
     await for (final progress in service.resizeAlbumArt(withArt, options)) {
       status.state =
@@ -360,7 +360,9 @@ class EditorToolbar extends ConsumerWidget {
         return;
       }
 
-      ref.read(undoRedoProvider.notifier).execute(
+      ref
+          .read(undoRedoProvider.notifier)
+          .execute(
             TagTransformCommand(
               fileListNotifier: ref.read(fileListProvider.notifier),
               deltas: deltas,
@@ -401,9 +403,7 @@ class EditorToolbar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant),
-        ),
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -518,20 +518,26 @@ class EditorToolbar extends ConsumerWidget {
                 PopupMenuItem(
                   value: 'tool:${tool.name}',
                   enabled: ref.read(selectedFilesProvider).isNotEmpty,
-                  child: Text(tool.menuLabel,
-                      style: const TextStyle(fontSize: 12)),
+                  child: Text(
+                    tool.menuLabel,
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 ),
               const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'art:resize',
-                child: Text('Resize / Convert Cover Art...',
-                    style: TextStyle(fontSize: 12)),
+                child: Text(
+                  'Resize / Convert Cover Art...',
+                  style: TextStyle(fontSize: 12),
+                ),
               ),
               const PopupMenuDivider(),
               const PopupMenuItem(
                 value: 'sync:wizard',
-                child: Text('Tags Synchronization…',
-                    style: TextStyle(fontSize: 12)),
+                child: Text(
+                  'Tags Synchronization…',
+                  style: TextStyle(fontSize: 12),
+                ),
               ),
             ],
           ),

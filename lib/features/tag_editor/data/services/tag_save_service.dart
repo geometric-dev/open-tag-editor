@@ -3,10 +3,7 @@ import '../providers/file_list_provider.dart';
 
 /// Summary of a batch save of modified files.
 class TagSaveSummary {
-  const TagSaveSummary({
-    required this.attemptedTags,
-    required this.results,
-  });
+  const TagSaveSummary({required this.attemptedTags, required this.results});
 
   /// The tags that were written per file path (only changed fields).
   final Map<String, Map<String, String>> attemptedTags;
@@ -33,8 +30,8 @@ class TagSaveService {
   TagSaveService({
     required TagWriterService writer,
     required FileListNotifier fileListNotifier,
-  })  : _writer = writer,
-        _fileListNotifier = fileListNotifier;
+  }) : _writer = writer,
+       _fileListNotifier = fileListNotifier;
 
   final TagWriterService _writer;
   final FileListNotifier _fileListNotifier;
@@ -47,8 +44,9 @@ class TagSaveService {
   /// `isModified: false` and refreshed original tags; failed files are
   /// left untouched (still dirty).
   Future<TagSaveSummary?> saveAllModified() async {
-    final modifiedFiles =
-        _fileListNotifier.currentFiles.where((f) => f.isModified).toList();
+    final modifiedFiles = _fileListNotifier.currentFiles
+        .where((f) => f.isModified)
+        .toList();
     if (modifiedFiles.isEmpty) return null;
 
     final fileTagsMap = <String, Map<String, String>>{};
@@ -64,9 +62,7 @@ class TagSaveService {
 
     // Mark successful files as no longer modified.
     final updatedFiles = modifiedFiles
-        .where(
-          (f) => results.any((r) => r.path == f.path && r.success),
-        )
+        .where((f) => results.any((r) => r.path == f.path && r.success))
         .map(
           (f) => f.copyWith(
             isModified: false,

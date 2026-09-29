@@ -85,8 +85,8 @@ List<GridItem> buildGridItems({
     final groupFiles = groups[dir]!
       ..sort(
         (a, b) => a.file.filename.toLowerCase().compareTo(
-              b.file.filename.toLowerCase(),
-            ),
+          b.file.filename.toLowerCase(),
+        ),
       );
 
     for (final indexed in groupFiles) {

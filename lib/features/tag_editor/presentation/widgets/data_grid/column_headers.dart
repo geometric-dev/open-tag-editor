@@ -152,11 +152,13 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
     // Determine background colour: sorted tint > hover tint > none
     Color? backgroundColor;
     if (isSorted) {
-      backgroundColor =
-          Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
+      backgroundColor = Theme.of(
+        context,
+      ).colorScheme.primary.withValues(alpha: 0.08);
     } else if (_isHovered && isSortable) {
-      backgroundColor =
-          Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05);
+      backgroundColor = Theme.of(
+        context,
+      ).colorScheme.onSurface.withValues(alpha: 0.05);
     }
 
     return SizedBox(
@@ -164,10 +166,12 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
       child: Stack(
         children: [
           MouseRegion(
-            onEnter:
-                isSortable ? (_) => setState(() => _isHovered = true) : null,
-            onExit:
-                isSortable ? (_) => setState(() => _isHovered = false) : null,
+            onEnter: isSortable
+                ? (_) => setState(() => _isHovered = true)
+                : null,
+            onExit: isSortable
+                ? (_) => setState(() => _isHovered = false)
+                : null,
             child: GestureDetector(
               onTap: isSortable ? widget.onSort : null,
               onSecondaryTapUp: (details) {
@@ -236,7 +240,8 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
 
     // Column reorder (not offered for fixed columns)
     if (!widget.column.isFixed) {
-      final canMoveLeft = widget.columnIndex > 0 &&
+      final canMoveLeft =
+          widget.columnIndex > 0 &&
           widget.visibleColumnIds[widget.columnIndex - 1] != 'tagIndicator';
       final canMoveRight =
           widget.columnIndex < widget.visibleColumnIds.length - 1;

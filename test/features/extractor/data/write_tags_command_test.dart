@@ -11,7 +11,7 @@ AudioFile file({
 }) {
   return AudioFile(
     path: path,
-    filename: p_basename(path),
+    filename: pathBasename(path),
     extension: '.mp3',
     fileSize: 1,
     tags: tags,
@@ -21,7 +21,7 @@ AudioFile file({
 }
 
 /// Basename helper avoiding a package:path dependency in this test.
-String p_basename(String path) {
+String pathBasename(String path) {
   final i = path.lastIndexOf('/');
   return i == -1 ? path : path.substring(i + 1);
 }
@@ -81,11 +81,7 @@ void main() {
 
     test('undo restores the exact previous tag map and dirty state', () async {
       notifier.addFiles([
-        file(
-          path: '/m/01.mp3',
-          tags: {'title': 'Original'},
-          modified: false,
-        ),
+        file(path: '/m/01.mp3', tags: {'title': 'Original'}, modified: false),
       ]);
 
       final command = WriteTagsCommand(
@@ -130,10 +126,11 @@ void main() {
       ).execute();
 
       expect(
-          notifier.currentFiles
-              .firstWhere((f) => f.path == '/m/b.mp3')
-              .tags['title'],
-          'B');
+        notifier.currentFiles
+            .firstWhere((f) => f.path == '/m/b.mp3')
+            .tags['title'],
+        'B',
+      );
     });
   });
 }

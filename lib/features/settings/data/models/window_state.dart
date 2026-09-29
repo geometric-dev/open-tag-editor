@@ -84,20 +84,21 @@ class WindowState extends Equatable {
       isTagPanelOpen: isTagPanelOpen ?? this.isTagPanelOpen,
       tagPanelWidth: tagPanelWidth ?? this.tagPanelWidth,
       errorPanelHeight: errorPanelHeight ?? this.errorPanelHeight,
-      lastFolderPath:
-          lastFolderPath != null ? lastFolderPath() : this.lastFolderPath,
+      lastFolderPath: lastFolderPath != null
+          ? lastFolderPath()
+          : this.lastFolderPath,
     );
   }
 
   @override
   List<Object?> get props => [
-        windowWidth,
-        windowHeight,
-        windowX,
-        windowY,
-        isTagPanelOpen,
-        tagPanelWidth,
-        errorPanelHeight,
-        lastFolderPath,
-      ];
+    windowWidth,
+    windowHeight,
+    windowX,
+    windowY,
+    isTagPanelOpen,
+    tagPanelWidth,
+    errorPanelHeight,
+    lastFolderPath,
+  ];
 }

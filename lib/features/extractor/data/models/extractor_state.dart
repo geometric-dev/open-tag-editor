@@ -96,8 +96,9 @@ class ExtractorState {
     return ExtractorState(
       pattern: pattern ?? this.pattern,
       tokens: tokens ?? this.tokens,
-      parseError:
-          parseError == _absent ? this.parseError : parseError as String?,
+      parseError: parseError == _absent
+          ? this.parseError
+          : parseError as String?,
       extractionError: extractionError == _absent
           ? this.extractionError
           : extractionError as String?,

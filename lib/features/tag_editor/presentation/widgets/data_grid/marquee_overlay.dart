@@ -83,8 +83,9 @@ class _MarqueeOverlayState extends ConsumerState<MarqueeOverlay> {
     _isCtrlHeld = isCtrl;
 
     if (isCtrl) {
-      _preExistingSelection =
-          Set<String>.from(ref.read(selectionProvider).selectedPaths);
+      _preExistingSelection = Set<String>.from(
+        ref.read(selectionProvider).selectedPaths,
+      );
     } else {
       _preExistingSelection = {};
     }
@@ -245,14 +246,12 @@ class _MarqueeOverlayState extends ConsumerState<MarqueeOverlay> {
                 child: CustomPaint(
                   painter: _MarqueePainter(
                     rect: _marqueeRect,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withValues(alpha: 0.3),
-                    borderColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.7),
                   ),
                 ),
               ),

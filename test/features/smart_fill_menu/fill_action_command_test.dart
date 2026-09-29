@@ -58,7 +58,8 @@ void main() {
         expect(
           result,
           isNull,
-          reason: 'Single file with matching value should return null '
+          reason:
+              'Single file with matching value should return null '
               '(iteration $i, value="$chosenValue")',
         );
       }
@@ -95,7 +96,8 @@ void main() {
         expect(
           result,
           isNotNull,
-          reason: 'Single file with different value should return a command '
+          reason:
+              'Single file with different value should return a command '
               '(iteration $i, existing="$existingValue", '
               'chosen="$chosenValue")',
         );
@@ -124,13 +126,15 @@ void main() {
             } else {
               tagValue = chosenValue;
             }
-            files.add(AudioFile(
-              path: '/path/${i}_$j.mp3',
-              filename: '${i}_$j.mp3',
-              extension: '.mp3',
-              fileSize: 0,
-              tags: {'genre': tagValue},
-            ));
+            files.add(
+              AudioFile(
+                path: '/path/${i}_$j.mp3',
+                filename: '${i}_$j.mp3',
+                extension: '.mp3',
+                fileSize: 0,
+                tags: {'genre': tagValue},
+              ),
+            );
           }
 
           // Ensure at least one file has a different value.
@@ -163,7 +167,8 @@ void main() {
           expect(
             result,
             isNotNull,
-            reason: 'Batch edit with at least one different value should '
+            reason:
+                'Batch edit with at least one different value should '
                 'return a command (iteration $i, fileCount=$fileCount)',
           );
         }

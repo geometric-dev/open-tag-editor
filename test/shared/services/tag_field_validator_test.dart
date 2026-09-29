@@ -104,8 +104,9 @@ void main() {
         options: id3v1Options,
       );
       // Should have ID3v1 truncation warning (and possibly numeric warning)
-      final truncationIssues =
-          issues.where((i) => i.message.contains('truncated')).toList();
+      final truncationIssues = issues
+          .where((i) => i.message.contains('truncated'))
+          .toList();
       expect(truncationIssues, hasLength(1));
       expect(truncationIssues.first.message, contains('4'));
     });
@@ -297,14 +298,8 @@ void main() {
       );
       // Should have both truncation warning and Latin-1 error
       expect(issues.length, greaterThanOrEqualTo(2));
-      expect(
-        issues.any((i) => i.severity == TagFieldSeverity.warning),
-        isTrue,
-      );
-      expect(
-        issues.any((i) => i.severity == TagFieldSeverity.error),
-        isTrue,
-      );
+      expect(issues.any((i) => i.severity == TagFieldSeverity.warning), isTrue);
+      expect(issues.any((i) => i.severity == TagFieldSeverity.error), isTrue);
     });
 
     test('max length + ID3v1 truncation reported together', () {

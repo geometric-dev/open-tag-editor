@@ -2,9 +2,9 @@ import 'dart:isolate';
 
 import '../../models/audio_file.dart';
 import '../tag_reader_service.dart';
+import 'isolate_tag_io.dart';
 import 'native_library_loader.dart';
 import 'taglib_writer_service.dart';
-import 'isolate_tag_io.dart';
 
 /// A [TagWriterService] that keeps the UI isolate responsive.
 ///
@@ -21,8 +21,8 @@ class IsolateTagWriterService implements TagWriterService {
   IsolateTagWriterService({
     required TagWriteSettingsSnapshot Function() getSnapshot,
     required TagLibWriterService Function() createDirectWriter,
-  })  : _getSnapshot = getSnapshot,
-        _createDirectWriter = createDirectWriter;
+  }) : _getSnapshot = getSnapshot,
+       _createDirectWriter = createDirectWriter;
 
   final TagWriteSettingsSnapshot Function() _getSnapshot;
   final TagLibWriterService Function() _createDirectWriter;

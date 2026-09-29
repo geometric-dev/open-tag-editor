@@ -101,10 +101,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             // Drag overlay
             if (_isDragging)
               Container(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(32),
@@ -127,9 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 12),
                         Text(
                           'Drop audio files or folders here',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -160,9 +157,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 // Panel header with close button
                 Container(
                   height: 32,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainerLow,
                     border: Border(
@@ -180,9 +175,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.close, size: 16),
-                        onPressed: () => ref
-                            .read(tagPanelOpenProvider.notifier)
-                            .state = false,
+                        onPressed: () =>
+                            ref.read(tagPanelOpenProvider.notifier).state =
+                                false,
                         visualDensity: VisualDensity.compact,
                         tooltip: 'Close Tag Editor',
                       ),
@@ -203,11 +198,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               // setTagPanelWidth via the notifier.
             },
           )
-        : const Row(
-            children: [
-              Expanded(child: FileListPanel()),
-            ],
-          );
+        : const Row(children: [Expanded(child: FileListPanel())]);
 
     final content = Row(
       children: [

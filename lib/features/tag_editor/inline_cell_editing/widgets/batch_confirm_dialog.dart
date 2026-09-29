@@ -16,9 +16,7 @@ Future<BatchConfirmResult> showBatchConfirmDialog(
     barrierDismissible: false,
     builder: (context) => AlertDialog(
       title: const Text('Apply to selection?'),
-      content: Text(
-        'Apply this edit to all $selectedCount selected files?',
-      ),
+      content: Text('Apply this edit to all $selectedCount selected files?'),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(BatchConfirmResult.cancel),

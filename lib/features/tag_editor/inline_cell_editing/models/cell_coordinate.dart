@@ -1,10 +1,7 @@
 /// Identifies a single cell in the DataGrid by row index and column ID.
 class CellCoordinate {
   /// Creates a [CellCoordinate] with the given [rowIndex] and [columnId].
-  const CellCoordinate({
-    required this.rowIndex,
-    required this.columnId,
-  });
+  const CellCoordinate({required this.rowIndex, required this.columnId});
 
   /// Index into the filtered/sorted file list.
   final int rowIndex;

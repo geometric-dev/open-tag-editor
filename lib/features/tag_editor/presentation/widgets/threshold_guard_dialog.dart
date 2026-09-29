@@ -17,10 +17,7 @@ enum ThresholdGuardResult {
 /// Shows the detected file count and offers three options:
 /// Load All, Top-Level Only, or Cancel.
 class ThresholdGuardDialog extends StatelessWidget {
-  const ThresholdGuardDialog({
-    super.key,
-    required this.fileCount,
-  });
+  const ThresholdGuardDialog({super.key, required this.fileCount});
 
   /// The number of audio files detected.
   final int fileCount;

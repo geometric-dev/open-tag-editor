@@ -12,25 +12,26 @@ import '../models/extractor_state.dart';
 /// This provider depends on the current file list and selection state.
 /// Uses selected files if any are selected, otherwise uses all files.
 final extractorStateProvider =
-    StateNotifierProvider.autoDispose<ExtractorStateNotifier, ExtractorState>(
-        (ref) {
-  final allFiles = ref.watch(fileListProvider);
-  final selection = ref.watch(selectionProvider);
-  final undoRedo = ref.read(undoRedoProvider.notifier);
-  final fileListNotifier = ref.read(fileListProvider.notifier);
-  final rootFolder = ref.watch(loadedFolderPathProvider) ?? '';
+    StateNotifierProvider.autoDispose<ExtractorStateNotifier, ExtractorState>((
+      ref,
+    ) {
+      final allFiles = ref.watch(fileListProvider);
+      final selection = ref.watch(selectionProvider);
+      final undoRedo = ref.read(undoRedoProvider.notifier);
+      final fileListNotifier = ref.read(fileListProvider.notifier);
+      final rootFolder = ref.watch(loadedFolderPathProvider) ?? '';
 
-  // Use selected files if any are selected, otherwise use all files.
-  final files = selection.selectedPaths.isEmpty
-      ? allFiles
-      : allFiles
-          .where((f) => selection.selectedPaths.contains(f.path))
-          .toList();
+      // Use selected files if any are selected, otherwise use all files.
+      final files = selection.selectedPaths.isEmpty
+          ? allFiles
+          : allFiles
+                .where((f) => selection.selectedPaths.contains(f.path))
+                .toList();
 
-  return ExtractorStateNotifier(
-    files: files,
-    rootFolder: rootFolder,
-    undoRedoManager: undoRedo,
-    fileListNotifier: fileListNotifier,
-  );
-});
+      return ExtractorStateNotifier(
+        files: files,
+        rootFolder: rootFolder,
+        undoRedoManager: undoRedo,
+        fileListNotifier: fileListNotifier,
+      );
+    });

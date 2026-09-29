@@ -28,7 +28,7 @@ class RenameValidationResult {
 class RenameExecutor {
   /// Creates a [RenameExecutor] with an optional [sanitizer].
   RenameExecutor({FilenameSanitizer? sanitizer})
-      : _sanitizer = sanitizer ?? FilenameSanitizer();
+    : _sanitizer = sanitizer ?? FilenameSanitizer();
 
   final FilenameSanitizer _sanitizer;
 
@@ -105,10 +105,7 @@ class RenameExecutor {
       } catch (e) {
         errorCount++;
         errors.add(
-          RenameError(
-            filePath: plan.sourcePath,
-            message: e.toString(),
-          ),
+          RenameError(filePath: plan.sourcePath, message: e.toString()),
         );
       }
     }
@@ -166,8 +163,9 @@ class RenameExecutor {
     final fullName = file.uri.pathSegments.last;
 
     final dotIndex = fullName.lastIndexOf('.');
-    final baseName =
-        dotIndex == -1 ? fullName : fullName.substring(0, dotIndex);
+    final baseName = dotIndex == -1
+        ? fullName
+        : fullName.substring(0, dotIndex);
     final extension = dotIndex == -1 ? '' : fullName.substring(dotIndex);
 
     var counter = 1;

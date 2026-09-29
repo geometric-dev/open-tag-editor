@@ -52,9 +52,7 @@ class AlbumArtCommand implements UndoableCommand {
       if (filePaths.contains(file.path)) {
         if (newArt != null) {
           // Add operation
-          updatedFiles.add(
-            file.copyWith(albumArt: newArt, isModified: true),
-          );
+          updatedFiles.add(file.copyWith(albumArt: newArt, isModified: true));
         } else {
           // Remove operation
           updatedFiles.add(

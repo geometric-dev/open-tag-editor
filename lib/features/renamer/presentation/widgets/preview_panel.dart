@@ -7,10 +7,7 @@ import '../../data/models/rename_preview.dart';
 /// Shows original filename → new filename with visual indicators for
 /// conflicts, errors, and unchanged files.
 class PreviewPanel extends StatelessWidget {
-  const PreviewPanel({
-    super.key,
-    required this.previews,
-  });
+  const PreviewPanel({super.key, required this.previews});
 
   /// The list of rename previews to display.
   final List<RenamePreview> previews;
@@ -27,9 +24,7 @@ class PreviewPanel extends StatelessWidget {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(
-                color: colorScheme.outlineVariant,
-              ),
+              border: Border.all(color: colorScheme.outlineVariant),
               borderRadius: BorderRadius.circular(4),
             ),
             child: previews.isEmpty
@@ -60,12 +55,15 @@ class _HeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final renameCount =
-        previews.where((p) => p.status == RenamePreviewStatus.ok).length;
-    final conflictCount =
-        previews.where((p) => p.status == RenamePreviewStatus.conflict).length;
-    final errorCount =
-        previews.where((p) => p.status == RenamePreviewStatus.error).length;
+    final renameCount = previews
+        .where((p) => p.status == RenamePreviewStatus.ok)
+        .length;
+    final conflictCount = previews
+        .where((p) => p.status == RenamePreviewStatus.conflict)
+        .length;
+    final errorCount = previews
+        .where((p) => p.status == RenamePreviewStatus.error)
+        .length;
 
     return Text(
       '$renameCount will be renamed, $conflictCount conflicts, $errorCount errors',
@@ -128,8 +126,9 @@ class _PreviewRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     color: newNameColor,
-                    fontWeight:
-                        willChange ? FontWeight.w500 : FontWeight.normal,
+                    fontWeight: willChange
+                        ? FontWeight.w500
+                        : FontWeight.normal,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -154,9 +153,9 @@ class _StatusIcon extends StatelessWidget {
       RenamePreviewStatus.ok => (Icons.check_circle, Colors.green),
       RenamePreviewStatus.conflict => (Icons.warning, Colors.orange),
       RenamePreviewStatus.error => (
-          Icons.error,
-          Theme.of(context).colorScheme.error,
-        ),
+        Icons.error,
+        Theme.of(context).colorScheme.error,
+      ),
       RenamePreviewStatus.unchanged => (Icons.remove, Colors.grey),
     };
 

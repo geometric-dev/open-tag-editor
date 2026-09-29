@@ -25,10 +25,7 @@ class RenameExecutionResult {
 
 /// Details of a single rename error.
 class RenameError {
-  const RenameError({
-    required this.filePath,
-    required this.message,
-  });
+  const RenameError({required this.filePath, required this.message});
 
   /// Path of the file that failed.
   final String filePath;

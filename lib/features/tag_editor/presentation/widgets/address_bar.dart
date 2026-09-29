@@ -13,10 +13,7 @@ final loadedFolderPathProvider = StateProvider<String?>((ref) => null);
 /// The path is editable — users can paste or type a folder path and press Enter
 /// to load it.
 class AddressBar extends ConsumerStatefulWidget {
-  const AddressBar({
-    super.key,
-    this.onFolderSelected,
-  });
+  const AddressBar({super.key, this.onFolderSelected});
 
   /// Callback when a folder path is submitted (typed/pasted + Enter, or selected
   /// from recent folders).
@@ -114,10 +111,9 @@ class _AddressBarState extends ConsumerState<AddressBar> {
                           fontSize: 12,
                           color: folderPath != null
                               ? null
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.5),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -153,10 +149,7 @@ class _AddressBarState extends ConsumerState<AddressBar> {
               borderRadius: BorderRadius.circular(4),
               onTap: () => ref.read(recursiveLoadingProvider.notifier).toggle(),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

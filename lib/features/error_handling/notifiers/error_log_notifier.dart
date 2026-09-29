@@ -62,10 +62,7 @@ class ErrorLogNotifier extends StateNotifier<ErrorLogState> {
     state = ErrorLogState(
       entries: state.entries.map((e) {
         if (e.id == entryId) {
-          return e.copyWith(
-            errorMessage: newMessage,
-            timestamp: newTimestamp,
-          );
+          return e.copyWith(errorMessage: newMessage, timestamp: newTimestamp);
         }
         return e;
       }).toList(),

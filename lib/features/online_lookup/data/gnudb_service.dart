@@ -48,19 +48,26 @@ class GnuDbService {
       offsets.add(cursor.round());
     }
 
-    return ['1', '${durationsSeconds.length}', ...offsets.map((o) => '$o')]
-        .join('+');
+    return [
+      '1',
+      '${durationsSeconds.length}',
+      ...offsets.map((o) => '$o'),
+    ].join('+');
   }
 
   /// Orders files for TOC purposes: by numeric track-number tag when every
   /// file has one, else by filename (case-insensitive).
   static List<AudioFile> orderForToc(List<AudioFile> files) {
-    final allHaveTrackNumbers = files.isNotEmpty &&
+    final allHaveTrackNumbers =
+        files.isNotEmpty &&
         files.every((f) => int.tryParse(f.tags['trackNumber'] ?? '') != null);
     final sorted = List<AudioFile>.from(files);
     if (allHaveTrackNumbers) {
-      sorted.sort((a, b) => int.parse(a.tags['trackNumber']!)
-          .compareTo(int.parse(b.tags['trackNumber']!)));
+      sorted.sort(
+        (a, b) => int.parse(
+          a.tags['trackNumber']!,
+        ).compareTo(int.parse(b.tags['trackNumber']!)),
+      );
     } else {
       sorted.sort(
         (a, b) => a.filename.toLowerCase().compareTo(b.filename.toLowerCase()),
@@ -76,8 +83,9 @@ class GnuDbService {
   /// second round trip.
   Future<GnuDbLookupResult> lookupByFiles(List<AudioFile> files) async {
     final ordered = orderForToc(files);
-    final durations =
-        ordered.map((f) => f.duration ?? 0.0).toList(growable: false);
+    final durations = ordered
+        .map((f) => f.duration ?? 0.0)
+        .toList(growable: false);
     final hasAllDurations = ordered.every((f) => f.duration != null);
     if (!hasAllDurations || durations.length < 2) {
       throw LookupServiceException(
@@ -87,12 +95,9 @@ class GnuDbService {
     }
 
     final toc = buildToc(durations);
-    final url = Uri.parse('$_baseUrl/cdlookup').replace(
-      queryParameters: {
-        'toc': toc,
-        'client': 'opentageditor+0.2.0',
-      },
-    );
+    final url = Uri.parse(
+      '$_baseUrl/cdlookup',
+    ).replace(queryParameters: {'toc': toc, 'client': 'opentageditor+0.2.0'});
 
     final response = await rateLimiter.get(url, headers: _headers);
     if (response.statusCode != 200) {

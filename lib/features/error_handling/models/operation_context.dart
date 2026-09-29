@@ -13,10 +13,7 @@ class ReadOperationContext extends OperationContext {
 
 /// Context for retrying a failed tag write.
 class WriteOperationContext extends OperationContext {
-  const WriteOperationContext({
-    required this.filePath,
-    required this.tags,
-  });
+  const WriteOperationContext({required this.filePath, required this.tags});
 
   /// Path to the file that failed to write.
   final String filePath;

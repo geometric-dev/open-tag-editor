@@ -5,13 +5,13 @@ import 'package:open_tag_editor/features/tools/data/tag_transform_command.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 AudioFile file(String path, Map<String, String> tags) => AudioFile(
-      path: path,
-      filename: path.split('/').last,
-      extension: '.mp3',
-      fileSize: 1,
-      tags: tags,
-      originalTags: Map.unmodifiable(tags),
-    );
+  path: path,
+  filename: path.split('/').last,
+  extension: '.mp3',
+  fileSize: 1,
+  tags: tags,
+  originalTags: Map.unmodifiable(tags),
+);
 
 void main() {
   group('artist transforms', () {
@@ -37,8 +37,11 @@ void main() {
     test('applyTool produces delta only for changed fields', () {
       final delta = applyTool(
         TagTool.artistTheToComma,
-        file('/a.mp3',
-            {'artist': 'The Who', 'albumArtist': 'Who', 'title': 'X'}),
+        file('/a.mp3', {
+          'artist': 'The Who',
+          'albumArtist': 'Who',
+          'title': 'X',
+        }),
       );
       expect(delta, {'artist': 'Who, The'});
       // albumArtist 'Who' has no article -> unchanged -> not in delta.
@@ -106,9 +109,7 @@ void main() {
         deltas: {
           '/x.mp3': {'artist': 'Now'},
         },
-        previousTags: {
-          '/x.mp3': Map.of(original),
-        },
+        previousTags: {'/x.mp3': Map.of(original)},
         description: 'test',
       )..execute();
       expect(notifier.currentFiles.single.isModified, isTrue);

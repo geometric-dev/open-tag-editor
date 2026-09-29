@@ -112,9 +112,7 @@ class RetryService {
       case LookupOperationContext():
         // Unreachable: retryAll/retrySingle filter non-retryable entries
         // via ErrorEntry.isRetryable before dispatching.
-        throw UnsupportedError(
-          'Online lookup failures cannot be auto-retried',
-        );
+        throw UnsupportedError('Online lookup failures cannot be auto-retried');
     }
   }
 }

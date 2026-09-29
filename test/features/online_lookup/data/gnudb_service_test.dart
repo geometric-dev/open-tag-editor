@@ -10,9 +10,7 @@ AudioFile track(String name, {double? duration, String? trackNumber}) {
     extension: '.mp3',
     fileSize: 1,
     duration: duration,
-    tags: {
-      if (trackNumber != null) 'trackNumber': trackNumber,
-    },
+    tags: {'trackNumber': ?trackNumber},
   );
 }
 
@@ -51,10 +49,11 @@ void main() {
         track('01 - Alpha.mp3'), // no number
         track('03 - Gamma.mp3', trackNumber: 'x'),
       ]);
-      expect(
-        ordered.map((f) => f.filename).toList(),
-        ['01 - Alpha.mp3', '02 - Beta.mp3', '03 - Gamma.mp3'],
-      );
+      expect(ordered.map((f) => f.filename).toList(), [
+        '01 - Alpha.mp3',
+        '02 - Beta.mp3',
+        '03 - Gamma.mp3',
+      ]);
     });
   });
 

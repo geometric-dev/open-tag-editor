@@ -72,8 +72,9 @@ class FormatUtils {
     for (var i = 1; i < directories.length; i++) {
       final otherParts = p.split(directories[i]);
       var matchLength = 0;
-      final maxCheck =
-          commonLength < otherParts.length ? commonLength : otherParts.length;
+      final maxCheck = commonLength < otherParts.length
+          ? commonLength
+          : otherParts.length;
       for (var j = 0; j < maxCheck; j++) {
         if (parts[j] == otherParts[j]) {
           matchLength++;

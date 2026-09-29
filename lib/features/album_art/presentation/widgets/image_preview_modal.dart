@@ -48,10 +48,7 @@ class ImagePreviewModal extends StatelessWidget {
                   onTap: () {}, // Prevent closing when tapping the image
                   child: InteractiveViewer(
                     maxScale: 5.0,
-                    child: Image.memory(
-                      albumArt.bytes,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.memory(albumArt.bytes, fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -67,10 +64,7 @@ class ImagePreviewModal extends StatelessWidget {
                 ),
                 child: Text(
                   '${albumArt.mimeType} • ${(albumArt.bytes.length / 1024).toStringAsFixed(0)} KB',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ),
             ],

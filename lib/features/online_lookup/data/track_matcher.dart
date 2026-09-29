@@ -62,19 +62,23 @@ class TrackMatcher {
     required TrackInfo track,
   }) {
     // 1. Track number signal (0.0 or 1.0)
-    final extractedTrackNumber =
-        FilenameParser.extractTrackNumber(file.filename);
+    final extractedTrackNumber = FilenameParser.extractTrackNumber(
+      file.filename,
+    );
     final trackNumberSignal =
         (extractedTrackNumber != null && extractedTrackNumber == track.position)
-            ? 1.0
-            : 0.0;
+        ? 1.0
+        : 0.0;
 
     // 2. Title signal (0.0–1.0)
     final extractedTitle = FilenameParser.extractTitle(file.filename);
-    final rawTitleSimilarity =
-        FuzzyMatcher.similarity(extractedTitle, track.title);
-    final titleSignal =
-        rawTitleSimilarity < minTitleSimilarity ? 0.0 : rawTitleSimilarity;
+    final rawTitleSimilarity = FuzzyMatcher.similarity(
+      extractedTitle,
+      track.title,
+    );
+    final titleSignal = rawTitleSimilarity < minTitleSimilarity
+        ? 0.0
+        : rawTitleSimilarity;
 
     // 3. Duration signal (0.0–1.0)
     final double durationSignal;
@@ -113,16 +117,13 @@ class TrackMatcher {
         return a.filename.compareTo(b.filename);
       });
 
-    return List.generate(
-      tracks.length,
-      (i) {
-        return TrackFileMatch(
-          track: tracks[i],
-          file: sortedFiles[i],
-          confidence: MatchConfidence.exact,
-        );
-      },
-    );
+    return List.generate(tracks.length, (i) {
+      return TrackFileMatch(
+        track: tracks[i],
+        file: sortedFiles[i],
+        confidence: MatchConfidence.exact,
+      );
+    });
   }
 
   /// Matches tracks to files using the Hungarian algorithm to find the

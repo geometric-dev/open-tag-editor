@@ -63,44 +63,41 @@ void main() {
 
   /// **Validates: matched entries always appear before unmatched entries.**
   group('Property 11: Display ordering invariant', () {
-    test(
-      'all matched entries appear before all unmatched entries in the '
-      'displayed list',
-      () {
-        for (var i = 0; i < 100; i++) {
-          // Generate 2–20 entries in random order.
-          final entryCount = 2 + random.nextInt(19);
-          final entries = List.generate(entryCount, (index) {
-            final isMatched = random.nextBool();
-            return PartialMatchFileEntry(
-              file: randomAudioFile(),
-              matchedTrack: isMatched ? randomTrackInfo(index + 1) : null,
-              confidence: isMatched ? randomConfidence() : null,
-              score: isMatched ? random.nextDouble() : null,
+    test('all matched entries appear before all unmatched entries in the '
+        'displayed list', () {
+      for (var i = 0; i < 100; i++) {
+        // Generate 2–20 entries in random order.
+        final entryCount = 2 + random.nextInt(19);
+        final entries = List.generate(entryCount, (index) {
+          final isMatched = random.nextBool();
+          return PartialMatchFileEntry(
+            file: randomAudioFile(),
+            matchedTrack: isMatched ? randomTrackInfo(index + 1) : null,
+            confidence: isMatched ? randomConfidence() : null,
+            score: isMatched ? random.nextDouble() : null,
+          );
+        });
+
+        // Sort the way the panel does: matched first, unmatched second.
+        final displayed = <PartialMatchFileEntry>[
+          ...entries.where((e) => e.isMatched),
+          ...entries.where((e) => !e.isMatched),
+        ];
+
+        // Verify the invariant: once an unmatched entry appears, no
+        // matched entry follows.
+        var seenUnmatched = false;
+        for (var j = 0; j < displayed.length; j++) {
+          if (!displayed[j].isMatched) {
+            seenUnmatched = true;
+          } else if (seenUnmatched) {
+            fail(
+              'Iteration $i: matched entry at index $j appears after '
+              'unmatched entry. List length: ${displayed.length}',
             );
-          });
-
-          // Sort the way the panel does: matched first, unmatched second.
-          final displayed = <PartialMatchFileEntry>[
-            ...entries.where((e) => e.isMatched),
-            ...entries.where((e) => !e.isMatched),
-          ];
-
-          // Verify the invariant: once an unmatched entry appears, no
-          // matched entry follows.
-          var seenUnmatched = false;
-          for (var j = 0; j < displayed.length; j++) {
-            if (!displayed[j].isMatched) {
-              seenUnmatched = true;
-            } else if (seenUnmatched) {
-              fail(
-                'Iteration $i: matched entry at index $j appears after '
-                'unmatched entry. List length: ${displayed.length}',
-              );
-            }
           }
         }
-      },
-    );
+      }
+    });
   });
 }

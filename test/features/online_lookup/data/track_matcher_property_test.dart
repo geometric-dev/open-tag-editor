@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:open_tag_editor/features/online_lookup/data/track_matcher.dart';
 import 'package:open_tag_editor/features/online_lookup/data/filename_parser.dart';
 import 'package:open_tag_editor/features/online_lookup/data/fuzzy_matcher.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/search_result.dart';
+import 'package:open_tag_editor/features/online_lookup/data/track_matcher.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 /// Property-based tests for TrackMatcher.
@@ -62,8 +62,9 @@ void main() {
 
   /// Generates a short title (≤ 3 characters).
   String randomShortTitle() {
-    return shortTitles.where((t) => t.length <= 3).toList()[
-        random.nextInt(shortTitles.where((t) => t.length <= 3).length)];
+    return shortTitles.where((t) => t.length <= 3).toList()[random.nextInt(
+      shortTitles.where((t) => t.length <= 3).length,
+    )];
   }
 
   /// Generates a random AudioFile with optional track number in filename.
@@ -76,8 +77,9 @@ void main() {
 
     String filename;
     if (withTrackNumber) {
-      final padded =
-          random.nextBool() ? tn.toString().padLeft(2, '0') : tn.toString();
+      final padded = random.nextBool()
+          ? tn.toString().padLeft(2, '0')
+          : tn.toString();
       filename = '$padded$sep$title$ext';
     } else {
       filename = '$title$ext';
@@ -111,93 +113,91 @@ void main() {
 
   /// **Validates: Requirements 2.3, 2.4**
   group('Property 4: Title signal attenuation', () {
-    test(
-      'short titles (≤3 chars) use half the normal title weight',
-      () {
-        for (var i = 0; i < 100; i++) {
-          final shortTitle = randomShortTitle();
-          final track = randomTrackInfo(title: shortTitle, position: 99);
+    test('short titles (≤3 chars) use half the normal title weight', () {
+      for (var i = 0; i < 100; i++) {
+        final shortTitle = randomShortTitle();
+        final track = randomTrackInfo(title: shortTitle, position: 99);
 
-          // Create a file with no track number match and no duration match
-          // so we can isolate the title signal.
-          final file = AudioFile(
-            path: 'C:\\Music\\$shortTitle.mp3',
-            filename: '$shortTitle.mp3',
-            extension: '.mp3',
-            fileSize: 1024,
-            duration: null, // No duration → duration signal = 0
-          );
+        // Create a file with no track number match and no duration match
+        // so we can isolate the title signal.
+        final file = AudioFile(
+          path: 'C:\\Music\\$shortTitle.mp3',
+          filename: '$shortTitle.mp3',
+          extension: '.mp3',
+          fileSize: 1024,
+          duration: null, // No duration → duration signal = 0
+        );
 
-          final score = TrackMatcher.computeScore(file: file, track: track);
+        final score = TrackMatcher.computeScore(file: file, track: track);
 
-          // Compute expected: trackNumber signal = 0 (no leading digits),
-          // title signal = similarity between extracted title and track title,
-          // duration signal = 0 (null duration).
-          final extractedTitle = FilenameParser.extractTitle(file.filename);
-          final rawSimilarity =
-              FuzzyMatcher.similarity(extractedTitle, track.title);
-          final titleSignal = rawSimilarity < TrackMatcher.minTitleSimilarity
-              ? 0.0
-              : rawSimilarity;
+        // Compute expected: trackNumber signal = 0 (no leading digits),
+        // title signal = similarity between extracted title and track title,
+        // duration signal = 0 (null duration).
+        final extractedTitle = FilenameParser.extractTitle(file.filename);
+        final rawSimilarity = FuzzyMatcher.similarity(
+          extractedTitle,
+          track.title,
+        );
+        final titleSignal = rawSimilarity < TrackMatcher.minTitleSimilarity
+            ? 0.0
+            : rawSimilarity;
 
-          // Effective title weight is halved for short titles.
-          final effectiveTitleWeight = TrackMatcher.titleWeight * 0.5;
-          final expectedScore = effectiveTitleWeight * titleSignal;
+        // Effective title weight is halved for short titles.
+        const effectiveTitleWeight = TrackMatcher.titleWeight * 0.5;
+        final expectedScore = effectiveTitleWeight * titleSignal;
 
-          expect(
-            score,
-            closeTo(expectedScore, 1e-10),
-            reason: 'Short title "$shortTitle" should use half title weight '
-                '(iteration $i)',
-          );
+        expect(
+          score,
+          closeTo(expectedScore, 1e-10),
+          reason:
+              'Short title "$shortTitle" should use half title weight '
+              '(iteration $i)',
+        );
+      }
+    });
+
+    test('title similarity below minTitleSimilarity contributes zero', () {
+      for (var i = 0; i < 100; i++) {
+        // Create a file and track with very different titles to ensure
+        // similarity < 0.4.
+        final fileTitle = 'ZZZZQQQQ${random.nextInt(9999)}';
+        final trackTitle = 'Completely Different Title ${random.nextInt(9999)}';
+
+        final file = AudioFile(
+          path: 'C:\\Music\\$fileTitle.mp3',
+          filename: '$fileTitle.mp3',
+          extension: '.mp3',
+          fileSize: 1024,
+          duration: null, // No duration → duration signal = 0
+        );
+
+        final track = randomTrackInfo(title: trackTitle, position: 99);
+
+        // Verify the similarity is indeed below threshold.
+        final extractedTitle = FilenameParser.extractTitle(file.filename);
+        final rawSimilarity = FuzzyMatcher.similarity(
+          extractedTitle,
+          track.title,
+        );
+
+        if (rawSimilarity >= TrackMatcher.minTitleSimilarity) {
+          // Skip this iteration if by chance similarity is above threshold.
+          continue;
         }
-      },
-    );
 
-    test(
-      'title similarity below minTitleSimilarity contributes zero',
-      () {
-        for (var i = 0; i < 100; i++) {
-          // Create a file and track with very different titles to ensure
-          // similarity < 0.4.
-          final fileTitle = 'ZZZZQQQQ${random.nextInt(9999)}';
-          final trackTitle =
-              'Completely Different Title ${random.nextInt(9999)}';
+        final score = TrackMatcher.computeScore(file: file, track: track);
 
-          final file = AudioFile(
-            path: 'C:\\Music\\$fileTitle.mp3',
-            filename: '$fileTitle.mp3',
-            extension: '.mp3',
-            fileSize: 1024,
-            duration: null, // No duration → duration signal = 0
-          );
-
-          final track = randomTrackInfo(title: trackTitle, position: 99);
-
-          // Verify the similarity is indeed below threshold.
-          final extractedTitle = FilenameParser.extractTitle(file.filename);
-          final rawSimilarity =
-              FuzzyMatcher.similarity(extractedTitle, track.title);
-
-          if (rawSimilarity >= TrackMatcher.minTitleSimilarity) {
-            // Skip this iteration if by chance similarity is above threshold.
-            continue;
-          }
-
-          final score = TrackMatcher.computeScore(file: file, track: track);
-
-          // With no track number match, no duration, and title below threshold,
-          // the score should be 0.0.
-          expect(
-            score,
-            equals(0.0),
-            reason:
-                'Title similarity $rawSimilarity < ${TrackMatcher.minTitleSimilarity} '
-                'should contribute zero to score (iteration $i)',
-          );
-        }
-      },
-    );
+        // With no track number match, no duration, and title below threshold,
+        // the score should be 0.0.
+        expect(
+          score,
+          equals(0.0),
+          reason:
+              'Title similarity $rawSimilarity < ${TrackMatcher.minTitleSimilarity} '
+              'should contribute zero to score (iteration $i)',
+        );
+      }
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -207,91 +207,85 @@ void main() {
 
   /// **Validates: Requirements 1.2, 1.3, 1.4**
   group('Property 5: Score validity and weighted composition', () {
-    test(
-      'computeScore returns value in [0.0, 1.0]',
-      () {
-        for (var i = 0; i < 150; i++) {
-          final file = randomAudioFile(
-            withTrackNumber: random.nextBool(),
-          );
-          final track = randomTrackInfo();
+    test('computeScore returns value in [0.0, 1.0]', () {
+      for (var i = 0; i < 150; i++) {
+        final file = randomAudioFile(withTrackNumber: random.nextBool());
+        final track = randomTrackInfo();
 
-          final score = TrackMatcher.computeScore(file: file, track: track);
+        final score = TrackMatcher.computeScore(file: file, track: track);
 
-          expect(
-            score,
-            greaterThanOrEqualTo(0.0),
-            reason: 'Score should be >= 0.0 (iteration $i, score=$score)',
-          );
-          expect(
-            score,
-            lessThanOrEqualTo(1.0),
-            reason: 'Score should be <= 1.0 (iteration $i, score=$score)',
-          );
+        expect(
+          score,
+          greaterThanOrEqualTo(0.0),
+          reason: 'Score should be >= 0.0 (iteration $i, score=$score)',
+        );
+        expect(
+          score,
+          lessThanOrEqualTo(1.0),
+          reason: 'Score should be <= 1.0 (iteration $i, score=$score)',
+        );
+      }
+    });
+
+    test('computeScore equals the weighted formula', () {
+      for (var i = 0; i < 150; i++) {
+        final file = randomAudioFile(withTrackNumber: random.nextBool());
+        final track = randomTrackInfo();
+
+        final score = TrackMatcher.computeScore(file: file, track: track);
+
+        // Recompute each signal independently.
+        final extractedTrackNumber = FilenameParser.extractTrackNumber(
+          file.filename,
+        );
+        final trackNumberSignal =
+            (extractedTrackNumber != null &&
+                extractedTrackNumber == track.position)
+            ? 1.0
+            : 0.0;
+
+        final extractedTitle = FilenameParser.extractTitle(file.filename);
+        final rawTitleSimilarity = FuzzyMatcher.similarity(
+          extractedTitle,
+          track.title,
+        );
+        final titleSignal = rawTitleSimilarity < TrackMatcher.minTitleSimilarity
+            ? 0.0
+            : rawTitleSimilarity;
+
+        final double durationSignal;
+        final fileDurationMs = ((file.duration ?? 0) * 1000).round();
+        if (file.duration == null || track.durationMs == null) {
+          durationSignal = 0.0;
+        } else {
+          final diffMs = (fileDurationMs - track.durationMs!).abs();
+          durationSignal = (1.0 - (diffMs / TrackMatcher.durationToleranceMs))
+              .clamp(0.0, 1.0);
         }
-      },
-    );
 
-    test(
-      'computeScore equals the weighted formula',
-      () {
-        for (var i = 0; i < 150; i++) {
-          final file = randomAudioFile(
-            withTrackNumber: random.nextBool(),
-          );
-          final track = randomTrackInfo();
+        final effectiveTitleWeight =
+            track.title.length <= TrackMatcher.shortTitleLength
+            ? TrackMatcher.titleWeight * 0.5
+            : TrackMatcher.titleWeight;
 
-          final score = TrackMatcher.computeScore(file: file, track: track);
+        final expectedScore =
+            (TrackMatcher.trackNumberWeight * trackNumberSignal) +
+            (effectiveTitleWeight * titleSignal) +
+            (TrackMatcher.durationWeight * durationSignal);
 
-          // Recompute each signal independently.
-          final extractedTrackNumber =
-              FilenameParser.extractTrackNumber(file.filename);
-          final trackNumberSignal = (extractedTrackNumber != null &&
-                  extractedTrackNumber == track.position)
-              ? 1.0
-              : 0.0;
-
-          final extractedTitle = FilenameParser.extractTitle(file.filename);
-          final rawTitleSimilarity =
-              FuzzyMatcher.similarity(extractedTitle, track.title);
-          final titleSignal =
-              rawTitleSimilarity < TrackMatcher.minTitleSimilarity
-                  ? 0.0
-                  : rawTitleSimilarity;
-
-          final double durationSignal;
-          final fileDurationMs = ((file.duration ?? 0) * 1000).round();
-          if (file.duration == null || track.durationMs == null) {
-            durationSignal = 0.0;
-          } else {
-            final diffMs = (fileDurationMs - track.durationMs!).abs();
-            durationSignal = (1.0 - (diffMs / TrackMatcher.durationToleranceMs))
-                .clamp(0.0, 1.0);
-          }
-
-          final effectiveTitleWeight =
-              track.title.length <= TrackMatcher.shortTitleLength
-                  ? TrackMatcher.titleWeight * 0.5
-                  : TrackMatcher.titleWeight;
-
-          final expectedScore =
-              (TrackMatcher.trackNumberWeight * trackNumberSignal) +
-                  (effectiveTitleWeight * titleSignal) +
-                  (TrackMatcher.durationWeight * durationSignal);
-
-          expect(
-            score,
-            closeTo(expectedScore, 1e-10),
-            reason: 'Score $score should equal weighted formula '
-                '$expectedScore (iteration $i)\n'
-                '  trackNumberSignal=$trackNumberSignal, '
-                'titleSignal=$titleSignal, '
-                'durationSignal=$durationSignal, '
-                'effectiveTitleWeight=$effectiveTitleWeight',
-          );
-        }
-      },
-    );
+        expect(
+          score,
+          closeTo(expectedScore, 1e-10),
+          reason:
+              'Score $score should equal weighted formula '
+              '$expectedScore (iteration $i)\n'
+              '  trackNumberSignal=$trackNumberSignal, '
+              'titleSignal=$titleSignal, '
+              'durationSignal=$durationSignal, '
+              'effectiveTitleWeight=$effectiveTitleWeight',
+        );
+      }
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -344,10 +338,7 @@ void main() {
           );
 
           // Get the autoMatch result (score-based since files > tracks).
-          final result = TrackMatcher.autoMatch(
-            tracks: tracks,
-            files: files,
-          );
+          final result = TrackMatcher.autoMatch(tracks: tracks, files: files);
 
           // Compute total score from autoMatch.
           final autoMatchTotalScore = result.fold<double>(
@@ -370,7 +361,8 @@ void main() {
             expect(
               autoMatchTotalScore,
               greaterThanOrEqualTo(assignmentScore - 1e-9),
-              reason: 'autoMatch total score ($autoMatchTotalScore) should be '
+              reason:
+                  'autoMatch total score ($autoMatchTotalScore) should be '
                   '>= alternative assignment score ($assignmentScore) '
                   '(iteration $i, assignment=$assignment)',
             );

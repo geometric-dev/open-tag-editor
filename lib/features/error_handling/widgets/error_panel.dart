@@ -86,8 +86,10 @@ class ErrorPanel extends ConsumerWidget {
             onPressed: isRetrying || !entries.any((e) => e.isRetryable)
                 ? null
                 : () => ref.read(retryServiceProvider).retryAll(),
-            child:
-                const Text('Retry All Failed', style: TextStyle(fontSize: 11)),
+            child: const Text(
+              'Retry All Failed',
+              style: TextStyle(fontSize: 11),
+            ),
           ),
           TextButton(
             onPressed: entries.isEmpty
@@ -103,10 +105,7 @@ class ErrorPanel extends ConsumerWidget {
 
 /// A single row in the error panel displaying one [ErrorEntry].
 class _ErrorRow extends ConsumerWidget {
-  const _ErrorRow({
-    required this.entry,
-    required this.isRetrying,
-  });
+  const _ErrorRow({required this.entry, required this.isRetrying});
 
   /// The error entry to display.
   final ErrorEntry entry;
@@ -133,10 +132,7 @@ class _ErrorRow extends ConsumerWidget {
             width: 160,
             child: Text(
               entry.fileName,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -159,10 +155,7 @@ class _ErrorRow extends ConsumerWidget {
           // Timestamp (HH:mm:ss)
           Text(
             _formatTimestamp(entry.timestamp),
-            style: TextStyle(
-              fontSize: 11,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 4),
           // Retry button (hidden for informational entries like online
@@ -171,10 +164,7 @@ class _ErrorRow extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.refresh, size: 16),
               iconSize: 16,
-              constraints: const BoxConstraints(
-                minWidth: 28,
-                minHeight: 28,
-              ),
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               padding: EdgeInsets.zero,
               onPressed: isRetrying
                   ? null
@@ -214,10 +204,7 @@ class _OperationChip extends StatelessWidget {
       ),
       child: Text(
         operationType.name,
-        style: TextStyle(
-          fontSize: 10,
-          color: colorScheme.onSecondaryContainer,
-        ),
+        style: TextStyle(fontSize: 10, color: colorScheme.onSecondaryContainer),
       ),
     );
   }

@@ -38,10 +38,10 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
   }
 
   TagWriteOptions writeOptions() => TagWriteOptions(
-        id3v2Version: ref.read(tagWritingSettingsProvider).id3v2Version,
-        writeId3v1: ref.read(tagWritingSettingsProvider).writeId3v1,
-        encoding: ref.read(tagWritingSettingsProvider).encoding,
-      );
+    id3v2Version: ref.read(tagWritingSettingsProvider).id3v2Version,
+    writeId3v1: ref.read(tagWritingSettingsProvider).writeId3v1,
+    encoding: ref.read(tagWritingSettingsProvider).encoding,
+  );
 
   return IsolateTagWriterService(
     getSnapshot: () => TagWriteSettingsSnapshot(

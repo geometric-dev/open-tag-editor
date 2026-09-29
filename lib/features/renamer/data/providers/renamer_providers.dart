@@ -9,8 +9,9 @@ import '../preset_notifier.dart';
 import '../renamer_state_notifier.dart';
 
 /// Provider for the preset notifier.
-final presetProvider =
-    StateNotifierProvider<PresetNotifier, List<MaskPreset>>((ref) {
+final presetProvider = StateNotifierProvider<PresetNotifier, List<MaskPreset>>((
+  ref,
+) {
   return PresetNotifier();
 });
 
@@ -19,21 +20,19 @@ final presetProvider =
 /// This provider depends on the current file list and selection state.
 /// Uses selected files if any are selected, otherwise uses all files.
 final renamerStateProvider =
-    StateNotifierProvider.autoDispose<RenamerStateNotifier, RenamerState>(
-        (ref) {
-  final allFiles = ref.watch(fileListProvider);
-  final selection = ref.watch(selectionProvider);
-  final undoRedo = ref.read(undoRedoProvider.notifier);
+    StateNotifierProvider.autoDispose<RenamerStateNotifier, RenamerState>((
+      ref,
+    ) {
+      final allFiles = ref.watch(fileListProvider);
+      final selection = ref.watch(selectionProvider);
+      final undoRedo = ref.read(undoRedoProvider.notifier);
 
-  // Use selected files if any are selected, otherwise use all files.
-  final files = selection.selectedPaths.isEmpty
-      ? allFiles
-      : allFiles
-          .where((f) => selection.selectedPaths.contains(f.path))
-          .toList();
+      // Use selected files if any are selected, otherwise use all files.
+      final files = selection.selectedPaths.isEmpty
+          ? allFiles
+          : allFiles
+                .where((f) => selection.selectedPaths.contains(f.path))
+                .toList();
 
-  return RenamerStateNotifier(
-    files: files,
-    undoRedoManager: undoRedo,
-  );
-});
+      return RenamerStateNotifier(files: files, undoRedoManager: undoRedo);
+    });

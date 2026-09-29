@@ -98,11 +98,12 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
 
   Future<void> _apply() async {
     if (widget.isPartialMatch) {
-      final result =
-          await ref.read(lookupStateProvider.notifier).applyPartialMetadata(
-                selectedFields: _selectedFields,
-                applyCoverArt: _applyCoverArt && widget.coverArt != null,
-              );
+      final result = await ref
+          .read(lookupStateProvider.notifier)
+          .applyPartialMetadata(
+            selectedFields: _selectedFields,
+            applyCoverArt: _applyCoverArt && widget.coverArt != null,
+          );
 
       if (mounted) {
         setState(() {
@@ -111,7 +112,9 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
         });
       }
     } else {
-      final result = await ref.read(lookupStateProvider.notifier).applyMetadata(
+      final result = await ref
+          .read(lookupStateProvider.notifier)
+          .applyMetadata(
             selectedFields: _selectedFields,
             applyCoverArt: _applyCoverArt && widget.coverArt != null,
           );
@@ -418,10 +421,9 @@ class _PartialMatchFileTile extends StatelessWidget {
       child: Card(
         color: isMatched
             ? null
-            : Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.5),
+            : Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Row(
@@ -457,18 +459,18 @@ class _PartialMatchFileTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .secondaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               'Album info only',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
                               ),
                             ),
                           ),
@@ -538,8 +540,11 @@ class _ConfidenceBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style:
-            TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -703,10 +708,7 @@ class _FieldChip extends StatelessWidget {
 
 /// Full-match preview tile (unchanged from original).
 class _MatchPreviewTile extends StatelessWidget {
-  const _MatchPreviewTile({
-    required this.match,
-    required this.selectedFields,
-  });
+  const _MatchPreviewTile({required this.match, required this.selectedFields});
 
   final TrackFileMatch match;
   final Set<String> selectedFields;
@@ -786,10 +788,9 @@ class _FieldPreview extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontStyle: FontStyle.italic,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             )
           else if (changed) ...[
@@ -798,10 +799,9 @@ class _FieldPreview extends StatelessWidget {
                 current.isEmpty ? '(empty)' : current,
                 style: TextStyle(
                   fontSize: 10,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
                   decoration: TextDecoration.lineThrough,
                 ),
                 overflow: TextOverflow.ellipsis,

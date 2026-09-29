@@ -48,7 +48,8 @@ void main() {
           expect(
             items.length,
             equals(values.length + 1),
-            reason: 'Expected ${values.length + 1} items '
+            reason:
+                'Expected ${values.length + 1} items '
                 '(${values.length} values + 1 blank) but got ${items.length} '
                 '(iteration $i)',
           );
@@ -58,7 +59,8 @@ void main() {
           expect(
             lastItem.value,
             equals(''),
-            reason: 'Last item must be the blank option with empty string '
+            reason:
+                'Last item must be the blank option with empty string '
                 'value, but got "${lastItem.value}" (iteration $i)',
           );
 
@@ -68,7 +70,8 @@ void main() {
             expect(
               item.value,
               equals(values[j]),
-              reason: 'Item at index $j should have value "${values[j]}" '
+              reason:
+                  'Item at index $j should have value "${values[j]}" '
                   'but got "${item.value}" (iteration $i)',
             );
           }

@@ -6,8 +6,8 @@ import 'preset_storage.dart';
 /// Manages mask preset persistence and selection.
 class PresetNotifier extends StateNotifier<List<MaskPreset>> {
   PresetNotifier({PresetStorage? storage})
-      : _storage = storage ?? PresetStorage(),
-        super(_defaultPresets) {
+    : _storage = storage ?? PresetStorage(),
+      super(_defaultPresets) {
     _loadUserPresets();
   }
 

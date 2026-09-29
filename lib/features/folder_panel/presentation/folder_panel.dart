@@ -47,10 +47,10 @@ class FolderPanel extends ConsumerWidget {
                     itemCount: bookmarks.length,
                     padding: EdgeInsets.zero,
                     buildDefaultDragHandles: false,
-                    onReorder: (oldIndex, newIndex) {
+                    onReorderItem: (oldIndex, newIndex) {
                       ref
                           .read(bookmarksProvider.notifier)
-                          .reorder(oldIndex, newIndex);
+                          .moveTo(oldIndex, newIndex);
                     },
                     itemBuilder: (context, index) {
                       final entry = bookmarks[index];
@@ -114,9 +114,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -135,8 +135,8 @@ class _EmptyPlaceholder extends StatelessWidget {
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -208,22 +208,22 @@ class _BookmarkTileState extends State<_BookmarkTile> {
                     Text(
                       widget.entry.name,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isInvalid
-                                ? colorScheme.error
-                                : colorScheme.onSurface,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: isInvalid
+                            ? colorScheme.error
+                            : colorScheme.onSurface,
+                      ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
                     Text(
                       widget.entry.path,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 11,
-                            color: isInvalid
-                                ? colorScheme.error.withValues(alpha: 0.7)
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                        fontSize: 11,
+                        color: isInvalid
+                            ? colorScheme.error.withValues(alpha: 0.7)
+                            : colorScheme.onSurfaceVariant,
+                      ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -351,22 +351,22 @@ class _RecentFolderTileState extends State<_RecentFolderTile> {
                     Text(
                       folderName.isEmpty ? widget.path : folderName,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isInvalid
-                                ? colorScheme.error
-                                : colorScheme.onSurface,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: isInvalid
+                            ? colorScheme.error
+                            : colorScheme.onSurface,
+                      ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
                     Text(
                       widget.path,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 11,
-                            color: isInvalid
-                                ? colorScheme.error.withValues(alpha: 0.7)
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                        fontSize: 11,
+                        color: isInvalid
+                            ? colorScheme.error.withValues(alpha: 0.7)
+                            : colorScheme.onSurfaceVariant,
+                      ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),

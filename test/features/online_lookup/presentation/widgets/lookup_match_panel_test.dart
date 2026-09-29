@@ -5,19 +5,19 @@ import 'package:open_tag_editor/features/online_lookup/presentation/widgets/look
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 List<TrackInfo> makeTracks(int count) => List.generate(
-      count,
-      (i) => TrackInfo(title: 'Track ${i + 1}', position: i + 1),
-    );
+  count,
+  (i) => TrackInfo(title: 'Track ${i + 1}', position: i + 1),
+);
 
 List<AudioFile> makeFiles(int count) => List.generate(
-      count,
-      (i) => AudioFile(
-        path: '/file$i.mp3',
-        filename: 'file$i.mp3',
-        extension: '.mp3',
-        fileSize: 1024,
-      ),
-    );
+  count,
+  (i) => AudioFile(
+    path: '/file$i.mp3',
+    filename: 'file$i.mp3',
+    extension: '.mp3',
+    fileSize: 1024,
+  ),
+);
 
 void main() {
   group('LookupMatchPanel partial match trigger', () {

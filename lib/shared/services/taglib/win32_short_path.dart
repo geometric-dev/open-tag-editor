@@ -15,11 +15,19 @@ class Win32ShortPath {
 
   static final _kernel32 = DynamicLibrary.open('kernel32.dll');
 
-  static final _getShortPathNameW = _kernel32.lookupFunction<
-      Uint32 Function(Pointer<Utf16> lpszLongPath, Pointer<Utf16> lpszShortPath,
-          Uint32 cchBuffer),
-      int Function(Pointer<Utf16> lpszLongPath, Pointer<Utf16> lpszShortPath,
-          int cchBuffer)>('GetShortPathNameW');
+  static final _getShortPathNameW = _kernel32
+      .lookupFunction<
+        Uint32 Function(
+          Pointer<Utf16> lpszLongPath,
+          Pointer<Utf16> lpszShortPath,
+          Uint32 cchBuffer,
+        ),
+        int Function(
+          Pointer<Utf16> lpszLongPath,
+          Pointer<Utf16> lpszShortPath,
+          int cchBuffer,
+        )
+      >('GetShortPathNameW');
 
   /// Returns the Windows 8.3 short path for [longPath], or `null` if
   /// the conversion fails (e.g., short names are disabled on the volume).

@@ -58,7 +58,8 @@ void main() {
           bytes[1] == 0x44 &&
           bytes[2] == 0x33) {
         // ID3v2 header present
-        final tagSize = ((bytes[6] & 0x7F) << 21) |
+        final tagSize =
+            ((bytes[6] & 0x7F) << 21) |
             ((bytes[7] & 0x7F) << 14) |
             ((bytes[8] & 0x7F) << 7) |
             (bytes[9] & 0x7F);
@@ -346,11 +347,7 @@ void main() {
 
     test('values with only whitespace', () async {
       final path = createTempMp3();
-      final tags = {
-        'title': '   ',
-        'artist': '\t\t',
-        'album': ' \n ',
-      };
+      final tags = {'title': '   ', 'artist': '\t\t', 'album': ' \n '};
 
       await writer.writeTags(path, tags);
       verifyFileIntegrity(path);
@@ -529,10 +526,7 @@ void main() {
 
     test('long strings in FLAC Vorbis Comment', () async {
       final path = createTempFlac();
-      final tags = {
-        'title': 'F' * 10000,
-        'artist': 'G' * 5000,
-      };
+      final tags = {'title': 'F' * 10000, 'artist': 'G' * 5000};
 
       await writer.writeTags(path, tags);
       verifyFileIntegrity(path);
@@ -670,10 +664,7 @@ void main() {
 
     test('MP3 with long tags passes ffprobe validation', () async {
       final path = createTempMp3();
-      final tags = {
-        'title': 'L' * 5000,
-        'artist': 'Long Artist Name ' * 100,
-      };
+      final tags = {'title': 'L' * 5000, 'artist': 'Long Artist Name ' * 100};
 
       await writer.writeTags(path, tags);
       verifyFileIntegrity(path);
@@ -699,10 +690,7 @@ void main() {
 
     test('FLAC with Unicode tags passes ffprobe validation', () async {
       final path = createTempFlac();
-      final tags = {
-        'title': 'FLAC æ±äº¬ ðŸŽµ',
-        'artist': 'Ã‘oÃ±o FLAC',
-      };
+      final tags = {'title': 'FLAC æ±äº¬ ðŸŽµ', 'artist': 'Ã‘oÃ±o FLAC'};
 
       await writer.writeTags(path, tags);
       verifyFileIntegrity(path);
@@ -740,9 +728,7 @@ void main() {
       final path = '${tempDir.path}/corrupt.mp3';
       // Random bytes that are not a valid MP3
       File(path).writeAsBytesSync(
-        Uint8List.fromList(
-          List.generate(1024, (i) => i % 256),
-        ),
+        Uint8List.fromList(List.generate(1024, (i) => i % 256)),
       );
 
       // Should either succeed (writing a new ID3v2 header) or throw cleanly
@@ -796,10 +782,7 @@ void main() {
       final path = createTempMp3();
 
       // Write with all empty (should be no-op or minimal tag)
-      await writer.writeTags(path, {
-        'title': '',
-        'artist': '',
-      });
+      await writer.writeTags(path, {'title': '', 'artist': ''});
       verifyFileIntegrity(path);
 
       // Write full
@@ -811,11 +794,7 @@ void main() {
       verifyFileIntegrity(path);
 
       // Write empty again
-      await writer.writeTags(path, {
-        'title': '',
-        'artist': '',
-        'album': '',
-      });
+      await writer.writeTags(path, {'title': '', 'artist': '', 'album': ''});
       verifyFileIntegrity(path);
     });
 

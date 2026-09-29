@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import '../../../core/undo/undo_redo_manager.dart';
 import '../../../shared/models/audio_file.dart';
 import '../../../shared/services/tag_reader_service.dart';
 import '../../tag_editor/data/providers/file_list_provider.dart';
-import '../../../core/undo/undo_redo_manager.dart';
 import 'album_art_command.dart';
 import 'models/batch_progress.dart';
 

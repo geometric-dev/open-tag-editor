@@ -39,10 +39,7 @@ void main() {
 
       await notifier.delete(5); // Remove 'User Preset 1'
       expect(notifier.state.length, 6);
-      expect(
-        notifier.state.any((p) => p.name == 'User Preset 1'),
-        isFalse,
-      );
+      expect(notifier.state.any((p) => p.name == 'User Preset 1'), isFalse);
     });
 
     test('persists after deletion', () async {

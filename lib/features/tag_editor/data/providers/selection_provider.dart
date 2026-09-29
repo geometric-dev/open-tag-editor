@@ -6,14 +6,15 @@ import '../models/selection_state.dart';
 
 /// Builds a path-to-index map so navigation helpers avoid repeated O(n)
 /// [List.indexOf] scans on large libraries (one pass per operation).
-Map<String, int> buildIndexMap(List<String> orderedPaths) =>
-    {for (var i = 0; i < orderedPaths.length; i++) orderedPaths[i]: i};
+Map<String, int> buildIndexMap(List<String> orderedPaths) => {
+  for (var i = 0; i < orderedPaths.length; i++) orderedPaths[i]: i,
+};
 
 /// Provider for the file selection state.
 final selectionProvider =
     StateNotifierProvider<SelectionNotifier, SelectionState>((ref) {
-  return SelectionNotifier();
-});
+      return SelectionNotifier();
+    });
 
 /// Manages file selection with support for single click, Ctrl+click,
 /// Shift+click range, and select-all operations.
@@ -37,10 +38,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     } else {
       current.add(path);
     }
-    state = SelectionState(
-      selectedPaths: current,
-      anchorPath: path,
-    );
+    state = SelectionState(selectedPaths: current, anchorPath: path);
   }
 
   /// Shift+click: select contiguous range from anchor to target.
@@ -169,8 +167,10 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
       select(orderedPaths.first);
       return;
     }
-    final target =
-        (currentIndex + direction * rows).clamp(0, orderedPaths.length - 1);
+    final target = (currentIndex + direction * rows).clamp(
+      0,
+      orderedPaths.length - 1,
+    );
     select(orderedPaths[target]);
   }
 

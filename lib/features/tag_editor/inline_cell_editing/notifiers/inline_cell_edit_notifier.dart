@@ -16,7 +16,7 @@ import '../utils/column_editability.dart';
 class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
   /// Creates an [InlineCellEditNotifier] with the given [ref].
   InlineCellEditNotifier({required this.ref})
-      : super(const InlineCellEditState());
+    : super(const InlineCellEditState());
 
   /// Riverpod ref for accessing other providers.
   final Ref ref;
@@ -77,17 +77,12 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
   /// [clearFocus] clears the focused cell state (used on focus loss).
   /// Returns true if the edit was applied (value changed), false otherwise.
   bool confirmEdit({bool batchMode = false, bool clearFocus = false}) {
-    return _confirmEditInternal(
-      batchMode: batchMode,
-      clearFocus: clearFocus,
-    );
+    return _confirmEditInternal(batchMode: batchMode, clearFocus: clearFocus);
   }
 
   /// Cancels the current edit, restoring the original value.
   void cancelEdit() {
-    state = InlineCellEditState(
-      focusedCell: state.focusedCell,
-    );
+    state = InlineCellEditState(focusedCell: state.focusedCell);
   }
 
   /// Updates the current text value as the user types.
@@ -110,10 +105,7 @@ class InlineCellEditNotifier extends StateNotifier<InlineCellEditState> {
     if (state.isEditing) {
       _confirmEditInternal();
     }
-    state = InlineCellEditState(
-      focusedCell: cell,
-      showFocusBorder: showBorder,
-    );
+    state = InlineCellEditState(focusedCell: cell, showFocusBorder: showBorder);
   }
 
   /// Clears the focused cell state (removes focus border).

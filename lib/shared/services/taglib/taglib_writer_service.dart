@@ -25,8 +25,8 @@ class TagLibWriterService implements TagWriterService {
     this._validator, {
     required TagWriteOptions Function() getWriteOptions,
     bool Function()? isPreserveTimestampEnabled,
-  })  : _getWriteOptions = getWriteOptions,
-        _isPreserveTimestampEnabled = isPreserveTimestampEnabled;
+  }) : _getWriteOptions = getWriteOptions,
+       _isPreserveTimestampEnabled = isPreserveTimestampEnabled;
 
   final TagLibBindings _bindings;
   final BackupManager _backupManager;
@@ -49,7 +49,8 @@ class TagLibWriterService implements TagWriterService {
 
     // Set the default text encoding for ID3v2 frames before writing.
     // Handle v2.3 + UTF-8 incompatibility by falling back to UTF-16.
-    final encodingByte = (options.id3v2Version.numericVersion == 3 &&
+    final encodingByte =
+        (options.id3v2Version.numericVersion == 3 &&
             options.encoding.id3v2EncodingByte == 3)
         ? 1 // Fall back to UTF-16 for ID3v2.3
         : options.encoding.id3v2EncodingByte;
@@ -240,10 +241,7 @@ class TagLibWriterService implements TagWriterService {
   ///
   /// Handles track/disc number formatting (combining number and total as
   /// "3/12") and clearing properties when the value is empty.
-  void _writeProperties(
-    Pointer<TagLib_File> file,
-    Map<String, String> tags,
-  ) {
+  void _writeProperties(Pointer<TagLib_File> file, Map<String, String> tags) {
     // Process track/disc totals alongside their numbers
     final processedTags = _preprocessTrackDiscFields(tags);
 
@@ -290,8 +288,10 @@ class TagLibWriterService implements TagWriterService {
       final number = result['trackNumber']!;
       final total = result['trackTotal'];
       if (number.isNotEmpty && total != null && total.isNotEmpty) {
-        result['trackNumber'] =
-            TagPropertyMapper.formatTrackNumber(number, total);
+        result['trackNumber'] = TagPropertyMapper.formatTrackNumber(
+          number,
+          total,
+        );
       }
     }
 
@@ -300,8 +300,10 @@ class TagLibWriterService implements TagWriterService {
       final number = result['discNumber']!;
       final total = result['discTotal'];
       if (number.isNotEmpty && total != null && total.isNotEmpty) {
-        result['discNumber'] =
-            TagPropertyMapper.formatTrackNumber(number, total);
+        result['discNumber'] = TagPropertyMapper.formatTrackNumber(
+          number,
+          total,
+        );
       }
     }
 

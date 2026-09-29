@@ -6,9 +6,13 @@ void main() {
 
   group('filterAndSort', () {
     test('excludes hidden folders and sorts case-insensitively', () {
-      final result = resolver.filterAndSort(
-        ['.hidden', 'Bravo', 'alpha', '.git', 'Charlie'],
-      );
+      final result = resolver.filterAndSort([
+        '.hidden',
+        'Bravo',
+        'alpha',
+        '.git',
+        'Charlie',
+      ]);
       expect(result, ['alpha', 'Bravo', 'Charlie']);
     });
 

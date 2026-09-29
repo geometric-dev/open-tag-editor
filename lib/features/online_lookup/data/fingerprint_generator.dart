@@ -32,20 +32,21 @@ class FingerprintGenerator {
     final effectivePath = File(fpcalcPath).existsSync() ? fpcalcPath : 'fpcalc';
 
     try {
-      final result = await Process.run(
-        effectivePath,
-        ['-json', filePath],
-        stdoutEncoding: systemEncoding,
-        stderrEncoding: systemEncoding,
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw FingerprintException(
-            'fpcalc timed out after 10 seconds',
-            filePath,
+      final result =
+          await Process.run(
+            effectivePath,
+            ['-json', filePath],
+            stdoutEncoding: systemEncoding,
+            stderrEncoding: systemEncoding,
+          ).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw FingerprintException(
+                'fpcalc timed out after 10 seconds',
+                filePath,
+              );
+            },
           );
-        },
-      );
 
       if (result.exitCode != 0) {
         throw FingerprintException(

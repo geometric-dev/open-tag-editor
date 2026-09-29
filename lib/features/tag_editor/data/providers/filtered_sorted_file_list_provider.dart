@@ -28,8 +28,9 @@ final filteredSortedFileListProvider = Provider<List<AudioFile>>((ref) {
   final showSelectedOnly = ref.watch(showSelectedOnlyProvider);
   if (showSelectedOnly) {
     final selection = ref.watch(selectionProvider);
-    final filtered =
-        files.where((f) => selection.selectedPaths.contains(f.path)).toList();
+    final filtered = files
+        .where((f) => selection.selectedPaths.contains(f.path))
+        .toList();
     if (filtered.isEmpty && files.isNotEmpty) {
       // Auto-deactivate: would show zero files
       Future.microtask(() {
@@ -78,15 +79,9 @@ int _compareByColumn(AudioFile a, AudioFile b, String columnId) {
     case 'bitrate':
       return (a.bitrate ?? 0).compareTo(b.bitrate ?? 0);
     case 'trackNumber':
-      return _numericCompare(
-        a.tags['trackNumber'],
-        b.tags['trackNumber'],
-      );
+      return _numericCompare(a.tags['trackNumber'], b.tags['trackNumber']);
     case 'discNumber':
-      return _numericCompare(
-        a.tags['discNumber'],
-        b.tags['discNumber'],
-      );
+      return _numericCompare(a.tags['discNumber'], b.tags['discNumber']);
     case 'year':
       return _numericCompare(a.tags['year'], b.tags['year']);
     case 'bpm':

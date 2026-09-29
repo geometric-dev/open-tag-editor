@@ -89,9 +89,7 @@ class ExtractorPreviewPanel extends StatelessWidget {
                 : Column(
                     children: [
                       // Header row
-                      _TableHeader(
-                        variableNames: variableNames,
-                      ),
+                      _TableHeader(variableNames: variableNames),
                       const Divider(height: 1),
                       // Data rows
                       Expanded(
@@ -102,8 +100,9 @@ class ExtractorPreviewPanel extends StatelessWidget {
                             return _PreviewRow(
                               preview: preview,
                               variableMaskNames: variableMaskNames,
-                              isDeselected:
-                                  deselectedFiles.contains(preview.filePath),
+                              isDeselected: deselectedFiles.contains(
+                                preview.filePath,
+                              ),
                               onToggle: () =>
                                   onToggleSelection(preview.filePath),
                             );
@@ -149,8 +148,10 @@ class _TableHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 name,
-                style:
-                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -178,8 +179,9 @@ class _PreviewRow extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isMatched = preview.matched;
 
-    final backgroundColor =
-        isMatched ? null : colorScheme.errorContainer.withValues(alpha: 0.3);
+    final backgroundColor = isMatched
+        ? null
+        : colorScheme.errorContainer.withValues(alpha: 0.3);
 
     return Container(
       color: backgroundColor,
@@ -195,11 +197,7 @@ class _PreviewRow extends StatelessWidget {
                     onChanged: (_) => onToggle(),
                     visualDensity: VisualDensity.compact,
                   )
-                : Icon(
-                    Icons.close,
-                    size: 14,
-                    color: colorScheme.error,
-                  ),
+                : Icon(Icons.close, size: 14, color: colorScheme.error),
           ),
           // Filename
           Expanded(

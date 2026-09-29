@@ -17,9 +17,7 @@ final errorLogProvider = StateNotifierProvider<ErrorLogNotifier, ErrorLogState>(
 ///
 /// Toggled by the status bar error count or the snackbar "View Details"
 /// action. Not reset on folder change so the user can keep it open.
-final errorPanelVisibleProvider = StateProvider<bool>(
-  (ref) => false,
-);
+final errorPanelVisibleProvider = StateProvider<bool>((ref) => false);
 
 /// Derived provider: current error count for the status bar.
 ///
@@ -33,6 +31,4 @@ final errorCountProvider = Provider<int>(
 ///
 /// Set to true while [RetryService] is executing retries. UI buttons
 /// (e.g. "Retry All Failed") watch this to disable themselves.
-final isRetryingProvider = StateProvider<bool>(
-  (ref) => false,
-);
+final isRetryingProvider = StateProvider<bool>((ref) => false);

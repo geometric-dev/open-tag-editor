@@ -91,8 +91,9 @@ class LookupState {
           : selectedResult as SearchResult?,
       trackListing: trackListing ?? this.trackListing,
       matches: matches ?? this.matches,
-      coverArt:
-          coverArt == _sentinel ? this.coverArt : coverArt as CoverArtResult?,
+      coverArt: coverArt == _sentinel
+          ? this.coverArt
+          : coverArt as CoverArtResult?,
       coverArtLoading: coverArtLoading ?? this.coverArtLoading,
       error: error == _sentinel ? this.error : error as String?,
       fingerprintProgress: fingerprintProgress == _sentinel
@@ -132,10 +133,7 @@ enum LookupStatus {
 
 /// Progress of fingerprint generation.
 class FingerprintProgress {
-  const FingerprintProgress({
-    required this.completed,
-    required this.total,
-  });
+  const FingerprintProgress({required this.completed, required this.total});
 
   /// Number of files processed so far.
   final int completed;

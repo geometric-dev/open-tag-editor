@@ -64,7 +64,8 @@ class XlsxWriter {
     return buffer.toString();
   }
 
-  static String get _contentTypes => '<?xml version="1.0" encoding="UTF-8" '
+  static String get _contentTypes =>
+      '<?xml version="1.0" encoding="UTF-8" '
       'standalone="yes"?>'
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/'
       'content-types">'
@@ -78,7 +79,8 @@ class XlsxWriter {
       'worksheet+xml"/>'
       '</Types>';
 
-  static const _rootRels = '<?xml version="1.0" encoding="UTF-8" '
+  static const _rootRels =
+      '<?xml version="1.0" encoding="UTF-8" '
       'standalone="yes"?>'
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/'
       'relationships">'
@@ -87,7 +89,8 @@ class XlsxWriter {
       'Target="xl/workbook.xml"/>'
       '</Relationships>';
 
-  static const _workbook = '<?xml version="1.0" encoding="UTF-8" '
+  static const _workbook =
+      '<?xml version="1.0" encoding="UTF-8" '
       'standalone="yes"?>'
       '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/'
       'main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
@@ -95,7 +98,8 @@ class XlsxWriter {
       '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>'
       '</workbook>';
 
-  static const _workbookRels = '<?xml version="1.0" encoding="UTF-8" '
+  static const _workbookRels =
+      '<?xml version="1.0" encoding="UTF-8" '
       'standalone="yes"?>'
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/'
       'relationships">'

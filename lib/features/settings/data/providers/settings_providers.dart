@@ -12,21 +12,22 @@ import '../notifiers/window_state_notifier.dart';
 /// Provider for general settings.
 final generalSettingsProvider =
     StateNotifierProvider<GeneralSettingsNotifier, GeneralSettings>((ref) {
-  return GeneralSettingsNotifier();
-});
+      return GeneralSettingsNotifier();
+    });
 
 /// Provider for tag-writing settings.
 final tagWritingSettingsProvider =
-    StateNotifierProvider<TagWritingSettingsNotifier, TagWritingSettings>(
-        (ref) {
-  return TagWritingSettingsNotifier();
-});
+    StateNotifierProvider<TagWritingSettingsNotifier, TagWritingSettings>((
+      ref,
+    ) {
+      return TagWritingSettingsNotifier();
+    });
 
 /// Provider for renaming settings.
 final renamingSettingsProvider =
     StateNotifierProvider<RenamingSettingsNotifier, RenamingSettings>((ref) {
-  return RenamingSettingsNotifier();
-});
+      return RenamingSettingsNotifier();
+    });
 
 /// Provider for window state (geometry, tag panel, last folder).
 ///
@@ -34,5 +35,5 @@ final renamingSettingsProvider =
 /// loaded before runApp. The default here is a fallback.
 final windowStateProvider =
     StateNotifierProvider<WindowStateNotifier, WindowState>((ref) {
-  return WindowStateNotifier(WindowState.defaults());
-});
+      return WindowStateNotifier(WindowState.defaults());
+    });

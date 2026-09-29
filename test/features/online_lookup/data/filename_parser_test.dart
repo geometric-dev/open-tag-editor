@@ -37,10 +37,7 @@ void main() {
       });
 
       test('extracts title from "12 - Song Name.flac"', () {
-        expect(
-          FilenameParser.extractTitle('12 - Song Name.flac'),
-          'Song Name',
-        );
+        expect(FilenameParser.extractTitle('12 - Song Name.flac'), 'Song Name');
       });
 
       test('extracts title from "Song Without Number.mp3"', () {

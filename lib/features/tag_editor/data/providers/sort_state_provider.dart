@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../models/sort_state.dart';
 
 /// Provider for the file list sort state.
-final sortStateProvider =
-    StateNotifierProvider<SortStateNotifier, SortState>((ref) {
+final sortStateProvider = StateNotifierProvider<SortStateNotifier, SortState>((
+  ref,
+) {
   return SortStateNotifier();
 });
 
@@ -24,8 +25,10 @@ class SortStateNotifier extends StateNotifier<SortState> {
       state = SortState(columnId: columnId, direction: SortDirection.ascending);
     } else if (state.direction == SortDirection.ascending) {
       // Same column, ascending → descending
-      state =
-          SortState(columnId: columnId, direction: SortDirection.descending);
+      state = SortState(
+        columnId: columnId,
+        direction: SortDirection.descending,
+      );
     } else {
       // Same column, descending → unsorted
       state = const SortState();

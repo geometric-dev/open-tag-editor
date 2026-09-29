@@ -68,10 +68,7 @@ class UndoRedoManager extends StateNotifier<UndoRedoState> {
 
 /// State of the undo/redo manager.
 class UndoRedoState {
-  const UndoRedoState({
-    this.undoStack = const [],
-    this.redoStack = const [],
-  });
+  const UndoRedoState({this.undoStack = const [], this.redoStack = const []});
 
   final List<UndoableCommand> undoStack;
   final List<UndoableCommand> redoStack;
@@ -84,7 +81,8 @@ class UndoRedoState {
 }
 
 /// Provider for the undo/redo manager.
-final undoRedoProvider =
-    StateNotifierProvider<UndoRedoManager, UndoRedoState>((ref) {
+final undoRedoProvider = StateNotifierProvider<UndoRedoManager, UndoRedoState>((
+  ref,
+) {
   return UndoRedoManager();
 });

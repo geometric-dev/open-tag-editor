@@ -22,10 +22,7 @@ class SanitizeResult {
 /// A validation error for a resolved path.
 class ValidationError {
   /// Creates a [ValidationError].
-  const ValidationError({
-    required this.message,
-    required this.type,
-  });
+  const ValidationError({required this.message, required this.type});
 
   /// Human-readable description of the error.
   final String message;
@@ -164,8 +161,9 @@ class FilenameSanitizer {
     // Step 2: Extract filename portion (after last separator).
     final separator = Platform.isWindows ? r'\' : '/';
     final lastSepIndex = fullPath.lastIndexOf(separator);
-    final filename =
-        lastSepIndex == -1 ? fullPath : fullPath.substring(lastSepIndex + 1);
+    final filename = lastSepIndex == -1
+        ? fullPath
+        : fullPath.substring(lastSepIndex + 1);
 
     // Step 4: Check if filename is empty or all whitespace.
     if (filename.isEmpty || filename.trim().isEmpty) {
@@ -180,8 +178,9 @@ class FilenameSanitizer {
 
     // Step 2 (continued): Check for invalid characters.
     if (Platform.isWindows) {
-      final invalidPattern =
-          RegExp('[${RegExp.escape(_windowsInvalidChars)}\\x00-\\x1F]');
+      final invalidPattern = RegExp(
+        '[${RegExp.escape(_windowsInvalidChars)}\\x00-\\x1F]',
+      );
       if (invalidPattern.hasMatch(filename)) {
         errors.add(
           const ValidationError(
@@ -204,8 +203,9 @@ class FilenameSanitizer {
     // Step 3: Check reserved names (Windows only).
     if (Platform.isWindows) {
       final dotIndex = filename.indexOf('.');
-      final baseName =
-          dotIndex == -1 ? filename : filename.substring(0, dotIndex);
+      final baseName = dotIndex == -1
+          ? filename
+          : filename.substring(0, dotIndex);
 
       if (_windowsReservedNames.contains(baseName.toUpperCase())) {
         errors.add(

@@ -1,6 +1,6 @@
-import '../../data/commands/tag_edit_command.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../tag_editor/data/providers/file_list_provider.dart';
+import '../../data/commands/tag_edit_command.dart';
 
 /// Builds a [TagEditCommand] for an inline edit.
 ///

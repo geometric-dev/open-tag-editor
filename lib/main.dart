@@ -39,10 +39,7 @@ Future<void> main() async {
 
 /// Applies the window geometry, clamping to display bounds and handling
 /// off-screen positions.
-Future<void> _applyWindowGeometry(
-  WindowState state,
-  bool hasSavedState,
-) async {
+Future<void> _applyWindowGeometry(WindowState state, bool hasSavedState) async {
   try {
     // Hide window during geometry setup to prevent flash.
     await windowManager.hide();
@@ -68,13 +65,7 @@ Future<void> _applyWindowGeometry(
 
       if (hasSavedState) {
         // Check if the window is off-screen.
-        final isOffScreen = _isPositionOffScreen(
-          x,
-          y,
-          width,
-          height,
-          displays,
-        );
+        final isOffScreen = _isPositionOffScreen(x, y, width, height, displays);
 
         if (isOffScreen) {
           // Center on primary display.

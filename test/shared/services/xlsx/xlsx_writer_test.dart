@@ -39,27 +39,22 @@ void main() {
 
     // CRC at offset 14 (after sig+version+flags+method+time+date) must
     // match the algorithm's output for the payload.
-    final crcOffset = 14;
+    const crcOffset = 14;
     final expectedCrc = crc32(Uint8List.fromList('hi'.codeUnits));
-    final actualCrc = bytes[crcOffset] |
+    final actualCrc =
+        bytes[crcOffset] |
         (bytes[crcOffset + 1] << 8) |
         (bytes[crcOffset + 2] << 16) |
         (bytes[crcOffset + 3] << 24);
     expect(actualCrc, expectedCrc);
 
     // EOCD signature present at the end region.
-    expect(
-      _findBytes(bytes, [0x50, 0x4B, 0x05, 0x06]),
-      greaterThan(-1),
-    );
+    expect(_findBytes(bytes, [0x50, 0x4B, 0x05, 0x06]), greaterThan(-1));
   });
 
   test('crc32 matches known vectors', () {
     expect(crc32(Uint8List(0)), 0);
-    expect(
-      crc32(Uint8List.fromList('123456789'.codeUnits)),
-      0xCBF43926,
-    );
+    expect(crc32(Uint8List.fromList('123456789'.codeUnits)), 0xCBF43926);
   });
 
   test('toXlsx emits workbook with headers, rows and numeric cells', () {
@@ -94,7 +89,7 @@ void main() {
     final out = ExportService.serializeFor(
       'out.xlsx',
       [
-        file({'title': 'X'})
+        file({'title': 'X'}),
       ],
       [(header: 'Title', value: (f) => f.tags['title'] ?? '')],
     );

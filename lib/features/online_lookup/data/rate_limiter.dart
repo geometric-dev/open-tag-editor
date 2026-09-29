@@ -54,8 +54,9 @@ class RateLimiter {
         await Future<void>.delayed(retryAfter);
 
         final retryRequest = _copyRequest(request);
-        response =
-            await _client.send(retryRequest).then(http.Response.fromStream);
+        response = await _client
+            .send(retryRequest)
+            .then(http.Response.fromStream);
       }
 
       return response;

@@ -47,8 +47,9 @@ class PartialMatchFileEntry {
   }) {
     return PartialMatchFileEntry(
       file: file ?? this.file,
-      matchedTrack:
-          clearMatchedTrack ? null : (matchedTrack ?? this.matchedTrack),
+      matchedTrack: clearMatchedTrack
+          ? null
+          : (matchedTrack ?? this.matchedTrack),
       confidence: clearConfidence ? null : (confidence ?? this.confidence),
       score: clearScore ? null : (score ?? this.score),
       isOptedOut: isOptedOut ?? this.isOptedOut,

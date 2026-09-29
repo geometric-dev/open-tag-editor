@@ -87,9 +87,7 @@ class ExportService {
   }) {
     final buffer = StringBuffer();
     if (includeBom) buffer.write('\uFEFF');
-    buffer.writeln(
-      columns.map((c) => _csvField(c.header)).join(','),
-    );
+    buffer.writeln(columns.map((c) => _csvField(c.header)).join(','));
     for (final file in files) {
       buffer.writeln(columns.map((c) => _csvField(c.value(file))).join(','));
     }
@@ -136,10 +134,7 @@ class ExportService {
 
   /// Serializes [files] into a true .xlsx workbook (single sheet,
   /// inline-string cells; numeric-looking values become number cells).
-  static Uint8List toXlsx(
-    List<AudioFile> files,
-    List<ExportColumn> columns,
-  ) {
+  static Uint8List toXlsx(List<AudioFile> files, List<ExportColumn> columns) {
     final writer = XlsxWriter()..addRow([for (final c in columns) c.header]);
     for (final file in files) {
       writer.addRow([for (final c in columns) c.value(file)]);

@@ -66,9 +66,7 @@ final discogsServiceProvider = Provider<DiscogsService?>((ref) {
 
 /// AcoustID service provider.
 final acoustIdServiceProvider = Provider<AcoustIDService>((ref) {
-  return AcoustIDService(
-    rateLimiter: ref.read(generalRateLimiterProvider),
-  );
+  return AcoustIDService(rateLimiter: ref.read(generalRateLimiterProvider));
 });
 
 /// Fingerprint generator provider (null if fpcalc path not configured).
@@ -80,9 +78,7 @@ final fingerprintGeneratorProvider = Provider<FingerprintGenerator?>((ref) {
 
 /// Cover Art Archive service provider.
 final coverArtServiceProvider = Provider<CoverArtService>((ref) {
-  return CoverArtService(
-    rateLimiter: ref.read(generalRateLimiterProvider),
-  );
+  return CoverArtService(rateLimiter: ref.read(generalRateLimiterProvider));
 });
 
 /// Lookup cache provider (session-scoped).

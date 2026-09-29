@@ -21,12 +21,7 @@ List<PopupMenuEntry<String>> buildFillMenuItems({
       selectedCount: selectedCount,
       totalCount: totalCount,
     );
-    items.add(
-      PopupMenuItem<String>(
-        value: value,
-        child: Text(label),
-      ),
-    );
+    items.add(PopupMenuItem<String>(value: value, child: Text(label)));
   }
 
   // Blank option at the end
@@ -36,12 +31,7 @@ List<PopupMenuEntry<String>> buildFillMenuItems({
     totalCount: totalCount,
     isBlank: true,
   );
-  items.add(
-    PopupMenuItem<String>(
-      value: '',
-      child: Text(blankLabel),
-    ),
-  );
+  items.add(PopupMenuItem<String>(value: '', child: Text(blankLabel)));
 
   return items;
 }

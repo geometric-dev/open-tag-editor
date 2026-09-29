@@ -11,24 +11,15 @@
 ///
 /// Example: `%artist% - %album%/%track% - %title%`
 class RenamePattern {
-  const RenamePattern({
-    required this.name,
-    required this.pattern,
-  });
+  const RenamePattern({required this.name, required this.pattern});
 
   final String name;
   final String pattern;
 
   /// Built-in default patterns.
   static const defaults = [
-    RenamePattern(
-      name: 'Artist - Title',
-      pattern: '%artist% - %title%',
-    ),
-    RenamePattern(
-      name: 'Track - Title',
-      pattern: '%track% - %title%',
-    ),
+    RenamePattern(name: 'Artist - Title', pattern: '%artist% - %title%'),
+    RenamePattern(name: 'Track - Title', pattern: '%track% - %title%'),
     RenamePattern(
       name: 'Artist - Album / Track - Title',
       pattern: '%artist% - %album%/%track% - %title%',

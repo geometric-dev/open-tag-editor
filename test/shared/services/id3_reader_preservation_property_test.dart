@@ -103,7 +103,9 @@ String randomAsciiKey(Random random, int length) {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return String.fromCharCodes(
     List.generate(
-        length, (_) => letters.codeUnitAt(random.nextInt(letters.length))),
+      length,
+      (_) => letters.codeUnitAt(random.nextInt(letters.length)),
+    ),
   );
 }
 
@@ -185,7 +187,8 @@ void main() {
           expect(
             audioFile.tags[expectedField],
             equals(value),
-            reason: 'Iteration $i: ASCII Vorbis Comment "$key=$value" should '
+            reason:
+                'Iteration $i: ASCII Vorbis Comment "$key=$value" should '
                 'produce tag {$expectedField: "$value"}',
           );
         }
@@ -262,7 +265,8 @@ void main() {
           expect(
             fromUtf8,
             equals(fromCharCodes),
-            reason: 'Iteration $i: utf8.decode and String.fromCharCodes should '
+            reason:
+                'Iteration $i: utf8.decode and String.fromCharCodes should '
                 'produce identical results for ASCII bytes of length $length',
           );
         }
@@ -306,7 +310,8 @@ void main() {
           expect(
             fromUtf8,
             equals(fromCharCodes),
-            reason: 'Iteration $i: Vorbis Comment format "$commentString" '
+            reason:
+                'Iteration $i: Vorbis Comment format "$commentString" '
                 'should decode identically via both methods',
           );
         }

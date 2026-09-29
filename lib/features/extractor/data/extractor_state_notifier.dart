@@ -28,11 +28,11 @@ class ExtractorStateNotifier extends StateNotifier<ExtractorState> {
     MaskExtractor? extractor,
     PathScopeResolver? scopeResolver,
     ValueTransformer? valueTransformer,
-  })  : _parser = parser ?? MaskParser(),
-        _extractor = extractor ?? const MaskExtractor(),
-        _scopeResolver = scopeResolver ?? const PathScopeResolver(),
-        _valueTransformer = valueTransformer ?? const ValueTransformer(),
-        super(const ExtractorState());
+  }) : _parser = parser ?? MaskParser(),
+       _extractor = extractor ?? const MaskExtractor(),
+       _scopeResolver = scopeResolver ?? const PathScopeResolver(),
+       _valueTransformer = valueTransformer ?? const ValueTransformer(),
+       super(const ExtractorState());
 
   /// The list of audio files to extract tags from.
   final List<AudioFile> files;
@@ -151,8 +151,9 @@ class ExtractorStateNotifier extends StateNotifier<ExtractorState> {
           (f) => f.path == preview.filePath,
           orElse: () => files.first,
         );
-        previousValues[preview.filePath] =
-            Map<String, String>.from(currentFile.tags);
+        previousValues[preview.filePath] = Map<String, String>.from(
+          currentFile.tags,
+        );
       }
 
       // Create and execute the command.

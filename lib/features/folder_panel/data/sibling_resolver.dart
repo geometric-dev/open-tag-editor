@@ -10,11 +10,10 @@ class SiblingResolver {
   /// Filters [directoryNames] to exclude hidden folders (names starting
   /// with a dot) and sorts the result case-insensitively.
   List<String> filterAndSort(List<String> directoryNames) {
-    final visible =
-        directoryNames.where((name) => !name.startsWith('.')).toList();
-    visible.sort(
-      (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
-    );
+    final visible = directoryNames
+        .where((name) => !name.startsWith('.'))
+        .toList();
+    visible.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return visible;
   }
 

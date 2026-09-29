@@ -33,8 +33,7 @@ class MockTagWriterService implements TagWriterService {
   @override
   Future<List<TagWriteResult>> writeTagsBatch(
     Map<String, Map<String, String>> fileTagsMap,
-  ) async =>
-      [];
+  ) async => [];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,12 +41,12 @@ class MockTagWriterService implements TagWriterService {
 // ─────────────────────────────────────────────────────────────────────────────
 
 AudioFile makeFile(int index) => AudioFile(
-      path: 'C:\\Music\\file$index.mp3',
-      filename: 'file$index.mp3',
-      extension: '.mp3',
-      fileSize: 1024,
-      duration: 240.0,
-    );
+  path: 'C:\\Music\\file$index.mp3',
+  filename: 'file$index.mp3',
+  extension: '.mp3',
+  fileSize: 1024,
+  duration: 240.0,
+);
 
 void main() {
   late MockTagWriterService tagWriter;
@@ -164,28 +163,49 @@ void main() {
       // (artist = albumArtist, discNumber, trackTotal).
       for (final file in [allFiles[3], allFiles[4]]) {
         final tags = tagWriter.writtenTags[file.path]!;
-        expect(tags.containsKey('title'), isFalse,
-            reason: '${file.path} should not have title');
-        expect(tags.containsKey('trackNumber'), isFalse,
-            reason: '${file.path} should not have trackNumber');
+        expect(
+          tags.containsKey('title'),
+          isFalse,
+          reason: '${file.path} should not have title',
+        );
+        expect(
+          tags.containsKey('trackNumber'),
+          isFalse,
+          reason: '${file.path} should not have trackNumber',
+        );
         // Artist is album-level (defaults to album artist).
-        expect(tags['artist'], 'Test Artist',
-            reason: '${file.path} should have artist = albumArtist');
+        expect(
+          tags['artist'],
+          'Test Artist',
+          reason: '${file.path} should have artist = albumArtist',
+        );
         // Disc number is album-level.
-        expect(tags.containsKey('discNumber'), isTrue,
-            reason: '${file.path} should have discNumber');
+        expect(
+          tags.containsKey('discNumber'),
+          isTrue,
+          reason: '${file.path} should have discNumber',
+        );
         // Track total is written to all files.
-        expect(tags['trackTotal'], '5',
-            reason: '${file.path} should have trackTotal');
+        expect(
+          tags['trackTotal'],
+          '5',
+          reason: '${file.path} should have trackTotal',
+        );
       }
 
       // Matched files (index 0, 1, 2) SHOULD have track-level fields.
       for (final file in [allFiles[0], allFiles[1], allFiles[2]]) {
         final tags = tagWriter.writtenTags[file.path]!;
-        expect(tags.containsKey('title'), isTrue,
-            reason: '${file.path} should have title');
-        expect(tags.containsKey('trackNumber'), isTrue,
-            reason: '${file.path} should have trackNumber');
+        expect(
+          tags.containsKey('title'),
+          isTrue,
+          reason: '${file.path} should have title',
+        );
+        expect(
+          tags.containsKey('trackNumber'),
+          isTrue,
+          reason: '${file.path} should have trackNumber',
+        );
       }
     });
 
@@ -223,24 +243,37 @@ void main() {
 
       // Opted-out files should have no tag writes.
       for (final path in optedOut) {
-        expect(tagWriter.writtenTags.containsKey(path), isFalse,
-            reason: '$path should have no tag writes');
+        expect(
+          tagWriter.writtenTags.containsKey(path),
+          isFalse,
+          reason: '$path should have no tag writes',
+        );
       }
 
       // Opted-out files should have no cover art writes.
       for (final path in optedOut) {
-        expect(tagWriter.writtenArt.contains(path), isFalse,
-            reason: '$path should have no cover art writes');
+        expect(
+          tagWriter.writtenArt.contains(path),
+          isFalse,
+          reason: '$path should have no cover art writes',
+        );
       }
 
       // Non-opted-out files should still receive writes.
-      final nonOptedOut =
-          allFiles.where((f) => !optedOut.contains(f.path)).toList();
+      final nonOptedOut = allFiles
+          .where((f) => !optedOut.contains(f.path))
+          .toList();
       for (final file in nonOptedOut) {
-        expect(tagWriter.writtenTags.containsKey(file.path), isTrue,
-            reason: '${file.path} should have tag writes');
-        expect(tagWriter.writtenArt.contains(file.path), isTrue,
-            reason: '${file.path} should have cover art writes');
+        expect(
+          tagWriter.writtenTags.containsKey(file.path),
+          isTrue,
+          reason: '${file.path} should have tag writes',
+        );
+        expect(
+          tagWriter.writtenArt.contains(file.path),
+          isTrue,
+          reason: '${file.path} should have cover art writes',
+        );
       }
     });
 
@@ -249,86 +282,90 @@ void main() {
     // Validates: Requirements 9.1, 9.3
     // ─────────────────────────────────────────────────────────────────────
 
-    test('track number uses total file count as denominator in partial mode',
-        () async {
-      // 16 total files, track at position 3.
-      final files16 = List.generate(16, makeFile);
-      final notifier16 = FileListNotifier();
-      notifier16.addFiles(files16);
+    test(
+      'track number uses total file count as denominator in partial mode',
+      () async {
+        // 16 total files, track at position 3.
+        final files16 = List.generate(16, makeFile);
+        final notifier16 = FileListNotifier();
+        notifier16.addFiles(files16);
 
-      final applicator16 = PartialMatchApplicator(
-        tagWriter: tagWriter,
-        fileListNotifier: notifier16,
-      );
+        final applicator16 = PartialMatchApplicator(
+          tagWriter: tagWriter,
+          fileListNotifier: notifier16,
+        );
 
-      final partialMatches = [
-        TrackFileMatch(
-          track: const TrackInfo(
-            title: 'Third Track',
-            position: 3,
-            discNumber: 1,
+        final partialMatches = [
+          TrackFileMatch(
+            track: const TrackInfo(
+              title: 'Third Track',
+              position: 3,
+              discNumber: 1,
+            ),
+            file: files16[2],
+            confidence: MatchConfidence.high,
+            score: 0.9,
           ),
-          file: files16[2],
-          confidence: MatchConfidence.high,
-          score: 0.9,
-        ),
-      ];
+        ];
 
-      // Partial mode: totalFileCount = 16 (all files in selection).
-      await applicator16.apply(
-        matches: partialMatches,
-        allFiles: files16,
-        selectedFields: {'trackNumber', 'album'},
-        optedOutPaths: <String>{},
-        totalFileCount: 16,
-        albumTitle: 'Partial Album',
-      );
+        // Partial mode: totalFileCount = 16 (all files in selection).
+        await applicator16.apply(
+          matches: partialMatches,
+          allFiles: files16,
+          selectedFields: {'trackNumber', 'album'},
+          optedOutPaths: <String>{},
+          totalFileCount: 16,
+          albumTitle: 'Partial Album',
+        );
 
-      // Track at position 3 with 16 total files → "3/16".
-      final tags = tagWriter.writtenTags[files16[2].path]!;
-      expect(tags['trackNumber'], '3/16');
-    });
+        // Track at position 3 with 16 total files → "3/16".
+        final tags = tagWriter.writtenTags[files16[2].path]!;
+        expect(tags['trackNumber'], '3/16');
+      },
+    );
 
-    test('track number uses matched track count as denominator in full mode',
-        () async {
-      // Full mode: 11 tracks, 11 files → totalFileCount = 11.
-      final files11 = List.generate(11, makeFile);
-      final notifier11 = FileListNotifier();
-      notifier11.addFiles(files11);
+    test(
+      'track number uses matched track count as denominator in full mode',
+      () async {
+        // Full mode: 11 tracks, 11 files → totalFileCount = 11.
+        final files11 = List.generate(11, makeFile);
+        final notifier11 = FileListNotifier();
+        notifier11.addFiles(files11);
 
-      // Reset tag writer for clean state.
-      final freshTagWriter = MockTagWriterService();
-      final applicator11 = PartialMatchApplicator(
-        tagWriter: freshTagWriter,
-        fileListNotifier: notifier11,
-      );
+        // Reset tag writer for clean state.
+        final freshTagWriter = MockTagWriterService();
+        final applicator11 = PartialMatchApplicator(
+          tagWriter: freshTagWriter,
+          fileListNotifier: notifier11,
+        );
 
-      final fullMatches = [
-        TrackFileMatch(
-          track: const TrackInfo(
-            title: 'Third Track',
-            position: 3,
-            discNumber: 1,
+        final fullMatches = [
+          TrackFileMatch(
+            track: const TrackInfo(
+              title: 'Third Track',
+              position: 3,
+              discNumber: 1,
+            ),
+            file: files11[2],
+            confidence: MatchConfidence.exact,
+            score: 1.0,
           ),
-          file: files11[2],
-          confidence: MatchConfidence.exact,
-          score: 1.0,
-        ),
-      ];
+        ];
 
-      // Full mode: totalFileCount = 11 (matched track count).
-      await applicator11.apply(
-        matches: fullMatches,
-        allFiles: files11,
-        selectedFields: {'trackNumber', 'album'},
-        optedOutPaths: <String>{},
-        totalFileCount: 11,
-        albumTitle: 'Full Album',
-      );
+        // Full mode: totalFileCount = 11 (matched track count).
+        await applicator11.apply(
+          matches: fullMatches,
+          allFiles: files11,
+          selectedFields: {'trackNumber', 'album'},
+          optedOutPaths: <String>{},
+          totalFileCount: 11,
+          albumTitle: 'Full Album',
+        );
 
-      // Track at position 3 with 11 total → "3/11".
-      final tags = freshTagWriter.writtenTags[files11[2].path]!;
-      expect(tags['trackNumber'], '3/11');
-    });
+        // Track at position 3 with 11 total → "3/11".
+        final tags = freshTagWriter.writtenTags[files11[2].path]!;
+        expect(tags['trackNumber'], '3/11');
+      },
+    );
   });
 }

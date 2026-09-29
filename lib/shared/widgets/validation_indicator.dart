@@ -27,8 +27,9 @@ class ValidationIndicator extends StatelessWidget {
 
     final hasError = issues.any((i) => i.severity == TagFieldSeverity.error);
     final icon = hasError ? Icons.error_outline : Icons.warning_amber;
-    final color =
-        hasError ? Theme.of(context).colorScheme.error : Colors.orange;
+    final color = hasError
+        ? Theme.of(context).colorScheme.error
+        : Colors.orange;
     final tooltipText = issues.map((i) => i.message).join('\n');
 
     return Tooltip(

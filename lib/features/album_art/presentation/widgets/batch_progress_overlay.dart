@@ -35,8 +35,9 @@ class BatchProgressOverlay extends StatelessWidget {
         children: [
           if (!progress.isComplete) ...[
             LinearProgressIndicator(
-              value:
-                  progress.total > 0 ? progress.completed / progress.total : 0,
+              value: progress.total > 0
+                  ? progress.completed / progress.total
+                  : 0,
             ),
             const SizedBox(height: 8),
             Text(
@@ -71,19 +72,13 @@ class BatchProgressOverlay extends StatelessWidget {
                 progress.failures
                     .map((f) => '${_fileName(f.path)}: ${f.error}')
                     .join('\n'),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: colorScheme.error,
-                ),
+                style: TextStyle(fontSize: 11, color: colorScheme.error),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: onDismiss,
-              child: const Text('Dismiss'),
-            ),
+            TextButton(onPressed: onDismiss, child: const Text('Dismiss')),
           ],
         ],
       ),

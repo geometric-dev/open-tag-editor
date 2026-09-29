@@ -48,7 +48,8 @@ void main() {
           expect(
             score1,
             closeTo(score2, 1e-10),
-            reason: 'similarity("$a", "$b") = $score1 should equal '
+            reason:
+                'similarity("$a", "$b") = $score1 should equal '
                 'similarity("${a.toUpperCase()}", "${b.toLowerCase()}") = '
                 '$score2 (iteration $i)',
           );

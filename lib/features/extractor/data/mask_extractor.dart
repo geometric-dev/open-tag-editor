@@ -88,8 +88,10 @@ class MaskExtractor {
       if (!workingPath.endsWith(trailingLiteral)) {
         return ExtractionResult(filePath: path, matched: false);
       }
-      workingPath =
-          workingPath.substring(0, workingPath.length - trailingLiteral.length);
+      workingPath = workingPath.substring(
+        0,
+        workingPath.length - trailingLiteral.length,
+      );
       tokenEnd = tokenEnd - 1;
     }
 

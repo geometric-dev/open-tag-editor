@@ -30,10 +30,7 @@ class NotificationService {
         content: Text('$failureCount file(s) failed'),
         duration: const Duration(seconds: 30),
         showCloseIcon: true,
-        action: SnackBarAction(
-          label: 'View Details',
-          onPressed: onViewDetails,
-        ),
+        action: SnackBarAction(label: 'View Details', onPressed: onViewDetails),
       ),
     );
   }

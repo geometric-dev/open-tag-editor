@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/commands/tag_edit_command.dart';
 import '../../../../core/undo/undo_redo_manager.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
@@ -20,6 +19,7 @@ import '../../../album_art/data/providers/album_art_providers.dart';
 import '../../../album_art/presentation/widgets/batch_progress_overlay.dart';
 import '../../../album_art/presentation/widgets/drop_zone_wrapper.dart';
 import '../../../album_art/presentation/widgets/image_preview_modal.dart';
+import '../../data/commands/tag_edit_command.dart';
 import '../../data/providers/editor_state_provider.dart'
     show
         TagPanelTab,
@@ -131,37 +131,37 @@ class _TagEditPanelState extends ConsumerState<TagEditPanel> {
               _TabButton(
                 label: 'Tags',
                 isActive: activeTab == TagPanelTab.tags,
-                onTap: () => ref
-                    .read(tagPanelActiveTabProvider.notifier)
-                    .state = TagPanelTab.tags,
+                onTap: () =>
+                    ref.read(tagPanelActiveTabProvider.notifier).state =
+                        TagPanelTab.tags,
               ),
               _TabButton(
                 label: 'Album Art',
                 isActive: activeTab == TagPanelTab.albumArt,
-                onTap: () => ref
-                    .read(tagPanelActiveTabProvider.notifier)
-                    .state = TagPanelTab.albumArt,
+                onTap: () =>
+                    ref.read(tagPanelActiveTabProvider.notifier).state =
+                        TagPanelTab.albumArt,
               ),
               _TabButton(
                 label: 'File Info',
                 isActive: activeTab == TagPanelTab.fileInfo,
-                onTap: () => ref
-                    .read(tagPanelActiveTabProvider.notifier)
-                    .state = TagPanelTab.fileInfo,
+                onTap: () =>
+                    ref.read(tagPanelActiveTabProvider.notifier).state =
+                        TagPanelTab.fileInfo,
               ),
             ],
           ),
         ),
         // --- Content ---
-        Expanded(
-          child: _buildTabContent(activeTab, selectedFiles),
-        ),
+        Expanded(child: _buildTabContent(activeTab, selectedFiles)),
       ],
     );
   }
 
   Widget _buildTabContent(
-      TagPanelTab activeTab, List<AudioFile> selectedFiles) {
+    TagPanelTab activeTab,
+    List<AudioFile> selectedFiles,
+  ) {
     switch (activeTab) {
       case TagPanelTab.tags:
         return _TagFieldsTab(selectedFiles: selectedFiles);
@@ -204,10 +204,9 @@ class _TabButton extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    color:
-                        isActive ? colorScheme.primary : colorScheme.onSurface,
-                  ),
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                color: isActive ? colorScheme.primary : colorScheme.onSurface,
+              ),
             ),
           ),
         ),
@@ -466,8 +465,8 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
             child: Text(
               _fieldLabels[field] ?? field,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -605,35 +604,32 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
         child: displayArt != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(3),
-                child: Image.memory(
-                  displayArt.bytes,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.memory(displayArt.bytes, fit: BoxFit.cover),
               )
             : artState == ArtDisplayState.mixed
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.collections_outlined,
-                        size: 40,
-                        color: colorScheme.onSurface.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Mixed',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  )
-                : Icon(
-                    Icons.image_outlined,
-                    size: 48,
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.collections_outlined,
+                    size: 40,
                     color: colorScheme.onSurface.withValues(alpha: 0.3),
                   ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Mixed',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              )
+            : Icon(
+                Icons.image_outlined,
+                size: 48,
+                color: colorScheme.onSurface.withValues(alpha: 0.3),
+              ),
       ),
     );
   }
@@ -652,10 +648,7 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(
         parts.join(' • '),
-        style: TextStyle(
-          fontSize: 11,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
       ),
     );
   }
@@ -664,23 +657,21 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _CompactButton(
-          label: 'Add',
-          icon: Icons.add,
-          onPressed: _handleAdd,
-        ),
+        _CompactButton(label: 'Add', icon: Icons.add, onPressed: _handleAdd),
         const SizedBox(width: 6),
         _CompactOutlineButton(
           label: 'Export',
           icon: Icons.save_alt,
-          onPressed:
-              displayArt != null ? () => _handleExport(displayArt) : null,
+          onPressed: displayArt != null
+              ? () => _handleExport(displayArt)
+              : null,
         ),
         const SizedBox(width: 6),
         _CompactOutlineButton(
           label: 'Remove',
           icon: Icons.delete_outline,
-          onPressed: (displayArt != null ||
+          onPressed:
+              (displayArt != null ||
                   widget.selectedFiles.any((f) => f.albumArt != null))
               ? _handleRemove
               : null,
@@ -713,9 +704,7 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
     final mimeType = detectMimeType(bytes) ?? 'image/jpeg';
 
     if (!isValidImageMimeType(mimeType)) {
-      _showError(
-        'Only image files (JPEG, PNG, BMP, GIF, WebP) are supported.',
-      );
+      _showError('Only image files (JPEG, PNG, BMP, GIF, WebP) are supported.');
       return;
     }
 
@@ -752,8 +741,9 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
     }
 
     final manager = ref.read(albumArtManagerProvider);
-    await for (final progress
-        in manager.removeAlbumArt(files: widget.selectedFiles)) {
+    await for (final progress in manager.removeAlbumArt(
+      files: widget.selectedFiles,
+    )) {
       if (mounted) {
         setState(() => _batchProgress = progress);
       }
@@ -863,10 +853,7 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
     );
   }
 }
@@ -894,9 +881,9 @@ class _FileInfoTab extends StatelessWidget {
           children: [
             Text(
               '${selectedFiles.length} files selected',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             _InfoRow(
@@ -929,10 +916,7 @@ class _FileInfoTab extends StatelessWidget {
           ),
           _InfoRow(label: 'Size', value: _formatBytes(file.fileSize)),
           if (file.duration != null)
-            _InfoRow(
-              label: 'Duration',
-              value: _formatDuration(file.duration!),
-            ),
+            _InfoRow(label: 'Duration', value: _formatDuration(file.duration!)),
           if (file.bitrate != null)
             _InfoRow(label: 'Bitrate', value: '${file.bitrate} kbps'),
           if (file.sampleRate != null)
@@ -1008,10 +992,7 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(fontSize: 11),
-            ),
+            child: SelectableText(value, style: const TextStyle(fontSize: 11)),
           ),
         ],
       ),

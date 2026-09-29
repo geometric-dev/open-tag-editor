@@ -72,20 +72,14 @@ void main() {
       const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = nextEditableColumn(current, visibleColumns, 5);
 
-      expect(
-        result,
-        const CellCoordinate(rowIndex: 0, columnId: 'artist'),
-      );
+      expect(result, const CellCoordinate(rowIndex: 0, columnId: 'artist'));
     });
 
     test('end of row wraps to first editable column of next row', () {
       const current = CellCoordinate(rowIndex: 0, columnId: 'genre');
       final result = nextEditableColumn(current, visibleColumns, 5);
 
-      expect(
-        result,
-        const CellCoordinate(rowIndex: 1, columnId: 'title'),
-      );
+      expect(result, const CellCoordinate(rowIndex: 1, columnId: 'title'));
     });
 
     test('last row last column returns null', () {
@@ -96,18 +90,11 @@ void main() {
     });
 
     test('single editable column wraps to next row same column', () {
-      final singleEditableColumns = [
-        'tagIndicator',
-        'title',
-        'filename',
-      ];
+      final singleEditableColumns = ['tagIndicator', 'title', 'filename'];
       const current = CellCoordinate(rowIndex: 0, columnId: 'title');
       final result = nextEditableColumn(current, singleEditableColumns, 3);
 
-      expect(
-        result,
-        const CellCoordinate(rowIndex: 1, columnId: 'title'),
-      );
+      expect(result, const CellCoordinate(rowIndex: 1, columnId: 'title'));
     });
 
     test('returns null when no editable columns exist', () {
@@ -133,20 +120,14 @@ void main() {
       const current = CellCoordinate(rowIndex: 0, columnId: 'artist');
       final result = previousEditableColumn(current, visibleColumns, 5);
 
-      expect(
-        result,
-        const CellCoordinate(rowIndex: 0, columnId: 'title'),
-      );
+      expect(result, const CellCoordinate(rowIndex: 0, columnId: 'title'));
     });
 
     test('start of row wraps to last editable column of previous row', () {
       const current = CellCoordinate(rowIndex: 1, columnId: 'title');
       final result = previousEditableColumn(current, visibleColumns, 5);
 
-      expect(
-        result,
-        const CellCoordinate(rowIndex: 0, columnId: 'genre'),
-      );
+      expect(result, const CellCoordinate(rowIndex: 0, columnId: 'genre'));
     });
 
     test('first row first column returns null', () {

@@ -82,7 +82,8 @@ class TagFieldValidator {
       issues.add(
         TagFieldIssue(
           severity: TagFieldSeverity.error,
-          message: 'Value exceeds maximum length of $maxFieldLength characters '
+          message:
+              'Value exceeds maximum length of $maxFieldLength characters '
               '(currently ${value.length}).',
           field: field,
         ),

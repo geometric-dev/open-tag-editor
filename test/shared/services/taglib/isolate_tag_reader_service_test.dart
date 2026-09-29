@@ -14,7 +14,8 @@ void main() {
       'batch round-trips through the isolate and captures per-file failures',
       () async {
         final service = IsolateTagReaderService();
-        final missing = '${Directory.systemTemp.path}/'
+        final missing =
+            '${Directory.systemTemp.path}/'
             'ote_missing_${DateTime.now().microsecondsSinceEpoch}.mp3';
 
         final files = await service.readTagsBatch([missing]);

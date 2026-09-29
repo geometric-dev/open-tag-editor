@@ -69,8 +69,9 @@ class RenamerState {
     return RenamerState(
       pattern: pattern ?? this.pattern,
       tokens: tokens ?? this.tokens,
-      parseError:
-          parseError == _absent ? this.parseError : parseError as String?,
+      parseError: parseError == _absent
+          ? this.parseError
+          : parseError as String?,
       caseOption: caseOption ?? this.caseOption,
       replaceUnderscores: replaceUnderscores ?? this.replaceUnderscores,
       conflictStrategy: conflictStrategy ?? this.conflictStrategy,

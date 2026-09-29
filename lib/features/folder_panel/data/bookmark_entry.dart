@@ -6,10 +6,7 @@ import 'package:path/path.dart' as p;
 /// Stores a folder path and its display name (the last path segment).
 /// Used in the Folder Panel's bookmarks section for one-click folder access.
 class BookmarkEntry extends Equatable {
-  const BookmarkEntry({
-    required this.path,
-    required this.name,
-  });
+  const BookmarkEntry({required this.path, required this.name});
 
   /// Creates a [BookmarkEntry] from a full folder [path], extracting the
   /// folder name from the last path segment.
@@ -19,10 +16,7 @@ class BookmarkEntry extends Equatable {
     final name = p.basename(path);
     // basename returns empty string for root paths like 'C:\' — use the
     // full path as the display name in that case.
-    return BookmarkEntry(
-      path: path,
-      name: name.isEmpty ? path : name,
-    );
+    return BookmarkEntry(path: path, name: name.isEmpty ? path : name);
   }
 
   /// Deserializes a [BookmarkEntry] from a JSON-compatible map.
@@ -41,10 +35,7 @@ class BookmarkEntry extends Equatable {
 
   /// Serializes this entry to a JSON-compatible map.
   Map<String, dynamic> toJson() {
-    return {
-      'path': path,
-      'name': name,
-    };
+    return {'path': path, 'name': name};
   }
 
   @override

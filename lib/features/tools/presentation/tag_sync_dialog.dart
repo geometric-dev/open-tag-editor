@@ -4,19 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/error_handling/providers/error_providers.dart';
 import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../shared/models/audio_file.dart';
-import '../../../../shared/services/id3v1_codec.dart';
 import '../../../../shared/services/tag_sync_service.dart';
 import '../../tag_editor/data/providers/editor_state_provider.dart';
 import '../../tag_editor/data/providers/service_providers.dart';
 
 /// Direction for the tag synchronization wizard.
 enum _SyncDirection {
-  v2toV1('Copy visible tags → ID3v1',
-      'Rewrites the legacy ID3v1 block from the current ID3v2 data.'),
+  v2toV1(
+    'Copy visible tags → ID3v1',
+    'Rewrites the legacy ID3v1 block from the current ID3v2 data.',
+  ),
   v1toV2(
-      'Fill empty tags ← ID3v1',
-      'Imports ID3v1 values into fields that are currently empty. '
-          'Existing v2 values are never overwritten.');
+    'Fill empty tags ← ID3v1',
+    'Imports ID3v1 values into fields that are currently empty. '
+        'Existing v2 values are never overwritten.',
+  );
 
   const _SyncDirection(this.title, this.description);
 
@@ -76,9 +78,7 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
     status.state = 'Synchronizing tags...';
 
     try {
-      final service = TagSyncService(
-        tagWriter: ref.read(tagWriterProvider),
-      );
+      final service = TagSyncService(tagWriter: ref.read(tagWriterProvider));
       final result = _direction == _SyncDirection.v2toV1
           ? await service.syncToId3v1(_selected)
           : await service.syncFromId3v1(_selected);
@@ -89,7 +89,8 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
         _running = false;
       });
 
-      status.state = 'Tag sync: ${result.updatedCount} updated, '
+      status.state =
+          'Tag sync: ${result.updatedCount} updated, '
           '${result.skippedCount} skipped';
 
       if (result.failures.isNotEmpty) {
@@ -104,9 +105,9 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _running = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tag sync failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Tag sync failed: $e')));
     }
   }
 
@@ -131,19 +132,29 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
-            ..._SyncDirection.values.map(
-              (d) => RadioListTile<_SyncDirection>(
-                value: d,
-                groupValue: _direction,
-                onChanged:
-                    _running ? null : (v) => setState(() => _direction = v!),
-                title: Text(d.title, style: theme.textTheme.bodyMedium),
-                subtitle: Text(
-                  d.description,
-                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
-                ),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+            RadioGroup<_SyncDirection>(
+              groupValue: _direction,
+              onChanged: _running
+                  ? (_) {}
+                  : (v) => setState(() => _direction = v!),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ..._SyncDirection.values.map(
+                    (d) => RadioListTile<_SyncDirection>(
+                      value: d,
+                      title: Text(d.title, style: theme.textTheme.bodyMedium),
+                      subtitle: Text(
+                        d.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                        ),
+                      ),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
             ),
             // Fill-direction preview
@@ -188,8 +199,9 @@ class _TagSyncDialogState extends ConsumerState<TagSyncDialog> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
                     '${_result!.failures.length} failed — see error log.',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.error),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
                   ),
                 ),
             ],

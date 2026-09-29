@@ -18,19 +18,19 @@ void main() {
 
     test('recursive=false returns FileGridItems only, no separators', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Pop\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Jazz\\song3.mp3',
           filename: 'song3.mp3',
           extension: '.mp3',
@@ -49,10 +49,7 @@ void main() {
       for (final item in result) {
         expect(item, isA<FileGridItem>());
       }
-      expect(
-        result.whereType<SeparatorGridItem>().length,
-        equals(0),
-      );
+      expect(result.whereType<SeparatorGridItem>().length, equals(0));
       expect((result[0] as FileGridItem).fileIndex, equals(0));
       expect((result[1] as FileGridItem).fileIndex, equals(1));
       expect((result[2] as FileGridItem).fileIndex, equals(2));
@@ -60,19 +57,19 @@ void main() {
 
     test('isSorted=true returns FileGridItems only, no separators', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Pop\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Jazz\\song3.mp3',
           filename: 'song3.mp3',
           extension: '.mp3',
@@ -91,21 +88,18 @@ void main() {
       for (final item in result) {
         expect(item, isA<FileGridItem>());
       }
-      expect(
-        result.whereType<SeparatorGridItem>().length,
-        equals(0),
-      );
+      expect(result.whereType<SeparatorGridItem>().length, equals(0));
     });
 
     test('null rootFolder returns FileGridItems only', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Pop\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
@@ -124,15 +118,12 @@ void main() {
       for (final item in result) {
         expect(item, isA<FileGridItem>());
       }
-      expect(
-        result.whereType<SeparatorGridItem>().length,
-        equals(0),
-      );
+      expect(result.whereType<SeparatorGridItem>().length, equals(0));
     });
 
     test('single file produces one separator + one file', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song.mp3',
           filename: 'song.mp3',
           extension: '.mp3',
@@ -156,19 +147,19 @@ void main() {
 
     test('all files in root folder', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\song3.mp3',
           filename: 'song3.mp3',
           extension: '.mp3',
@@ -193,19 +184,19 @@ void main() {
 
     test('multi-folder ordering: root first, then alphabetical', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\song.mp3',
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Zebra\\song.mp3',
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Alpha\\song.mp3',
           filename: 'song.mp3',
           extension: '.mp3',
@@ -229,19 +220,19 @@ void main() {
 
     test('files within group sorted by filename case-insensitive', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\Charlie.mp3',
           filename: 'Charlie.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\alpha.mp3',
           filename: 'alpha.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\Beta.mp3',
           filename: 'Beta.mp3',
           extension: '.mp3',
@@ -265,19 +256,19 @@ void main() {
 
     test('fileIndex preserves original list position', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Pop\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Rock\\song3.mp3',
           filename: 'song3.mp3',
           extension: '.mp3',
@@ -302,13 +293,13 @@ void main() {
 
     test('intermediate directories without files get no separator', () {
       final files = [
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Artist\\Album\\song1.mp3',
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        AudioFile(
+        const AudioFile(
           path: 'C:\\Music\\Artist\\Album\\song2.mp3',
           filename: 'song2.mp3',
           extension: '.mp3',

@@ -8,8 +8,8 @@ import '../models/column_definition.dart';
 
 final columnConfigProvider =
     StateNotifierProvider<ColumnConfigNotifier, ColumnConfig>((ref) {
-  return ColumnConfigNotifier();
-});
+      return ColumnConfigNotifier();
+    });
 
 class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
   ColumnConfigNotifier() : super(_defaultConfig());
@@ -110,8 +110,9 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
     order.removeAt(orderOldIdx);
     // Find target position in order based on neighbors in visible
     final targetNeighbor = newIndex > 0 ? visible[newIndex - 1] : null;
-    final orderNewIdx =
-        targetNeighbor != null ? order.indexOf(targetNeighbor) + 1 : 0;
+    final orderNewIdx = targetNeighbor != null
+        ? order.indexOf(targetNeighbor) + 1
+        : 0;
     order.insert(orderNewIdx, item);
 
     state = ColumnConfig(visibleColumnIds: visible, columnOrder: order);

@@ -58,12 +58,14 @@ void main() {
   group('QuickSwitcherOverlay', () {
     group('5.2 Filters on keystroke', () {
       testWidgets('shows all entries when query is empty', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // All 5 entries should be visible
@@ -75,12 +77,14 @@ void main() {
       });
 
       testWidgets('filters entries by typed text', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Type 'rock' to filter
@@ -96,12 +100,14 @@ void main() {
       });
 
       testWidgets('filter is case-insensitive', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField), 'JAZZ');
@@ -112,12 +118,14 @@ void main() {
       });
 
       testWidgets('filter matches path substring', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // 'Music' is in all paths, so all should match
@@ -133,14 +141,17 @@ void main() {
     });
 
     group('5.3 No matching folders message', () {
-      testWidgets('shows "No matching folders" when filter returns empty',
-          (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+      testWidgets('shows "No matching folders" when filter returns empty', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField), 'zzzznonexistent');
@@ -150,12 +161,14 @@ void main() {
       });
 
       testWidgets('does not show message when query is empty', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Empty query should show all entries, not the empty message
@@ -165,12 +178,14 @@ void main() {
 
     group('5.4 Arrow key navigation', () {
       testWidgets('arrow down moves highlight to next entry', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // First entry should be highlighted initially (index 0)
@@ -186,12 +201,14 @@ void main() {
       });
 
       testWidgets('arrow up moves highlight to previous entry', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Move down first, then up
@@ -207,12 +224,14 @@ void main() {
       });
 
       testWidgets('arrow down wraps from last to first', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // 5 entries total, press down 5 times to wrap around
@@ -228,12 +247,14 @@ void main() {
       });
 
       testWidgets('arrow up wraps from first to last', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Press up from index 0 should wrap to last entry
@@ -250,12 +271,14 @@ void main() {
     group('5.5 Enter selects and loads', () {
       testWidgets('Enter selects the highlighted entry', (tester) async {
         String? selectedPath;
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (path) => selectedPath = path,
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (path) => selectedPath = path,
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // First entry is highlighted by default (Rock)
@@ -265,15 +288,18 @@ void main() {
         expect(selectedPath, r'C:\Users\Music\Rock');
       });
 
-      testWidgets('Enter selects after navigating with arrow keys',
-          (tester) async {
+      testWidgets('Enter selects after navigating with arrow keys', (
+        tester,
+      ) async {
         String? selectedPath;
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (path) => selectedPath = path,
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (path) => selectedPath = path,
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Navigate to the third entry (Pop)
@@ -290,12 +316,14 @@ void main() {
 
       testWidgets('Enter selects filtered result', (tester) async {
         String? selectedPath;
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (path) => selectedPath = path,
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (path) => selectedPath = path,
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         // Filter to 'Jazz'
@@ -312,12 +340,14 @@ void main() {
     group('5.6 Escape dismisses', () {
       testWidgets('Escape calls onDismiss', (tester) async {
         var dismissed = false;
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () => dismissed = true,
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () => dismissed = true,
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         await tester.sendKeyEvent(LogicalKeyboardKey.escape);
@@ -329,12 +359,14 @@ void main() {
       testWidgets('Escape does not trigger folder selection', (tester) async {
         String? selectedPath;
         var dismissed = false;
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (path) => selectedPath = path,
-          onDismiss: () => dismissed = true,
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (path) => selectedPath = path,
+            onDismiss: () => dismissed = true,
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         await tester.sendKeyEvent(LogicalKeyboardKey.escape);
@@ -347,48 +379,56 @@ void main() {
 
     group('5.1 Display', () {
       testWidgets('shows a search TextField', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.byType(TextField), findsOneWidget);
       });
 
       testWidgets('shows search hint text', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Search folders...'), findsOneWidget);
       });
 
       testWidgets('shows bookmark icon for bookmark entries', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: testBookmarks,
-          recentFolders: [],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: testBookmarks,
+            recentFolders: [],
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.byIcon(Icons.bookmark), findsNWidgets(3));
       });
 
       testWidgets('shows clock icon for recent entries', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          onFolderSelected: (_) {},
-          onDismiss: () {},
-          bookmarks: [],
-          recentFolders: testRecentFolders,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onFolderSelected: (_) {},
+            onDismiss: () {},
+            bookmarks: [],
+            recentFolders: testRecentFolders,
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.byIcon(Icons.access_time), findsNWidgets(2));

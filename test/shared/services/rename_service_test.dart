@@ -17,10 +17,7 @@ void main() {
         filename: 'song.mp3',
         extension: '.mp3',
         fileSize: 5000000,
-        tags: {
-          'artist': 'The Beatles',
-          'title': 'Hey Jude',
-        },
+        tags: {'artist': 'The Beatles', 'title': 'Hey Jude'},
       );
 
       const pattern = RenamePattern(
@@ -37,16 +34,10 @@ void main() {
         filename: 'song.flac',
         extension: '.flac',
         fileSize: 30000000,
-        tags: {
-          'title': 'Come Together',
-          'trackNumber': '1',
-        },
+        tags: {'title': 'Come Together', 'trackNumber': '1'},
       );
 
-      const pattern = RenamePattern(
-        name: 'test',
-        pattern: '%track% - %title%',
-      );
+      const pattern = RenamePattern(name: 'test', pattern: '%track% - %title%');
 
       expect(service.preview(file, pattern), '01 - Come Together.flac');
     });

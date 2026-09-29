@@ -57,10 +57,7 @@ class LookupResultsPanel extends StatelessWidget {
 }
 
 class _ResultTile extends StatelessWidget {
-  const _ResultTile({
-    required this.result,
-    required this.onTap,
-  });
+  const _ResultTile({required this.result, required this.onTap});
 
   final SearchResult result;
   final VoidCallback onTap;

@@ -124,9 +124,9 @@ class LookupMatchPanel extends StatelessWidget {
                         width: 200,
                         height: 200,
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Center(

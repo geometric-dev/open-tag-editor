@@ -10,7 +10,7 @@ class BackupManager {
   /// Creates a [BackupManager] that checks [isBackupEnabled] to determine
   /// whether backups should be created.
   BackupManager({required bool Function() isBackupEnabled})
-      : _isBackupEnabled = isBackupEnabled;
+    : _isBackupEnabled = isBackupEnabled;
 
   final bool Function() _isBackupEnabled;
 
@@ -30,10 +30,7 @@ class BackupManager {
       final file = File(path);
       await file.copy('$path.bak');
     } catch (e) {
-      throw TagWriteException(
-        'Failed to create backup: $e',
-        path,
-      );
+      throw TagWriteException('Failed to create backup: $e', path);
     }
   }
 }

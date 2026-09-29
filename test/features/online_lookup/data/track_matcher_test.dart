@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:open_tag_editor/features/online_lookup/data/track_matcher.dart';
-import 'package:open_tag_editor/features/online_lookup/data/models/track_file_match.dart';
 import 'package:open_tag_editor/features/online_lookup/data/models/search_result.dart';
+import 'package:open_tag_editor/features/online_lookup/data/models/track_file_match.dart';
+import 'package:open_tag_editor/features/online_lookup/data/track_matcher.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 void main() {
@@ -169,21 +169,13 @@ void main() {
     group('conflicting signals: composite score wins', () {
       test('file with track number 1 but title matching track 2', () {
         final tracks = [
-          const TrackInfo(
-            title: 'Alpha Song',
-            position: 1,
-            durationMs: 240000,
-          ),
-          const TrackInfo(
-            title: 'Beta Song',
-            position: 2,
-            durationMs: 200000,
-          ),
+          const TrackInfo(title: 'Alpha Song', position: 1, durationMs: 240000),
+          const TrackInfo(title: 'Beta Song', position: 2, durationMs: 200000),
         ];
 
         // File has track number "01" (matches track 1 position)
         // but title "Beta_Song" (matches track 2 title)
-        final conflictingFile = const AudioFile(
+        const conflictingFile = AudioFile(
           path: '/music/01_Beta_Song.mp3',
           filename: '01_Beta_Song.mp3',
           extension: '.mp3',
@@ -192,7 +184,7 @@ void main() {
         );
 
         // Another file that clearly matches track 2 by number
-        final track2File = const AudioFile(
+        const track2File = AudioFile(
           path: '/music/02_Alpha_Song.mp3',
           filename: '02_Alpha_Song.mp3',
           extension: '.mp3',
@@ -201,7 +193,7 @@ void main() {
         );
 
         // A third file to make it a partial match scenario
-        final extraFile = const AudioFile(
+        const extraFile = AudioFile(
           path: '/music/03_Extra.mp3',
           filename: '03_Extra.mp3',
           extension: '.mp3',

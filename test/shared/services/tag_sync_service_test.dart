@@ -3,9 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
-import 'package:open_tag_editor/shared/services/id3v1_codec.dart';
-import 'package:open_tag_editor/shared/services/tag_sync_service.dart';
 import 'package:open_tag_editor/shared/services/tag_reader_service.dart';
+import 'package:open_tag_editor/shared/services/tag_sync_service.dart';
 
 /// Writer stub that records writeTags calls without touching disk.
 class RecordingWriter implements TagWriterService {
@@ -25,17 +24,16 @@ class RecordingWriter implements TagWriterService {
   @override
   Future<List<TagWriteResult>> writeTagsBatch(
     Map<String, Map<String, String>> fileTagsMap,
-  ) async =>
-      const [];
+  ) async => const [];
 }
 
 AudioFile mp3(String path, Map<String, String> tags) => AudioFile(
-      path: path,
-      filename: path.split('/').last,
-      extension: '.mp3',
-      fileSize: 1,
-      tags: tags,
-    );
+  path: path,
+  filename: path.split('/').last,
+  extension: '.mp3',
+  fileSize: 1,
+  tags: tags,
+);
 
 void main() {
   late Directory tempDir;
@@ -93,10 +91,9 @@ void main() {
     });
 
     test('long values truncate; unicode maps to ?', () {
-      final tags = Id3v1Codec.parse(Id3v1Codec.build({
-        'title': 'T' * 40,
-        'artist': '日本語',
-      }))!;
+      final tags = Id3v1Codec.parse(
+        Id3v1Codec.build({'title': 'T' * 40, 'artist': '日本語'}),
+      )!;
       expect(tags['title'], 'T' * 30);
       // Each unmappable CJK char becomes a single '?' byte.
       expect((tags['artist'] ?? '').split('').every((c) => c == '?'), isTrue);
@@ -113,10 +110,7 @@ void main() {
       final path = createMp3();
       final sizeBefore = File(path).lengthSync();
 
-      final appended = Id3v1Codec.writeToFile(
-        path,
-        {'title': 'First'},
-      );
+      final appended = Id3v1Codec.writeToFile(path, {'title': 'First'});
       expect(appended, isFalse);
       expect(File(path).lengthSync(), sizeBefore + 128);
 

@@ -17,10 +17,7 @@ import '../../data/providers/service_providers.dart';
 
 /// Wraps a child widget with keyboard shortcut handlers for the editor.
 class EditorKeyboardShortcuts extends ConsumerWidget {
-  const EditorKeyboardShortcuts({
-    super.key,
-    required this.child,
-  });
+  const EditorKeyboardShortcuts({super.key, required this.child});
 
   final Widget child;
 
@@ -71,10 +68,7 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
           service.navigate(context, SiblingDirection.previous);
         },
       },
-      child: Focus(
-        autofocus: true,
-        child: child,
-      ),
+      child: Focus(autofocus: true, child: child),
     );
   }
 

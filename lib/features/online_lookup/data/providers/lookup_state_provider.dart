@@ -24,19 +24,19 @@ import 'service_providers.dart';
 /// Provider for the lookup workflow state.
 final lookupStateProvider =
     StateNotifierProvider<LookupStateNotifier, LookupState>((ref) {
-  return LookupStateNotifier(
-    musicBrainzService: ref.watch(musicBrainzServiceProvider),
-    discogsService: ref.watch(discogsServiceProvider),
-    gnuDbService: ref.watch(gnuDbServiceProvider),
-    acoustIdService: ref.watch(acoustIdServiceProvider),
-    fingerprintGenerator: ref.watch(fingerprintGeneratorProvider),
-    coverArtService: ref.watch(coverArtServiceProvider),
-    metadataApplicator: ref.watch(metadataApplicatorProvider),
-    partialMatchApplicator: ref.watch(partialMatchApplicatorProvider),
-    cache: ref.watch(lookupCacheProvider),
-    errorLogNotifier: ref.read(errorLogProvider.notifier),
-  );
-});
+      return LookupStateNotifier(
+        musicBrainzService: ref.watch(musicBrainzServiceProvider),
+        discogsService: ref.watch(discogsServiceProvider),
+        gnuDbService: ref.watch(gnuDbServiceProvider),
+        acoustIdService: ref.watch(acoustIdServiceProvider),
+        fingerprintGenerator: ref.watch(fingerprintGeneratorProvider),
+        coverArtService: ref.watch(coverArtServiceProvider),
+        metadataApplicator: ref.watch(metadataApplicatorProvider),
+        partialMatchApplicator: ref.watch(partialMatchApplicatorProvider),
+        cache: ref.watch(lookupCacheProvider),
+        errorLogNotifier: ref.read(errorLogProvider.notifier),
+      );
+    });
 
 /// Manages the full lookup workflow state.
 ///
@@ -56,17 +56,17 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     PartialMatchApplicator? partialMatchApplicator,
     required LookupCache cache,
     ErrorLogNotifier? errorLogNotifier,
-  })  : _musicBrainzService = musicBrainzService,
-        _discogsService = discogsService,
-        _gnuDbService = gnuDbService,
-        _acoustIdService = acoustIdService,
-        _fingerprintGenerator = fingerprintGenerator,
-        _coverArtService = coverArtService,
-        _metadataApplicator = metadataApplicator,
-        _partialMatchApplicator = partialMatchApplicator,
-        _cache = cache,
-        _errorLogNotifier = errorLogNotifier,
-        super(const LookupState());
+  }) : _musicBrainzService = musicBrainzService,
+       _discogsService = discogsService,
+       _gnuDbService = gnuDbService,
+       _acoustIdService = acoustIdService,
+       _fingerprintGenerator = fingerprintGenerator,
+       _coverArtService = coverArtService,
+       _metadataApplicator = metadataApplicator,
+       _partialMatchApplicator = partialMatchApplicator,
+       _cache = cache,
+       _errorLogNotifier = errorLogNotifier,
+       super(const LookupState());
 
   final MusicBrainzService _musicBrainzService;
   final DiscogsService? _discogsService;
@@ -116,10 +116,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     );
     final cached = _cache.getSearchResults(cacheKey);
     if (cached != null) {
-      state = state.copyWith(
-        status: LookupStatus.idle,
-        searchResults: cached,
-      );
+      state = state.copyWith(status: LookupStatus.idle, searchResults: cached);
       return;
     }
 
@@ -136,12 +133,12 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
       final discogsResults =
           sources.contains(SearchSource.discogs) && _discogsService != null
-              ? await _discogsService.searchReleases(
-                  artist: artist,
-                  album: album,
-                  year: year != null ? int.tryParse(year) : null,
-                )
-              : <SearchResult>[];
+          ? await _discogsService.searchReleases(
+              artist: artist,
+              album: album,
+              year: year != null ? int.tryParse(year) : null,
+            )
+          : <SearchResult>[];
 
       if (_cancelled) return;
 
@@ -161,14 +158,14 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
 
       if (_cancelled) return;
 
-      final merged =
-          LookupHelpers.mergeAll([mbResults, discogsResults, gnudbResults]);
+      final merged = LookupHelpers.mergeAll([
+        mbResults,
+        discogsResults,
+        gnudbResults,
+      ]);
       _cache.cacheSearchResults(cacheKey, merged);
 
-      state = state.copyWith(
-        status: LookupStatus.idle,
-        searchResults: merged,
-      );
+      state = state.copyWith(status: LookupStatus.idle, searchResults: merged);
     } catch (e) {
       state = state.copyWith(
         status: LookupStatus.error,
@@ -210,10 +207,7 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
         if (_cancelled) return;
 
         _cache.cacheTrackListing(result.id, tracks);
-        state = state.copyWith(
-          status: LookupStatus.idle,
-          trackListing: tracks,
-        );
+        state = state.copyWith(status: LookupStatus.idle, trackListing: tracks);
       } catch (e) {
         state = state.copyWith(
           status: LookupStatus.error,
@@ -283,8 +277,9 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     final updatedMatches = List<TrackFileMatch>.from(state.matches);
 
     // Remove existing assignment for this file.
-    final existingIdx =
-        updatedMatches.indexWhere((m) => m.file?.path == filePath);
+    final existingIdx = updatedMatches.indexWhere(
+      (m) => m.file?.path == filePath,
+    );
     if (existingIdx >= 0) {
       final existing = updatedMatches[existingIdx];
       updatedMatches[existingIdx] = TrackFileMatch(
@@ -298,8 +293,9 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     if (track != null) {
       final targetIdx = updatedMatches.indexWhere((m) => m.track == track);
       if (targetIdx >= 0) {
-        final targetFile =
-            state.allSelectedFiles.firstWhere((f) => f.path == filePath);
+        final targetFile = state.allSelectedFiles.firstWhere(
+          (f) => f.path == filePath,
+        );
         updatedMatches[targetIdx] = TrackFileMatch(
           track: track,
           file: targetFile,
@@ -374,8 +370,10 @@ class LookupStateNotifier extends StateNotifier<LookupState> {
     _cancelled = false;
     state = state.copyWith(
       status: LookupStatus.fingerprinting,
-      fingerprintProgress:
-          FingerprintProgress(completed: 0, total: files.length),
+      fingerprintProgress: FingerprintProgress(
+        completed: 0,
+        total: files.length,
+      ),
     );
 
     try {

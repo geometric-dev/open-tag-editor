@@ -124,8 +124,14 @@ class AudioFile extends Equatable {
   /// identity/flags, so providers that diff on [AudioFile] instances also
   /// rebuild when tag contents change even if [isModified] was already true.
   @override
-  List<Object?> get props =>
-      [path, tags, albumArt, isModified, isReadOnly, readError];
+  List<Object?> get props => [
+    path,
+    tags,
+    albumArt,
+    isModified,
+    isReadOnly,
+    readError,
+  ];
 
   /// Returns only the tag fields that differ from [originalTags].
   ///

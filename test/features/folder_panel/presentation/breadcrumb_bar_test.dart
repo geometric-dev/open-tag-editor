@@ -12,9 +12,7 @@ void main() {
       void Function(String)? onFolderSelected,
     }) {
       return ProviderScope(
-        overrides: [
-          loadedFolderPathProvider.overrideWith((ref) => folderPath),
-        ],
+        overrides: [loadedFolderPathProvider.overrideWith((ref) => folderPath)],
         child: MaterialApp(
           home: Scaffold(
             body: BreadcrumbBar(onFolderSelected: onFolderSelected),
@@ -30,9 +28,7 @@ void main() {
     });
 
     testWidgets('displays path segments for a loaded folder', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(folderPath: r'C:\Users\Music'),
-      );
+      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
 
       // On Windows, path splits to ['C:\', 'Users', 'Music']
       expect(find.text(r'C:\'), findsOneWidget);
@@ -41,16 +37,15 @@ void main() {
     });
 
     testWidgets('last segment is bold and not clickable', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(folderPath: r'C:\Users\Music'),
-      );
+      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
 
       final musicText = tester.widget<Text>(find.text('Music'));
       expect(musicText.style?.fontWeight, FontWeight.bold);
     });
 
-    testWidgets('ancestor segments are clickable and trigger callback',
-        (tester) async {
+    testWidgets('ancestor segments are clickable and trigger callback', (
+      tester,
+    ) async {
       String? selectedPath;
       await tester.pumpWidget(
         buildTestWidget(
@@ -83,17 +78,13 @@ void main() {
     });
 
     testWidgets('shows recursive toggle', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(folderPath: r'C:\Users\Music'),
-      );
+      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
 
       expect(find.text('Recursive'), findsOneWidget);
     });
 
     testWidgets('shows chevron dividers between segments', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(folderPath: r'C:\Users\Music'),
-      );
+      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
 
       // There should be chevron icons between segments (2 for 3 segments)
       expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
@@ -106,11 +97,10 @@ void main() {
     });
 
     group('edit mode', () {
-      testWidgets('double-click enters edit mode showing TextField',
-          (tester) async {
-        await tester.pumpWidget(
-          buildTestWidget(folderPath: r'C:\Users\Music'),
-        );
+      testWidgets('double-click enters edit mode showing TextField', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
 
         // Simulate double-tap on the last segment (non-clickable, no navigation)
         await tester.tap(find.text('Music'));
@@ -124,8 +114,9 @@ void main() {
         expect(textField.controller?.text, r'C:\Users\Music');
       });
 
-      testWidgets('Enter in edit mode submits path and exits edit mode',
-          (tester) async {
+      testWidgets('Enter in edit mode submits path and exits edit mode', (
+        tester,
+      ) async {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(
@@ -152,8 +143,9 @@ void main() {
         expect(find.byType(TextField), findsNothing);
       });
 
-      testWidgets('Escape in edit mode cancels and returns to breadcrumbs',
-          (tester) async {
+      testWidgets('Escape in edit mode cancels and returns to breadcrumbs', (
+        tester,
+      ) async {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(
@@ -184,8 +176,9 @@ void main() {
         expect(find.text('Music'), findsOneWidget);
       });
 
-      testWidgets('focus loss exits edit mode without submitting',
-          (tester) async {
+      testWidgets('focus loss exits edit mode without submitting', (
+        tester,
+      ) async {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(

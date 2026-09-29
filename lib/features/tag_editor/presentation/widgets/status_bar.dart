@@ -21,8 +21,9 @@ class EnhancedStatusBar extends ConsumerWidget {
     final errorCount = ref.watch(errorCountProvider);
     final errorPanelVisible = ref.watch(errorPanelVisibleProvider);
 
-    final selectedFiles =
-        files.where((f) => selection.selectedPaths.contains(f.path)).toList();
+    final selectedFiles = files
+        .where((f) => selection.selectedPaths.contains(f.path))
+        .toList();
 
     final totalDuration = _sumDuration(files);
     final selectedDuration = _sumDuration(selectedFiles);
@@ -32,9 +33,7 @@ class EnhancedStatusBar extends ConsumerWidget {
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-      ),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
       child: Row(
         children: [
           // Status message
@@ -56,10 +55,7 @@ class EnhancedStatusBar extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(
                     '$errorCount ${errorCount == 1 ? 'error' : 'errors'}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colorScheme.error,
-                    ),
+                    style: TextStyle(fontSize: 11, color: colorScheme.error),
                   ),
                 ],
               ),
@@ -68,18 +64,11 @@ class EnhancedStatusBar extends ConsumerWidget {
           ],
           // Modified count
           if (modifiedCount > 0) ...[
-            Icon(
-              Icons.edit,
-              size: 12,
-              color: colorScheme.primary,
-            ),
+            Icon(Icons.edit, size: 12, color: colorScheme.primary),
             const SizedBox(width: 4),
             Text(
               '$modifiedCount modified',
-              style: TextStyle(
-                fontSize: 11,
-                color: colorScheme.primary,
-              ),
+              style: TextStyle(fontSize: 11, color: colorScheme.primary),
             ),
             const SizedBox(width: 12),
           ],
@@ -97,10 +86,7 @@ class EnhancedStatusBar extends ConsumerWidget {
             const SizedBox(width: 12),
           ],
           // Total stats
-          Text(
-            '${files.length} files',
-            style: const TextStyle(fontSize: 11),
-          ),
+          Text('${files.length} files', style: const TextStyle(fontSize: 11)),
           const SizedBox(width: 8),
           Text(
             FormatUtils.formatTotalDuration(totalDuration),

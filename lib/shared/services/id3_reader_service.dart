@@ -57,8 +57,8 @@ class Id3ReaderService implements TagReaderService {
             tagFormat = version == 4
                 ? TagFormat.id3v2_4
                 : version == 3
-                    ? TagFormat.id3v2_3
-                    : TagFormat.id3v2_3;
+                ? TagFormat.id3v2_3
+                : TagFormat.id3v2_3;
           } else if (tags.isNotEmpty) {
             tagFormat = TagFormat.id3v1;
           }
@@ -320,7 +320,8 @@ class Id3ReaderService implements TagReaderService {
     while (offset < bytes.length - 4) {
       final isLast = (bytes[offset] & 0x80) != 0;
       final blockType = bytes[offset] & 0x7F;
-      final blockSize = (bytes[offset + 1] << 16) |
+      final blockSize =
+          (bytes[offset + 1] << 16) |
           (bytes[offset + 2] << 8) |
           bytes[offset + 3];
       offset += 4;
@@ -330,11 +331,13 @@ class Id3ReaderService implements TagReaderService {
       switch (blockType) {
         case 0: // STREAMINFO
           if (blockSize >= 18) {
-            sampleRate = ((bytes[offset + 10] << 12) |
+            sampleRate =
+                ((bytes[offset + 10] << 12) |
                 (bytes[offset + 11] << 4) |
                 ((bytes[offset + 12] & 0xF0) >> 4));
             channels = ((bytes[offset + 12] & 0x0E) >> 1) + 1;
-            final totalSamples = ((bytes[offset + 13] & 0x0F) << 32) |
+            final totalSamples =
+                ((bytes[offset + 13] & 0x0F) << 32) |
                 (bytes[offset + 14] << 24) |
                 (bytes[offset + 15] << 16) |
                 (bytes[offset + 16] << 8) |
@@ -390,8 +393,10 @@ class Id3ReaderService implements TagReaderService {
 
       if (pos + commentLen > bytes.length) break;
 
-      final comment = utf8.decode(bytes.sublist(pos, pos + commentLen),
-          allowMalformed: true);
+      final comment = utf8.decode(
+        bytes.sublist(pos, pos + commentLen),
+        allowMalformed: true,
+      );
       final eqIndex = comment.indexOf('=');
       if (eqIndex > 0) {
         final key = comment.substring(0, eqIndex).toLowerCase();

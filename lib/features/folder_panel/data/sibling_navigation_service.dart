@@ -69,8 +69,9 @@ class SiblingNavigationService {
 
     // 4. If null (boundary): show status message, return
     if (targetName == null) {
-      final directionLabel =
-          direction == SiblingDirection.next ? 'next' : 'previous';
+      final directionLabel = direction == SiblingDirection.next
+          ? 'next'
+          : 'previous';
       _ref.read(statusMessageProvider.notifier).state =
           'No $directionLabel sibling folder';
       return;

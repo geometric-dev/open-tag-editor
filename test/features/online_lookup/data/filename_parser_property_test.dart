@@ -93,7 +93,8 @@ void main() {
           expect(
             result,
             equals(generated.trackNumber),
-            reason: 'Filename "${generated.filename}" should extract track '
+            reason:
+                'Filename "${generated.filename}" should extract track '
                 'number ${generated.trackNumber} (iteration $i)',
           );
         }
@@ -109,7 +110,8 @@ void main() {
         expect(
           result,
           isNull,
-          reason: 'Filename "$filename" should return null for track '
+          reason:
+              'Filename "$filename" should return null for track '
               'number (iteration $i)',
         );
       }
@@ -123,80 +125,89 @@ void main() {
 
   /// **Validates: Requirements 2.1**
   group('Property 2: Filename normalisation preserves words', () {
-    test('output contains no extension, no leading digit prefix, no separators',
-        () {
-      for (var i = 0; i < 150; i++) {
-        // Mix of filenames with and without track numbers
-        final filename = random.nextBool()
-            ? filenameWithTrackNumber().filename
-            : filenameWithoutTrackNumber();
+    test(
+      'output contains no extension, no leading digit prefix, no separators',
+      () {
+        for (var i = 0; i < 150; i++) {
+          // Mix of filenames with and without track numbers
+          final filename = random.nextBool()
+              ? filenameWithTrackNumber().filename
+              : filenameWithoutTrackNumber();
 
-        final result = FilenameParser.extractTitle(filename);
+          final result = FilenameParser.extractTitle(filename);
 
-        // No file extension present
-        for (final ext in extensions) {
+          // No file extension present
+          for (final ext in extensions) {
+            expect(
+              result.endsWith(ext),
+              isFalse,
+              reason:
+                  'Result "$result" from "$filename" should not contain '
+                  'extension "$ext" (iteration $i)',
+            );
+          }
+
+          // No underscores, hyphens, or dots (separator chars)
           expect(
-            result.endsWith(ext),
+            result.contains('_'),
             isFalse,
-            reason: 'Result "$result" from "$filename" should not contain '
-                'extension "$ext" (iteration $i)',
+            reason:
+                'Result "$result" from "$filename" should not contain '
+                'underscores (iteration $i)',
+          );
+          expect(
+            result.contains('-'),
+            isFalse,
+            reason:
+                'Result "$result" from "$filename" should not contain '
+                'hyphens (iteration $i)',
+          );
+          expect(
+            result.contains('.'),
+            isFalse,
+            reason:
+                'Result "$result" from "$filename" should not contain '
+                'dots (iteration $i)',
           );
         }
+      },
+    );
 
-        // No underscores, hyphens, or dots (separator chars)
-        expect(
-          result.contains('_'),
-          isFalse,
-          reason: 'Result "$result" from "$filename" should not contain '
-              'underscores (iteration $i)',
-        );
-        expect(
-          result.contains('-'),
-          isFalse,
-          reason: 'Result "$result" from "$filename" should not contain '
-              'hyphens (iteration $i)',
-        );
-        expect(
-          result.contains('.'),
-          isFalse,
-          reason: 'Result "$result" from "$filename" should not contain '
-              'dots (iteration $i)',
-        );
-      }
-    });
+    test(
+      'alphabetic word tokens in output are subset of original filename',
+      () {
+        for (var i = 0; i < 150; i++) {
+          final filename = random.nextBool()
+              ? filenameWithTrackNumber().filename
+              : filenameWithoutTrackNumber();
 
-    test('alphabetic word tokens in output are subset of original filename',
-        () {
-      for (var i = 0; i < 150; i++) {
-        final filename = random.nextBool()
-            ? filenameWithTrackNumber().filename
-            : filenameWithoutTrackNumber();
+          final result = FilenameParser.extractTitle(filename);
 
-        final result = FilenameParser.extractTitle(filename);
+          // Extract alphabetic tokens from the result
+          final resultTokens = result
+              .split(' ')
+              .where((t) => t.isNotEmpty)
+              .where((t) => RegExp(r'^[a-zA-Z]+$').hasMatch(t))
+              .map((t) => t.toLowerCase())
+              .toSet();
 
-        // Extract alphabetic tokens from the result
-        final resultTokens = result
-            .split(' ')
-            .where((t) => t.isNotEmpty)
-            .where((t) => RegExp(r'^[a-zA-Z]+$').hasMatch(t))
-            .map((t) => t.toLowerCase())
-            .toSet();
+          // Extract alphabetic tokens derivable from the original filename
+          // (split on any non-alpha character)
+          final originalTokens = filename
+              .split(RegExp(r'[^a-zA-Z]+'))
+              .where((t) => t.isNotEmpty)
+              .map((t) => t.toLowerCase())
+              .toSet();
 
-        // Extract alphabetic tokens derivable from the original filename
-        // (split on any non-alpha character)
-        final originalTokens = filename
-            .split(RegExp(r'[^a-zA-Z]+'))
-            .where((t) => t.isNotEmpty)
-            .map((t) => t.toLowerCase())
-            .toSet();
-
-        expect(
-          resultTokens.difference(originalTokens).isEmpty,
-          isTrue,
-          reason: 'Result tokens $resultTokens from "$filename" should be a '
-              'subset of original tokens $originalTokens (iteration $i)',
-        );
-      }
-    });
+          expect(
+            resultTokens.difference(originalTokens).isEmpty,
+            isTrue,
+            reason:
+                'Result tokens $resultTokens from "$filename" should be a '
+                'subset of original tokens $originalTokens (iteration $i)',
+          );
+        }
+      },
+    );
   });
 }

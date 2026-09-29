@@ -29,15 +29,19 @@ void main() {
       final length = minLen + rng.nextInt(maxLen - minLen + 1);
       return String.fromCharCodes(
         List.generate(
-            length, (_) => chars.codeUnitAt(rng.nextInt(chars.length))),
+          length,
+          (_) => chars.codeUnitAt(rng.nextInt(chars.length)),
+        ),
       );
     }
 
     String randomPath(Random rng) {
       final drive = String.fromCharCode(65 + rng.nextInt(4)); // A-D
       final segmentCount = 1 + rng.nextInt(5);
-      final segments =
-          List.generate(segmentCount, (_) => randomString(rng, 2, 10));
+      final segments = List.generate(
+        segmentCount,
+        (_) => randomString(rng, 2, 10),
+      );
       return '$drive:\\${segments.join('\\')}';
     }
 
@@ -68,44 +72,47 @@ void main() {
     }
 
     test(
-        'included entries contain query, excluded entries do not (100 iterations)',
-        () {
-      for (var i = 0; i < 100; i++) {
-        final entryCount = random.nextInt(20);
-        final entries = List.generate(entryCount, (_) => randomEntry(random));
-        final query = randomQuery(random, entries);
+      'included entries contain query, excluded entries do not (100 iterations)',
+      () {
+        for (var i = 0; i < 100; i++) {
+          final entryCount = random.nextInt(20);
+          final entries = List.generate(entryCount, (_) => randomEntry(random));
+          final query = randomQuery(random, entries);
 
-        // Skip empty queries — property is defined for non-empty queries.
-        if (query.isEmpty) continue;
+          // Skip empty queries — property is defined for non-empty queries.
+          if (query.isEmpty) continue;
 
-        final results = filter.filter(entries, query);
-        final lowerQuery = query.toLowerCase();
+          final results = filter.filter(entries, query);
+          final lowerQuery = query.toLowerCase();
 
-        // Every included entry must contain the query in name or path.
-        for (final entry in results) {
-          final nameContains = entry.name.toLowerCase().contains(lowerQuery);
-          final pathContains = entry.path.toLowerCase().contains(lowerQuery);
-          expect(
-            nameContains || pathContains,
-            isTrue,
-            reason: 'Included entry "${entry.name}" (path: "${entry.path}") '
-                'does not contain query "$query" (iteration $i)',
-          );
+          // Every included entry must contain the query in name or path.
+          for (final entry in results) {
+            final nameContains = entry.name.toLowerCase().contains(lowerQuery);
+            final pathContains = entry.path.toLowerCase().contains(lowerQuery);
+            expect(
+              nameContains || pathContains,
+              isTrue,
+              reason:
+                  'Included entry "${entry.name}" (path: "${entry.path}") '
+                  'does not contain query "$query" (iteration $i)',
+            );
+          }
+
+          // Every excluded entry must NOT contain the query in name or path.
+          final excluded = entries.where((e) => !results.contains(e));
+          for (final entry in excluded) {
+            final nameContains = entry.name.toLowerCase().contains(lowerQuery);
+            final pathContains = entry.path.toLowerCase().contains(lowerQuery);
+            expect(
+              nameContains || pathContains,
+              isFalse,
+              reason:
+                  'Excluded entry "${entry.name}" (path: "${entry.path}") '
+                  'contains query "$query" but was excluded (iteration $i)',
+            );
+          }
         }
-
-        // Every excluded entry must NOT contain the query in name or path.
-        final excluded = entries.where((e) => !results.contains(e));
-        for (final entry in excluded) {
-          final nameContains = entry.name.toLowerCase().contains(lowerQuery);
-          final pathContains = entry.path.toLowerCase().contains(lowerQuery);
-          expect(
-            nameContains || pathContains,
-            isFalse,
-            reason: 'Excluded entry "${entry.name}" (path: "${entry.path}") '
-                'contains query "$query" but was excluded (iteration $i)',
-          );
-        }
-      }
-    });
+      },
+    );
   });
 }

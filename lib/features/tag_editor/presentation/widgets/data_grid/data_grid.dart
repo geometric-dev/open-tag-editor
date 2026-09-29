@@ -84,10 +84,9 @@ class DataGrid extends ConsumerWidget {
                     ref.read(tagPanelOpenProvider.notifier).state = true;
                   },
                   onAutoFit: (columnId, fitWidth) {
-                    ref.read(columnConfigProvider.notifier).setColumnWidth(
-                          columnId,
-                          fitWidth,
-                        );
+                    ref
+                        .read(columnConfigProvider.notifier)
+                        .setColumnWidth(columnId, fitWidth);
                     ref.read(columnConfigProvider.notifier).persistWidths();
                   },
                   onKeyEvent: (event) => _handleKeyEvent(ref, context, event),
@@ -111,18 +110,18 @@ class DataGrid extends ConsumerWidget {
           Icon(
             Icons.audio_file_outlined,
             size: 64,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             'Drop files or folders here\nor use the toolbar to open',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -162,10 +161,14 @@ class DataGrid extends ConsumerWidget {
       final rowIndex = files.indexWhere((f) => f.path == path);
       if (rowIndex >= 0) {
         final config = ref.read(columnConfigProvider);
-        final firstEditable = config.visibleColumnIds
-            .firstWhere(isColumnEditable, orElse: () => '');
+        final firstEditable = config.visibleColumnIds.firstWhere(
+          isColumnEditable,
+          orElse: () => '',
+        );
         if (firstEditable.isNotEmpty) {
-          ref.read(inlineCellEditProvider.notifier).moveFocus(
+          ref
+              .read(inlineCellEditProvider.notifier)
+              .moveFocus(
                 CellCoordinate(rowIndex: rowIndex, columnId: firstEditable),
                 showBorder: false,
               );
@@ -249,11 +252,7 @@ class DataGrid extends ConsumerWidget {
     if (event.logicalKey == LogicalKeyboardKey.f2) {
       final focused = editState.focusedCell;
       if (focused != null && isColumnEditable(focused.columnId)) {
-        editNotifier.enterEditMode(
-          focused,
-          prePopulate: true,
-          selectAll: true,
-        );
+        editNotifier.enterEditMode(focused, prePopulate: true, selectAll: true);
         return KeyEventResult.handled;
       }
     }
@@ -262,10 +261,7 @@ class DataGrid extends ConsumerWidget {
     if (event.character != null && event.character!.length == 1 && !isCtrl) {
       final focused = editState.focusedCell;
       if (focused != null && isColumnEditable(focused.columnId)) {
-        editNotifier.enterEditMode(
-          focused,
-          initialCharacter: event.character!,
-        );
+        editNotifier.enterEditMode(focused, initialCharacter: event.character!);
         return KeyEventResult.handled;
       }
     }
@@ -304,11 +300,7 @@ class DataGrid extends ConsumerWidget {
         event.logicalKey == LogicalKeyboardKey.numpadEnter) {
       final focused = editState.focusedCell;
       if (focused != null && isColumnEditable(focused.columnId)) {
-        editNotifier.enterEditMode(
-          focused,
-          prePopulate: true,
-          selectAll: true,
-        );
+        editNotifier.enterEditMode(focused, prePopulate: true, selectAll: true);
         return KeyEventResult.handled;
       }
     }
@@ -482,16 +474,16 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
     // active-path changes and reveal the row (no-op while marquee-dragging
     // since pointer selection sets activePath only via clicks, which are
     // already on-screen).
-    ref.listenManual(
-      selectionProvider.select((s) => s.activePath),
-      (previous, next) {
-        if (next != null && next != previous) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _revealRow(next);
-          });
-        }
-      },
-    );
+    ref.listenManual(selectionProvider.select((s) => s.activePath), (
+      previous,
+      next,
+    ) {
+      if (next != null && next != previous) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _revealRow(next);
+        });
+      }
+    });
   }
 
   /// Scrolls the vertical viewport so the given file's row is visible.
@@ -532,9 +524,10 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
       if (oldOffset <= 0) return;
 
       // Find which file was at the top of the viewport in the old list
-      final oldTopIndex = (oldOffset / DataGrid.rowHeight)
-          .floor()
-          .clamp(0, oldWidget.gridItems.length - 1);
+      final oldTopIndex = (oldOffset / DataGrid.rowHeight).floor().clamp(
+        0,
+        oldWidget.gridItems.length - 1,
+      );
 
       // Find the file at that position in the old grid items
       String? topFilePath;
@@ -559,10 +552,13 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
 
       if (newIndex != null) {
         final newOffset = newIndex * DataGrid.rowHeight;
-        final maxExtent = (widget.gridItems.length * DataGrid.rowHeight) -
+        final maxExtent =
+            (widget.gridItems.length * DataGrid.rowHeight) -
             (_verticalController.position.viewportDimension);
-        final clampedOffset =
-            newOffset.clamp(0.0, maxExtent > 0 ? maxExtent : 0.0);
+        final clampedOffset = newOffset.clamp(
+          0.0,
+          maxExtent > 0 ? maxExtent : 0.0,
+        );
 
         if ((clampedOffset - oldOffset).abs() > 0.5) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -614,17 +610,12 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
     // Measure visible cell content widths
     final cellWidths = <double>[];
     for (final file in widget.files) {
-      final value = column.valueExtractor?.call(
-            file,
-            rootFolder: widget.rootFolder,
-          ) ??
+      final value =
+          column.valueExtractor?.call(file, rootFolder: widget.rootFolder) ??
           '';
       if (value.isNotEmpty) {
         final cellPainter = TextPainter(
-          text: TextSpan(
-            text: value,
-            style: const TextStyle(fontSize: 12),
-          ),
+          text: TextSpan(text: value, style: const TextStyle(fontSize: 12)),
           textDirection: TextDirection.ltr,
         )..layout();
         cellWidths.add(cellPainter.width);
@@ -684,8 +675,9 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
                               relativePath: relativePath,
                             );
                           case FileGridItem(:final file, :final fileIndex):
-                            final isSelected =
-                                widget.selection.isSelected(file.path);
+                            final isSelected = widget.selection.isSelected(
+                              file.path,
+                            );
                             return _DataRow(
                               file: file,
                               rowIndex: fileIndex,
@@ -751,9 +743,7 @@ class _DataRow extends ConsumerWidget {
     // (not just focused), so double-clicking non-editable cells still opens
     // the tag panel on a focused-but-not-editing row.
     final isEditingThisRow = ref.watch(
-      inlineCellEditProvider.select(
-        (s) => s.editingCell?.rowIndex == rowIndex,
-      ),
+      inlineCellEditProvider.select((s) => s.editingCell?.rowIndex == rowIndex),
     );
 
     // Determine row background: selection > zebra stripe > transparent
@@ -804,10 +794,8 @@ class _DataRow extends ConsumerWidget {
                 return _TagIndicatorCell(file: file, width: width);
               }
 
-              final value = column.valueExtractor?.call(
-                    file,
-                    rootFolder: rootFolder,
-                  ) ??
+              final value =
+                  column.valueExtractor?.call(file, rootFolder: rootFolder) ??
                   '';
 
               // Use EditableCell for editable columns
@@ -819,7 +807,8 @@ class _DataRow extends ConsumerWidget {
                   ),
                   value: value,
                   width: width,
-                  isModified: file.isModified &&
+                  isModified:
+                      file.isModified &&
                       file.modifiedTags.containsKey(column.id),
                 );
               }
@@ -834,10 +823,7 @@ class _DataRow extends ConsumerWidget {
 }
 
 class _TagIndicatorCell extends StatelessWidget {
-  const _TagIndicatorCell({
-    required this.file,
-    required this.width,
-  });
+  const _TagIndicatorCell({required this.file, required this.width});
 
   final AudioFile file;
   final double width;
@@ -871,10 +857,9 @@ class _TagIndicatorCell extends StatelessWidget {
             child: Icon(
               Icons.lock,
               size: 14,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -895,10 +880,9 @@ class _TagIndicatorCell extends StatelessWidget {
             size: 14,
             color: hasTags
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.3),
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
         ),
       ),
@@ -930,10 +914,7 @@ class _TagIndicatorCell extends StatelessWidget {
 }
 
 class _TextCell extends StatelessWidget {
-  const _TextCell({
-    required this.value,
-    required this.width,
-  });
+  const _TextCell({required this.value, required this.width});
 
   final String value;
   final double width;
@@ -955,10 +936,7 @@ class _TextCell extends StatelessWidget {
 }
 
 class _KeyModifiers {
-  const _KeyModifiers({
-    this.isCtrl = false,
-    this.isShift = false,
-  });
+  const _KeyModifiers({this.isCtrl = false, this.isShift = false});
 
   final bool isCtrl;
   final bool isShift;

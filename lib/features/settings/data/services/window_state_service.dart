@@ -42,7 +42,8 @@ class WindowStateService {
 
       final isTagPanelOpen = prefs.getBool(_keyTagPanelOpen) ?? false;
       final tagPanelWidth = prefs.getDouble(_keyTagPanelWidth) ?? 380.0;
-      final errorPanelHeight = prefs.getDouble(_keyErrorPanelHeight) ??
+      final errorPanelHeight =
+          prefs.getDouble(_keyErrorPanelHeight) ??
           WindowState.defaultErrorPanelHeight;
       final lastFolderPath = prefs.getString(_keyLastFolder);
 

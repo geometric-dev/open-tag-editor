@@ -26,8 +26,8 @@ class MaskPreset {
 
   /// Converts this preset to a JSON map.
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'pattern': pattern,
-        'isBuiltIn': isBuiltIn,
-      };
+    'name': name,
+    'pattern': pattern,
+    'isBuiltIn': isBuiltIn,
+  };
 }

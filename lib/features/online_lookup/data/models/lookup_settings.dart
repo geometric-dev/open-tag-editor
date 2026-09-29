@@ -28,11 +28,11 @@ class LookupSettings extends Equatable {
 
   @override
   List<Object?> get props => [
-        discogsToken,
-        fpcalcPath,
-        defaultSource,
-        autoFetchCoverArt,
-      ];
+    discogsToken,
+    fpcalcPath,
+    defaultSource,
+    autoFetchCoverArt,
+  ];
 
   /// Creates a copy with updated fields.
   LookupSettings copyWith({

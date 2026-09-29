@@ -68,8 +68,9 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
             steps[i],
             style: TextStyle(
               fontSize: 12,
-              fontWeight:
-                  i + 1 == currentStep ? FontWeight.bold : FontWeight.normal,
+              fontWeight: i + 1 == currentStep
+                  ? FontWeight.bold
+                  : FontWeight.normal,
               color: i + 1 == currentStep
                   ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
@@ -87,10 +88,7 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
 
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 900,
-          maxHeight: 650,
-        ),
+        constraints: const BoxConstraints(maxWidth: 900, maxHeight: 650),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -124,9 +122,7 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
               ),
               const Divider(),
               // Content area
-              Expanded(
-                child: _buildContent(state),
-              ),
+              Expanded(child: _buildContent(state)),
             ],
           ),
         ),
@@ -159,17 +155,17 @@ class _LookupDialogState extends ConsumerState<LookupDialog> {
         coverArtLoading: state.coverArtLoading,
         selectedFiles: widget.selectedFiles,
         onMatch: () {
-          ref.read(lookupStateProvider.notifier).matchFiles(
-                widget.selectedFiles,
-              );
+          ref
+              .read(lookupStateProvider.notifier)
+              .matchFiles(widget.selectedFiles);
         },
         onBack: () {
           ref.read(lookupStateProvider.notifier).deselectResult();
         },
         onPartialMatch: () {
-          ref.read(lookupStateProvider.notifier).matchFilesPartial(
-                widget.selectedFiles,
-              );
+          ref
+              .read(lookupStateProvider.notifier)
+              .matchFilesPartial(widget.selectedFiles);
         },
       );
     }

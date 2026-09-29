@@ -77,7 +77,8 @@ void main() {
         expect(
           hasTruncationWarning,
           isTrue,
-          reason: 'Field "$field" with length $length should warn about '
+          reason:
+              'Field "$field" with length $length should warn about '
               'truncation (iteration $i)',
         );
       }
@@ -104,7 +105,8 @@ void main() {
         expect(
           hasTruncationWarning,
           isFalse,
-          reason: 'Field "$field" with length $length should NOT warn about '
+          reason:
+              'Field "$field" with length $length should NOT warn about '
               'truncation (iteration $i)',
         );
       }
@@ -131,7 +133,8 @@ void main() {
         expect(
           hasTruncationWarning,
           isTrue,
-          reason: 'Year with length $length should warn about 4-char '
+          reason:
+              'Year with length $length should warn about 4-char '
               'truncation (iteration $i)',
         );
       }
@@ -176,7 +179,8 @@ void main() {
         expect(
           hasEncodingError,
           isTrue,
-          reason: 'Field "$field" with non-Latin-1 chars should produce '
+          reason:
+              'Field "$field" with non-Latin-1 chars should produce '
               'encoding error (iteration $i)',
         );
       }
@@ -203,7 +207,8 @@ void main() {
         expect(
           hasEncodingError,
           isFalse,
-          reason: 'Field "$field" with only Latin-1 chars should NOT produce '
+          reason:
+              'Field "$field" with only Latin-1 chars should NOT produce '
               'encoding error (iteration $i)',
         );
       }
@@ -244,7 +249,8 @@ void main() {
         expect(
           hasMaxLengthError,
           isTrue,
-          reason: 'Field "$field" with length $length should produce '
+          reason:
+              'Field "$field" with length $length should produce '
               'max-length error (iteration $i)',
         );
       }
@@ -271,7 +277,8 @@ void main() {
         expect(
           hasMaxLengthError,
           isFalse,
-          reason: 'Field "$field" with length $length should NOT produce '
+          reason:
+              'Field "$field" with length $length should NOT produce '
               'max-length error (iteration $i)',
         );
       }
@@ -323,7 +330,8 @@ void main() {
         expect(
           hasNumericWarning,
           isTrue,
-          reason: 'Numeric field "$field" with value "$value" should produce '
+          reason:
+              'Numeric field "$field" with value "$value" should produce '
               'numeric warning (iteration $i)',
         );
       }
@@ -352,7 +360,8 @@ void main() {
         expect(
           hasNumericWarning,
           isFalse,
-          reason: 'Numeric field "$field" with value "$value" should NOT '
+          reason:
+              'Numeric field "$field" with value "$value" should NOT '
               'produce numeric warning (iteration $i)',
         );
       }
@@ -378,7 +387,8 @@ void main() {
         expect(
           hasNumericWarning,
           isFalse,
-          reason: 'Text field "$field" should never produce numeric warning '
+          reason:
+              'Text field "$field" should never produce numeric warning '
               '(iteration $i)',
         );
       }

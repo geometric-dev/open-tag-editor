@@ -71,11 +71,7 @@ class Id3WriterService implements TagWriterService {
         results.add(TagWriteResult(path: entry.key, success: true));
       } catch (e) {
         results.add(
-          TagWriteResult(
-            path: entry.key,
-            success: false,
-            error: e.toString(),
-          ),
+          TagWriteResult(path: entry.key, success: false, error: e.toString()),
         );
       }
     }
@@ -221,7 +217,8 @@ class Id3WriterService implements TagWriterService {
     while (offset < bytes.length - 4) {
       final isLast = (bytes[offset] & 0x80) != 0;
       final blockType = bytes[offset] & 0x7F;
-      final blockSize = (bytes[offset + 1] << 16) |
+      final blockSize =
+          (bytes[offset + 1] << 16) |
           (bytes[offset + 2] << 8) |
           bytes[offset + 3];
 
@@ -390,7 +387,8 @@ class Id3WriterService implements TagWriterService {
       final frameId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
       if (frameId[0] == '\x00') break;
 
-      final frameSize = (bytes[offset + 4] << 24) |
+      final frameSize =
+          (bytes[offset + 4] << 24) |
           (bytes[offset + 5] << 16) |
           (bytes[offset + 6] << 8) |
           bytes[offset + 7];
@@ -398,9 +396,7 @@ class Id3WriterService implements TagWriterService {
       if (frameSize <= 0 || offset + 10 + frameSize > bytes.length) break;
 
       frames.add(
-        Uint8List.fromList(
-          bytes.sublist(offset, offset + 10 + frameSize),
-        ),
+        Uint8List.fromList(bytes.sublist(offset, offset + 10 + frameSize)),
       );
 
       offset += 10 + frameSize;
@@ -481,11 +477,7 @@ class Id3WriterService implements TagWriterService {
 }
 
 class _FlacBlock {
-  _FlacBlock({
-    required this.type,
-    required this.isLast,
-    required this.data,
-  });
+  _FlacBlock({required this.type, required this.isLast, required this.data});
 
   final int type;
   final bool isLast;

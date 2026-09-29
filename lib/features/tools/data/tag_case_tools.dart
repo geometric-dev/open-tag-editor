@@ -38,16 +38,20 @@ Map<String, String> applyTool(TagTool tool, AudioFile file) {
 /// Moves a leading article to a trailing ", The/An/A": `The Beatles` →
 /// `Beatles, The`. Case-preserving for the article itself.
 String theToComma(String input) {
-  final match = RegExp(r'^(\s*)(The|An|A)(\s+)(.+)$', caseSensitive: false)
-      .firstMatch(input);
+  final match = RegExp(
+    r'^(\s*)(The|An|A)(\s+)(.+)$',
+    caseSensitive: false,
+  ).firstMatch(input);
   if (match == null) return input;
   return '${match.group(4)}, ${match.group(2)}';
 }
 
 /// Inverse of [theToComma]: `Beatles, The` → `The Beatles`.
 String commaToThe(String input) {
-  final match =
-      RegExp(r'^(.+),\s*(The|An|A)$', caseSensitive: false).firstMatch(input);
+  final match = RegExp(
+    r'^(.+),\s*(The|An|A)$',
+    caseSensitive: false,
+  ).firstMatch(input);
   if (match == null) return input;
   return '${match.group(2)} ${match.group(1)}';
 }

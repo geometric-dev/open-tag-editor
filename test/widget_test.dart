@@ -5,11 +5,7 @@ import 'package:open_tag_editor/app.dart';
 
 void main() {
   testWidgets('App renders without crashing', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: OpenTagEditorApp(),
-      ),
-    );
+    await tester.pumpWidget(const ProviderScope(child: OpenTagEditorApp()));
 
     // Verify the app renders with status bar showing initial state
     expect(find.text('Ready'), findsOneWidget);

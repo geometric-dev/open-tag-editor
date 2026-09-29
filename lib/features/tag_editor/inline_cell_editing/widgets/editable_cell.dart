@@ -81,10 +81,8 @@ class EditableCellState extends ConsumerState<EditableCell> {
             border: isEditing
                 ? Border.all(color: colorScheme.primary, width: 2)
                 : isFocused
-                    ? Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.5),
-                      )
-                    : null,
+                ? Border.all(color: colorScheme.primary.withValues(alpha: 0.5))
+                : null,
           ),
           child: Stack(
             children: [
@@ -174,8 +172,9 @@ class EditableCellState extends ConsumerState<EditableCell> {
         position.dy,
       ),
       items: items,
-      constraints:
-          values.length > 20 ? const BoxConstraints(maxHeight: 280) : null,
+      constraints: values.length > 20
+          ? const BoxConstraints(maxHeight: 280)
+          : null,
     );
 
     if (chosen == null) return; // Dismissed without selection.
@@ -218,10 +217,7 @@ class _FillArrowButton extends StatelessWidget {
       child: IconButton(
         onPressed: onPressed,
         padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(
-          minWidth: 24,
-          minHeight: 24,
-        ),
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
         iconSize: 14,
         splashRadius: 12,
         icon: Icon(

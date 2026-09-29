@@ -30,11 +30,7 @@ class FolderSeparatorRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            Icon(
-              Icons.folder,
-              size: 14,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(Icons.folder, size: 14, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// The action chosen by the user in the [UnsavedChangesDialog].
-enum UnsavedChangesAction {
-  save,
-  discard,
-  cancel,
-}
+enum UnsavedChangesAction { save, discard, cancel }
 
 /// A dialog that warns the user about unsaved changes and offers
 /// options to save, discard, or cancel the current operation.
 class UnsavedChangesDialog extends StatelessWidget {
-  const UnsavedChangesDialog({
-    super.key,
-    required this.modifiedFileCount,
-  });
+  const UnsavedChangesDialog({super.key, required this.modifiedFileCount});
 
   final int modifiedFileCount;
 
@@ -26,9 +19,8 @@ class UnsavedChangesDialog extends StatelessWidget {
     return showDialog<UnsavedChangesAction>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => UnsavedChangesDialog(
-        modifiedFileCount: modifiedFileCount,
-      ),
+      builder: (context) =>
+          UnsavedChangesDialog(modifiedFileCount: modifiedFileCount),
     );
   }
 
@@ -44,24 +36,18 @@ class UnsavedChangesDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(
-            UnsavedChangesAction.cancel,
-          ),
+          onPressed: () =>
+              Navigator.of(context).pop(UnsavedChangesAction.cancel),
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(
-            UnsavedChangesAction.discard,
-          ),
-          style: TextButton.styleFrom(
-            foregroundColor: colorScheme.error,
-          ),
+          onPressed: () =>
+              Navigator.of(context).pop(UnsavedChangesAction.discard),
+          style: TextButton.styleFrom(foregroundColor: colorScheme.error),
           child: const Text('Discard'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(
-            UnsavedChangesAction.save,
-          ),
+          onPressed: () => Navigator.of(context).pop(UnsavedChangesAction.save),
           child: const Text('Save'),
         ),
       ],

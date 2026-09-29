@@ -5,9 +5,7 @@ import '../../../core/undo/undo_redo_manager.dart';
 /// Undoable command that reverses a batch rename operation.
 class RenameCommand implements UndoableCommand {
   /// Creates a [RenameCommand] with the given [renames] map.
-  RenameCommand({
-    required this.renames,
-  });
+  RenameCommand({required this.renames});
 
   /// Map of original path → new path for each renamed file.
   final Map<String, String> renames;

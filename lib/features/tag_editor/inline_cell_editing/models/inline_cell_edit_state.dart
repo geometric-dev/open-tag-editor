@@ -51,8 +51,9 @@ class InlineCellEditState {
     return InlineCellEditState(
       focusedCell: focusedCell ?? this.focusedCell,
       editingCell: clearEditing ? null : (editingCell ?? this.editingCell),
-      originalValue:
-          clearEditing ? null : (originalValue ?? this.originalValue),
+      originalValue: clearEditing
+          ? null
+          : (originalValue ?? this.originalValue),
       currentValue: clearEditing ? null : (currentValue ?? this.currentValue),
       selectAll: clearEditing ? false : (selectAll ?? this.selectAll),
       showFocusBorder: showFocusBorder ?? this.showFocusBorder,

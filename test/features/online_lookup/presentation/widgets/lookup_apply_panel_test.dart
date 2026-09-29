@@ -8,19 +8,19 @@ import 'package:open_tag_editor/features/online_lookup/presentation/widgets/look
 import 'package:open_tag_editor/shared/models/audio_file.dart';
 
 List<AudioFile> makeFiles(int count) => List.generate(
-      count,
-      (i) => AudioFile(
-        path: '/file$i.mp3',
-        filename: 'file$i.mp3',
-        extension: '.mp3',
-        fileSize: 1024,
-      ),
-    );
+  count,
+  (i) => AudioFile(
+    path: '/file$i.mp3',
+    filename: 'file$i.mp3',
+    extension: '.mp3',
+    fileSize: 1024,
+  ),
+);
 
 List<TrackInfo> makeTracks(int count) => List.generate(
-      count,
-      (i) => TrackInfo(title: 'Track ${i + 1}', position: i + 1),
-    );
+  count,
+  (i) => TrackInfo(title: 'Track ${i + 1}', position: i + 1),
+);
 
 List<TrackFileMatch> makePartialMatches(
   List<AudioFile> files,
@@ -49,9 +49,7 @@ void main() {
       matches = makePartialMatches(files, tracks);
     });
 
-    Widget buildWidget({
-      Set<String> optedOutPaths = const {},
-    }) {
+    Widget buildWidget({Set<String> optedOutPaths = const {}}) {
       return ProviderScope(
         child: MaterialApp(
           home: Scaffold(
@@ -114,20 +112,19 @@ void main() {
       expect(find.text('High'), findsNWidgets(3));
     });
 
-    testWidgets(
-      'shows "Album info only" badge on unmatched rows',
-      (tester) async {
-        tester.view.physicalSize = const Size(1200, 800);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets('shows "Album info only" badge on unmatched rows', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(buildWidget());
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
 
-        expect(find.text('Album info only'), findsNWidgets(2));
-      },
-    );
+      expect(find.text('Album info only'), findsNWidgets(2));
+    });
 
     testWidgets('unmatched rows have reduced opacity', (tester) async {
       tester.view.physicalSize = const Size(1200, 800);

@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider for the folder panel visibility state.
 final folderPanelStateProvider =
     StateNotifierProvider<FolderPanelStateNotifier, bool>((ref) {
-  return FolderPanelStateNotifier();
-});
+      return FolderPanelStateNotifier();
+    });
 
 /// Manages folder panel visibility with SharedPreferences persistence.
 ///

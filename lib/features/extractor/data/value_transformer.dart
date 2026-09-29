@@ -10,7 +10,7 @@ import '../../renamer/data/models/case_option.dart';
 class ValueTransformer {
   /// Creates a [ValueTransformer] instance.
   const ValueTransformer({CaseTransformer? caseTransformer})
-      : _caseTransformer = caseTransformer ?? const CaseTransformer();
+    : _caseTransformer = caseTransformer ?? const CaseTransformer();
 
   final CaseTransformer _caseTransformer;
 

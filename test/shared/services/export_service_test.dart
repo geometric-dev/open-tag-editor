@@ -24,10 +24,7 @@ void main() {
 
   test('CSV quotes fields containing commas, quotes, and newlines', () {
     final csv = ExportService.toCsv([
-      file({
-        'title': 'Hello, World',
-        'artist': 'The "Best" Band\nSecond line',
-      }),
+      file({'title': 'Hello, World', 'artist': 'The "Best" Band\nSecond line'}),
     ], columns);
 
     // BOM then header row.
@@ -46,12 +43,9 @@ void main() {
   });
 
   test('HTML escapes markup and renders header row', () {
-    final html = ExportService.toHtml(
-      [
-        file({'title': '<b>Bold</b> & "friends"'})
-      ],
-      columns,
-    );
+    final html = ExportService.toHtml([
+      file({'title': '<b>Bold</b> & "friends"'}),
+    ], columns);
 
     expect(html, contains('&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;friends&quot;'));
     expect(html, contains('<th>Title</th>'));
@@ -60,7 +54,7 @@ void main() {
 
   test('serializeFor picks HTML by extension', () {
     final files = [
-      file({'title': 'X'})
+      file({'title': 'X'}),
     ];
     final out = ExportService.serializeFor('out.htm', files, columns);
     expect(out, startsWith('<!DOCTYPE html>'));

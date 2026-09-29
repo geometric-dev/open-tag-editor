@@ -5,7 +5,7 @@ import 'package:open_tag_editor/shared/services/playlist_service.dart';
 void main() {
   test('extended m3u contains EXTINF and paths', () {
     final files = [
-      AudioFile(
+      const AudioFile(
         path: '/music/a.mp3',
         filename: 'a.mp3',
         extension: '.mp3',
@@ -13,7 +13,7 @@ void main() {
         tags: {'artist': 'A', 'title': 'T'},
         duration: 123.4,
       ),
-      AudioFile(
+      const AudioFile(
         path: '/music/b.flac',
         filename: 'b.flac',
         extension: '.flac',
@@ -31,7 +31,7 @@ void main() {
 
   test('relative paths when baseDirectory given', () {
     final files = [
-      AudioFile(
+      const AudioFile(
         path: r'C:\music\album\a.mp3',
         filename: 'a.mp3',
         extension: '.mp3',

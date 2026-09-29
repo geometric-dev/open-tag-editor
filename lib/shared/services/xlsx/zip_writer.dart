@@ -12,9 +12,7 @@ class ZipWriter {
 
   /// Adds a file entry. [data] is stored uncompressed.
   void addFile(String name, Uint8List data) {
-    _entries.add(
-      _ZipEntry(name: name, data: data, crc32: crc32(data)),
-    );
+    _entries.add(_ZipEntry(name: name, data: data, crc32: crc32(data)));
   }
 
   void addText(String name, String text) {
@@ -102,11 +100,11 @@ class _ZipEntry {
 Uint8List _u16(int v) => Uint8List.fromList([v & 0xFF, (v >> 8) & 0xFF]);
 
 Uint8List _u32(int v) => Uint8List.fromList([
-      v & 0xFF,
-      (v >> 8) & 0xFF,
-      (v >> 16) & 0xFF,
-      (v >> 24) & 0xFF,
-    ]);
+  v & 0xFF,
+  (v >> 8) & 0xFF,
+  (v >> 16) & 0xFF,
+  (v >> 24) & 0xFF,
+]);
 
 /// CRC-32 (IEEE 802.3), table-driven.
 int crc32(Uint8List data) {

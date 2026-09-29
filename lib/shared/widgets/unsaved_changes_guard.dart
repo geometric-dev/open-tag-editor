@@ -50,10 +50,7 @@ class UnsavedChangesGuard {
   ///
   /// Returns `true` if all files saved successfully, `false` if any failed
   /// or the user cancelled the confirm-before-saving dialog.
-  static Future<bool> _executeSave(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  static Future<bool> _executeSave(BuildContext context, WidgetRef ref) async {
     final summary = await ref.read(tagSaveServiceProvider).saveAllModified();
     if (summary == null) return true;
     if (summary.allSuccess) return true;

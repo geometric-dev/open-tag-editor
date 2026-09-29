@@ -74,9 +74,7 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
     if (!_focusNode.hasFocus && mounted) {
       final editState = ref.read(inlineCellEditProvider);
       if (editState.isEditing) {
-        ref.read(inlineCellEditProvider.notifier).confirmEdit(
-              clearFocus: true,
-            );
+        ref.read(inlineCellEditProvider.notifier).confirmEdit(clearFocus: true);
       }
     }
   }
@@ -150,8 +148,10 @@ class _InlineTextFieldState extends ConsumerState<InlineTextField> {
         style: const TextStyle(fontSize: 12),
         decoration: InputDecoration(
           isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 4,
+            vertical: 4,
+          ),
           border: InputBorder.none,
           suffixIcon: hasIssues ? indicator : null,
           suffixIconConstraints: hasIssues

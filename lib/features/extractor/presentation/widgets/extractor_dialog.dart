@@ -83,9 +83,7 @@ class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Preset name',
-            ),
+            decoration: const InputDecoration(labelText: 'Preset name'),
           ),
           actions: [
             TextButton(
@@ -132,10 +130,7 @@ class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
               ),
               items: [
                 for (var i = 0; i < presets.length; i++)
-                  DropdownMenuItem(
-                    value: i,
-                    child: Text(presets[i].name),
-                  ),
+                  DropdownMenuItem(value: i, child: Text(presets[i].name)),
               ],
               onChanged: (value) {
                 if (value != null && value < presets.length) {

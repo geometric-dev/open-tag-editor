@@ -64,141 +64,115 @@ void main() {
 
   // **Validates: Requirements 2.2, 2.4, 5.2, 5.3, 5.4**
 
-  group(
-    'Property 1: collectColumnValues returns unique non-empty values in '
-    'first-appearance order',
-    () {
-      test(
-        'all elements are non-empty and non-whitespace-only',
-        () {
-          for (var i = 0; i < 100; i++) {
-            final pool = generateValuePool();
-            final fileCount = 1 + random.nextInt(50);
-            final files = List.generate(fileCount, (idx) {
-              final value = pool[random.nextInt(pool.length)];
-              return makeFile(idx, value);
-            });
+  group('Property 1: collectColumnValues returns unique non-empty values in '
+      'first-appearance order', () {
+    test('all elements are non-empty and non-whitespace-only', () {
+      for (var i = 0; i < 100; i++) {
+        final pool = generateValuePool();
+        final fileCount = 1 + random.nextInt(50);
+        final files = List.generate(fileCount, (idx) {
+          final value = pool[random.nextInt(pool.length)];
+          return makeFile(idx, value);
+        });
 
-            final result = collectColumnValues(
-              files: files,
-              columnId: 'testCol',
-            );
+        final result = collectColumnValues(files: files, columnId: 'testCol');
 
-            for (final value in result) {
-              expect(
-                value.trim().isNotEmpty,
-                isTrue,
-                reason:
-                    'Every element must be non-empty and non-whitespace-only, '
-                    'but got "$value" (iteration $i)',
-              );
-            }
+        for (final value in result) {
+          expect(
+            value.trim().isNotEmpty,
+            isTrue,
+            reason:
+                'Every element must be non-empty and non-whitespace-only, '
+                'but got "$value" (iteration $i)',
+          );
+        }
+      }
+    });
+
+    test('no duplicates in the result (case-sensitive)', () {
+      for (var i = 0; i < 100; i++) {
+        final pool = generateValuePool();
+        final fileCount = 1 + random.nextInt(50);
+        final files = List.generate(fileCount, (idx) {
+          final value = pool[random.nextInt(pool.length)];
+          return makeFile(idx, value);
+        });
+
+        final result = collectColumnValues(files: files, columnId: 'testCol');
+
+        expect(
+          result.toSet().length,
+          equals(result.length),
+          reason:
+              'Result must contain no duplicates (case-sensitive), '
+              'but got $result (iteration $i)',
+        );
+      }
+    });
+
+    test('order matches first appearance in the input file list', () {
+      for (var i = 0; i < 100; i++) {
+        final pool = generateValuePool();
+        final fileCount = 1 + random.nextInt(50);
+        final files = List.generate(fileCount, (idx) {
+          final value = pool[random.nextInt(pool.length)];
+          return makeFile(idx, value);
+        });
+
+        final result = collectColumnValues(files: files, columnId: 'testCol');
+
+        // For each consecutive pair in result, verify first-appearance order
+        for (var j = 0; j < result.length - 1; j++) {
+          final firstAppearanceA = files.indexWhere(
+            (f) => f.tags['testCol'] == result[j],
+          );
+          final firstAppearanceB = files.indexWhere(
+            (f) => f.tags['testCol'] == result[j + 1],
+          );
+
+          expect(
+            firstAppearanceA < firstAppearanceB,
+            isTrue,
+            reason:
+                'Value "${result[j]}" (first at index $firstAppearanceA) '
+                'must appear before "${result[j + 1]}" (first at index '
+                '$firstAppearanceB) in the result (iteration $i)',
+          );
+        }
+      }
+    });
+
+    test('no valid value is missing from the result', () {
+      for (var i = 0; i < 100; i++) {
+        final pool = generateValuePool();
+        final fileCount = 1 + random.nextInt(50);
+        final files = List.generate(fileCount, (idx) {
+          final value = pool[random.nextInt(pool.length)];
+          return makeFile(idx, value);
+        });
+
+        final result = collectColumnValues(files: files, columnId: 'testCol');
+
+        // Collect all valid values from input files
+        final expectedValues = <String>{};
+        for (final file in files) {
+          final value = file.tags['testCol'] ?? '';
+          if (value.trim().isNotEmpty) {
+            expectedValues.add(value);
           }
-        },
-      );
+        }
 
-      test(
-        'no duplicates in the result (case-sensitive)',
-        () {
-          for (var i = 0; i < 100; i++) {
-            final pool = generateValuePool();
-            final fileCount = 1 + random.nextInt(50);
-            final files = List.generate(fileCount, (idx) {
-              final value = pool[random.nextInt(pool.length)];
-              return makeFile(idx, value);
-            });
-
-            final result = collectColumnValues(
-              files: files,
-              columnId: 'testCol',
-            );
-
-            expect(
-              result.toSet().length,
-              equals(result.length),
-              reason: 'Result must contain no duplicates (case-sensitive), '
-                  'but got $result (iteration $i)',
-            );
-          }
-        },
-      );
-
-      test(
-        'order matches first appearance in the input file list',
-        () {
-          for (var i = 0; i < 100; i++) {
-            final pool = generateValuePool();
-            final fileCount = 1 + random.nextInt(50);
-            final files = List.generate(fileCount, (idx) {
-              final value = pool[random.nextInt(pool.length)];
-              return makeFile(idx, value);
-            });
-
-            final result = collectColumnValues(
-              files: files,
-              columnId: 'testCol',
-            );
-
-            // For each consecutive pair in result, verify first-appearance order
-            for (var j = 0; j < result.length - 1; j++) {
-              final firstAppearanceA = files.indexWhere(
-                (f) => f.tags['testCol'] == result[j],
-              );
-              final firstAppearanceB = files.indexWhere(
-                (f) => f.tags['testCol'] == result[j + 1],
-              );
-
-              expect(
-                firstAppearanceA < firstAppearanceB,
-                isTrue,
-                reason:
-                    'Value "${result[j]}" (first at index $firstAppearanceA) '
-                    'must appear before "${result[j + 1]}" (first at index '
-                    '$firstAppearanceB) in the result (iteration $i)',
-              );
-            }
-          }
-        },
-      );
-
-      test(
-        'no valid value is missing from the result',
-        () {
-          for (var i = 0; i < 100; i++) {
-            final pool = generateValuePool();
-            final fileCount = 1 + random.nextInt(50);
-            final files = List.generate(fileCount, (idx) {
-              final value = pool[random.nextInt(pool.length)];
-              return makeFile(idx, value);
-            });
-
-            final result = collectColumnValues(
-              files: files,
-              columnId: 'testCol',
-            );
-
-            // Collect all valid values from input files
-            final expectedValues = <String>{};
-            for (final file in files) {
-              final value = file.tags['testCol'] ?? '';
-              if (value.trim().isNotEmpty) {
-                expectedValues.add(value);
-              }
-            }
-
-            final resultSet = result.toSet();
-            for (final expected in expectedValues) {
-              expect(
-                resultSet.contains(expected),
-                isTrue,
-                reason:
-                    'Value "$expected" is present in input files but missing '
-                    'from result (iteration $i)',
-              );
-            }
-          }
-        },
-      );
-    },
-  );
+        final resultSet = result.toSet();
+        for (final expected in expectedValues) {
+          expect(
+            resultSet.contains(expected),
+            isTrue,
+            reason:
+                'Value "$expected" is present in input files but missing '
+                'from result (iteration $i)',
+          );
+        }
+      }
+    });
+  });
 }

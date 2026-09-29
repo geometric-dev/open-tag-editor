@@ -58,7 +58,9 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
   }
 
   void _search() {
-    ref.read(lookupStateProvider.notifier).search(
+    ref
+        .read(lookupStateProvider.notifier)
+        .search(
           artist: _artistController.text,
           album: _albumController.text,
           year: _yearController.text.isNotEmpty ? _yearController.text : null,
@@ -140,12 +142,12 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
               selected: _selectedSources.contains(SearchSource.discogs),
               onSelected: settings.isDiscogsConfigured
                   ? (v) => setState(() {
-                        if (v) {
-                          _selectedSources.add(SearchSource.discogs);
-                        } else {
-                          _selectedSources.remove(SearchSource.discogs);
-                        }
-                      })
+                      if (v) {
+                        _selectedSources.add(SearchSource.discogs);
+                      } else {
+                        _selectedSources.remove(SearchSource.discogs);
+                      }
+                    })
                   : null,
               avatar: settings.isDiscogsConfigured
                   ? null
@@ -196,7 +198,8 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
           Column(
             children: [
               LinearProgressIndicator(
-                value: widget.fingerprintProgress!.completed /
+                value:
+                    widget.fingerprintProgress!.completed /
                     widget.fingerprintProgress!.total,
               ),
               const SizedBox(height: 8),
@@ -222,10 +225,7 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(child: Text(widget.error!)),
-                    TextButton(
-                      onPressed: _search,
-                      child: const Text('Retry'),
-                    ),
+                    TextButton(onPressed: _search, child: const Text('Retry')),
                   ],
                 ),
               ),
@@ -238,10 +238,9 @@ class _LookupSearchPanelState extends ConsumerState<LookupSearchPanel> {
               child: Text(
                 'Search by artist/album or identify files by fingerprint',
                 style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ),

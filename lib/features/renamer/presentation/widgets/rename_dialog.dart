@@ -65,21 +65,19 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     if (mounted) {
       if (result.errorCount > 0) {
         // Convert RenameErrors to RenameResults for the error entry factory.
-        final renameResults = result.errors.map(
-          (e) {
-            // Look up the target path from previews.
-            final preview = state.previews.cast<RenamePreview?>().firstWhere(
-                  (p) => p!.originalPath == e.filePath,
-                  orElse: () => null,
-                );
-            return RenameResult(
-              originalPath: e.filePath,
-              newPath: preview?.newPath ?? '',
-              success: false,
-              error: e.message,
-            );
-          },
-        ).toList();
+        final renameResults = result.errors.map((e) {
+          // Look up the target path from previews.
+          final preview = state.previews.cast<RenamePreview?>().firstWhere(
+            (p) => p!.originalPath == e.filePath,
+            orElse: () => null,
+          );
+          return RenameResult(
+            originalPath: e.filePath,
+            newPath: preview?.newPath ?? '',
+            success: false,
+            error: e.message,
+          );
+        }).toList();
         final entries = ErrorEntryFactory.fromRenameResults(renameResults);
         ref.read(errorLogProvider.notifier).addEntries(entries);
 
@@ -123,9 +121,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Preset name',
-            ),
+            decoration: const InputDecoration(labelText: 'Preset name'),
           ),
           actions: [
             TextButton(
@@ -188,12 +184,15 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     final presets = ref.watch(presetProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final hasOkPreviews =
-        state.previews.any((p) => p.status == RenamePreviewStatus.ok);
-    final previewRequired =
-        ref.watch(renamingSettingsProvider).previewBeforeRenaming;
-    final canExecute =
-        previewRequired ? hasOkPreviews : state.pattern.isNotEmpty;
+    final hasOkPreviews = state.previews.any(
+      (p) => p.status == RenamePreviewStatus.ok,
+    );
+    final previewRequired = ref
+        .watch(renamingSettingsProvider)
+        .previewBeforeRenaming;
+    final canExecute = previewRequired
+        ? hasOkPreviews
+        : state.pattern.isNotEmpty;
 
     return AlertDialog(
       title: const Text('Rename Files'),
@@ -210,9 +209,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                   child: DropdownButtonFormField<int>(
                     key: ValueKey(presets.length),
                     initialValue: _selectedPresetIndex,
-                    decoration: const InputDecoration(
-                      labelText: 'Preset',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Preset'),
                     items: [
                       for (var i = 0; i < presets.length; i++)
                         DropdownMenuItem(
@@ -236,12 +233,14 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Delete preset',
-                  onPressed: _selectedPresetIndex == null ||
+                  onPressed:
+                      _selectedPresetIndex == null ||
                           presets.isEmpty ||
                           presets[_selectedPresetIndex!].isBuiltIn
                       ? null
                       : () => _confirmDeletePreset(
-                          presets[_selectedPresetIndex!].name),
+                          presets[_selectedPresetIndex!].name,
+                        ),
                 ),
               ],
             ),
@@ -279,10 +278,7 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   state.parseError!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.error,
-                  ),
+                  style: TextStyle(fontSize: 12, color: colorScheme.error),
                 ),
               ),
             const SizedBox(height: 8),
@@ -387,17 +383,16 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
             const SizedBox(height: 12),
 
             // 5. Preview panel
-            Expanded(
-              child: PreviewPanel(previews: state.previews),
-            ),
+            Expanded(child: PreviewPanel(previews: state.previews)),
           ],
         ),
       ),
       // 6. Actions row
       actions: [
         TextButton(
-          onPressed:
-              state.isExecuting ? null : () => Navigator.of(context).pop(),
+          onPressed: state.isExecuting
+              ? null
+              : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         TextButton(

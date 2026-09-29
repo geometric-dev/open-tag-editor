@@ -42,13 +42,15 @@ void main() {
         expect(
           result.length,
           equals(files.length),
-          reason: 'When selection is empty, result should contain all '
+          reason:
+              'When selection is empty, result should contain all '
               'file paths (iteration $i, fileCount=$fileCount)',
         );
         expect(
           result.toSet(),
           equals(files.map((f) => f.path).toSet()),
-          reason: 'When selection is empty, result should match all '
+          reason:
+              'When selection is empty, result should match all '
               'file paths as a set (iteration $i)',
         );
       }
@@ -68,13 +70,15 @@ void main() {
         expect(
           result.length,
           equals(files.length),
-          reason: 'When all files are selected, result should contain all '
+          reason:
+              'When all files are selected, result should contain all '
               'file paths (iteration $i, fileCount=$fileCount)',
         );
         expect(
           result.toSet(),
           equals(files.map((f) => f.path).toSet()),
-          reason: 'When all files are selected, result should match all '
+          reason:
+              'When all files are selected, result should match all '
               'file paths as a set (iteration $i)',
         );
       }
@@ -111,7 +115,8 @@ void main() {
         expect(
           result.toSet(),
           equals(selectedPaths),
-          reason: 'When selection is a proper subset, result should contain '
+          reason:
+              'When selection is a proper subset, result should contain '
               'exactly the selected paths (iteration $i, '
               'selected=${selectedPaths.length}/${files.length})',
         );

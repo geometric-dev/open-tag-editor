@@ -125,279 +125,349 @@ class TagLibBindings {
 
   // ===== Global Configuration API =====
 
-  late final _taglib_set_strings_unicode =
-      _dylib.lookup<NativeFunction<Void Function(Int32)>>(
-          'taglib_set_strings_unicode');
-  late final taglib_set_strings_unicode =
-      _taglib_set_strings_unicode.asFunction<void Function(int)>();
+  late final _taglib_set_strings_unicode = _dylib
+      .lookup<NativeFunction<Void Function(Int32)>>(
+        'taglib_set_strings_unicode',
+      );
+  late final taglib_set_strings_unicode = _taglib_set_strings_unicode
+      .asFunction<void Function(int)>();
 
-  late final _taglib_set_string_management_enabled =
-      _dylib.lookup<NativeFunction<Void Function(Int32)>>(
-          'taglib_set_string_management_enabled');
+  late final _taglib_set_string_management_enabled = _dylib
+      .lookup<NativeFunction<Void Function(Int32)>>(
+        'taglib_set_string_management_enabled',
+      );
   late final taglib_set_string_management_enabled =
       _taglib_set_string_management_enabled.asFunction<void Function(int)>();
 
   late final _taglib_free = _dylib
       .lookup<NativeFunction<Void Function(Pointer<Void>)>>('taglib_free');
-  late final taglib_free =
-      _taglib_free.asFunction<void Function(Pointer<Void>)>();
+  late final taglib_free = _taglib_free
+      .asFunction<void Function(Pointer<Void>)>();
 
   // ===== File API =====
 
   late final _taglib_file_new = _dylib
       .lookup<NativeFunction<Pointer<TagLib_File> Function(Pointer<Utf8>)>>(
-          'taglib_file_new');
+        'taglib_file_new',
+      );
   late final taglib_file_new = _taglib_file_new
       .asFunction<Pointer<TagLib_File> Function(Pointer<Utf8>)>();
 
-  late final _taglib_file_new_type = _dylib.lookup<
-          NativeFunction<Pointer<TagLib_File> Function(Pointer<Utf8>, Int32)>>(
-      'taglib_file_new_type');
+  late final _taglib_file_new_type = _dylib
+      .lookup<
+        NativeFunction<Pointer<TagLib_File> Function(Pointer<Utf8>, Int32)>
+      >('taglib_file_new_type');
   late final taglib_file_new_type = _taglib_file_new_type
       .asFunction<Pointer<TagLib_File> Function(Pointer<Utf8>, int)>();
 
-  late final _taglib_file_free =
-      _dylib.lookup<NativeFunction<Void Function(Pointer<TagLib_File>)>>(
-          'taglib_file_free');
-  late final taglib_file_free =
-      _taglib_file_free.asFunction<void Function(Pointer<TagLib_File>)>();
+  late final _taglib_file_free = _dylib
+      .lookup<NativeFunction<Void Function(Pointer<TagLib_File>)>>(
+        'taglib_file_free',
+      );
+  late final taglib_file_free = _taglib_file_free
+      .asFunction<void Function(Pointer<TagLib_File>)>();
 
-  late final _taglib_file_is_valid =
-      _dylib.lookup<NativeFunction<Int32 Function(Pointer<TagLib_File>)>>(
-          'taglib_file_is_valid');
-  late final taglib_file_is_valid =
-      _taglib_file_is_valid.asFunction<int Function(Pointer<TagLib_File>)>();
+  late final _taglib_file_is_valid = _dylib
+      .lookup<NativeFunction<Int32 Function(Pointer<TagLib_File>)>>(
+        'taglib_file_is_valid',
+      );
+  late final taglib_file_is_valid = _taglib_file_is_valid
+      .asFunction<int Function(Pointer<TagLib_File>)>();
 
-  late final _taglib_file_tag = _dylib.lookup<
-          NativeFunction<Pointer<TagLib_Tag> Function(Pointer<TagLib_File>)>>(
-      'taglib_file_tag');
+  late final _taglib_file_tag = _dylib
+      .lookup<
+        NativeFunction<Pointer<TagLib_Tag> Function(Pointer<TagLib_File>)>
+      >('taglib_file_tag');
   late final taglib_file_tag = _taglib_file_tag
       .asFunction<Pointer<TagLib_Tag> Function(Pointer<TagLib_File>)>();
 
-  late final _taglib_file_audioproperties = _dylib.lookup<
-      NativeFunction<
-          Pointer<TagLib_AudioProperties> Function(
-              Pointer<TagLib_File>)>>('taglib_file_audioproperties');
-  late final taglib_file_audioproperties =
-      _taglib_file_audioproperties.asFunction<
-          Pointer<TagLib_AudioProperties> Function(Pointer<TagLib_File>)>();
+  late final _taglib_file_audioproperties = _dylib
+      .lookup<
+        NativeFunction<
+          Pointer<TagLib_AudioProperties> Function(Pointer<TagLib_File>)
+        >
+      >('taglib_file_audioproperties');
+  late final taglib_file_audioproperties = _taglib_file_audioproperties
+      .asFunction<
+        Pointer<TagLib_AudioProperties> Function(Pointer<TagLib_File>)
+      >();
 
-  late final _taglib_file_save =
-      _dylib.lookup<NativeFunction<Int32 Function(Pointer<TagLib_File>)>>(
-          'taglib_file_save');
-  late final taglib_file_save =
-      _taglib_file_save.asFunction<int Function(Pointer<TagLib_File>)>();
+  late final _taglib_file_save = _dylib
+      .lookup<NativeFunction<Int32 Function(Pointer<TagLib_File>)>>(
+        'taglib_file_save',
+      );
+  late final taglib_file_save = _taglib_file_save
+      .asFunction<int Function(Pointer<TagLib_File>)>();
 
   // ===== Tag API =====
 
   late final _taglib_tag_title = _dylib
       .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_title');
+        'taglib_tag_title',
+      );
   late final taglib_tag_title = _taglib_tag_title
       .asFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>();
 
   late final _taglib_tag_artist = _dylib
       .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_artist');
+        'taglib_tag_artist',
+      );
   late final taglib_tag_artist = _taglib_tag_artist
       .asFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>();
 
   late final _taglib_tag_album = _dylib
       .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_album');
+        'taglib_tag_album',
+      );
   late final taglib_tag_album = _taglib_tag_album
       .asFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>();
 
   late final _taglib_tag_comment = _dylib
       .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_comment');
+        'taglib_tag_comment',
+      );
   late final taglib_tag_comment = _taglib_tag_comment
       .asFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>();
 
   late final _taglib_tag_genre = _dylib
       .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_genre');
+        'taglib_tag_genre',
+      );
   late final taglib_tag_genre = _taglib_tag_genre
       .asFunction<Pointer<Utf8> Function(Pointer<TagLib_Tag>)>();
 
-  late final _taglib_tag_year =
-      _dylib.lookup<NativeFunction<Uint32 Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_year');
-  late final taglib_tag_year =
-      _taglib_tag_year.asFunction<int Function(Pointer<TagLib_Tag>)>();
+  late final _taglib_tag_year = _dylib
+      .lookup<NativeFunction<Uint32 Function(Pointer<TagLib_Tag>)>>(
+        'taglib_tag_year',
+      );
+  late final taglib_tag_year = _taglib_tag_year
+      .asFunction<int Function(Pointer<TagLib_Tag>)>();
 
-  late final _taglib_tag_track =
-      _dylib.lookup<NativeFunction<Uint32 Function(Pointer<TagLib_Tag>)>>(
-          'taglib_tag_track');
-  late final taglib_tag_track =
-      _taglib_tag_track.asFunction<int Function(Pointer<TagLib_Tag>)>();
+  late final _taglib_tag_track = _dylib
+      .lookup<NativeFunction<Uint32 Function(Pointer<TagLib_Tag>)>>(
+        'taglib_tag_track',
+      );
+  late final taglib_tag_track = _taglib_tag_track
+      .asFunction<int Function(Pointer<TagLib_Tag>)>();
 
-  late final _taglib_tag_set_title = _dylib.lookup<
-          NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>>(
-      'taglib_tag_set_title');
+  late final _taglib_tag_set_title = _dylib
+      .lookup<
+        NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>
+      >('taglib_tag_set_title');
   late final taglib_tag_set_title = _taglib_tag_set_title
       .asFunction<void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>();
 
-  late final _taglib_tag_set_artist = _dylib.lookup<
-          NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>>(
-      'taglib_tag_set_artist');
+  late final _taglib_tag_set_artist = _dylib
+      .lookup<
+        NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>
+      >('taglib_tag_set_artist');
   late final taglib_tag_set_artist = _taglib_tag_set_artist
       .asFunction<void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>();
 
-  late final _taglib_tag_set_album = _dylib.lookup<
-          NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>>(
-      'taglib_tag_set_album');
+  late final _taglib_tag_set_album = _dylib
+      .lookup<
+        NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>
+      >('taglib_tag_set_album');
   late final taglib_tag_set_album = _taglib_tag_set_album
       .asFunction<void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>();
 
-  late final _taglib_tag_set_comment = _dylib.lookup<
-          NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>>(
-      'taglib_tag_set_comment');
+  late final _taglib_tag_set_comment = _dylib
+      .lookup<
+        NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>
+      >('taglib_tag_set_comment');
   late final taglib_tag_set_comment = _taglib_tag_set_comment
       .asFunction<void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>();
 
-  late final _taglib_tag_set_genre = _dylib.lookup<
-          NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>>(
-      'taglib_tag_set_genre');
+  late final _taglib_tag_set_genre = _dylib
+      .lookup<
+        NativeFunction<Void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>
+      >('taglib_tag_set_genre');
   late final taglib_tag_set_genre = _taglib_tag_set_genre
       .asFunction<void Function(Pointer<TagLib_Tag>, Pointer<Utf8>)>();
 
-  late final _taglib_tag_set_year =
-      _dylib.lookup<NativeFunction<Void Function(Pointer<TagLib_Tag>, Uint32)>>(
-          'taglib_tag_set_year');
+  late final _taglib_tag_set_year = _dylib
+      .lookup<NativeFunction<Void Function(Pointer<TagLib_Tag>, Uint32)>>(
+        'taglib_tag_set_year',
+      );
   late final taglib_tag_set_year = _taglib_tag_set_year
       .asFunction<void Function(Pointer<TagLib_Tag>, int)>();
 
-  late final _taglib_tag_set_track =
-      _dylib.lookup<NativeFunction<Void Function(Pointer<TagLib_Tag>, Uint32)>>(
-          'taglib_tag_set_track');
+  late final _taglib_tag_set_track = _dylib
+      .lookup<NativeFunction<Void Function(Pointer<TagLib_Tag>, Uint32)>>(
+        'taglib_tag_set_track',
+      );
   late final taglib_tag_set_track = _taglib_tag_set_track
       .asFunction<void Function(Pointer<TagLib_Tag>, int)>();
 
-  late final _taglib_tag_free_strings =
-      _dylib.lookup<NativeFunction<Void Function()>>('taglib_tag_free_strings');
-  late final taglib_tag_free_strings =
-      _taglib_tag_free_strings.asFunction<void Function()>();
+  late final _taglib_tag_free_strings = _dylib
+      .lookup<NativeFunction<Void Function()>>('taglib_tag_free_strings');
+  late final taglib_tag_free_strings = _taglib_tag_free_strings
+      .asFunction<void Function()>();
 
   // ===== Audio Properties API =====
 
   late final _taglib_audioproperties_length = _dylib
       .lookup<NativeFunction<Int32 Function(Pointer<TagLib_AudioProperties>)>>(
-          'taglib_audioproperties_length');
+        'taglib_audioproperties_length',
+      );
   late final taglib_audioproperties_length = _taglib_audioproperties_length
       .asFunction<int Function(Pointer<TagLib_AudioProperties>)>();
 
   late final _taglib_audioproperties_bitrate = _dylib
       .lookup<NativeFunction<Int32 Function(Pointer<TagLib_AudioProperties>)>>(
-          'taglib_audioproperties_bitrate');
+        'taglib_audioproperties_bitrate',
+      );
   late final taglib_audioproperties_bitrate = _taglib_audioproperties_bitrate
       .asFunction<int Function(Pointer<TagLib_AudioProperties>)>();
 
   late final _taglib_audioproperties_samplerate = _dylib
       .lookup<NativeFunction<Int32 Function(Pointer<TagLib_AudioProperties>)>>(
-          'taglib_audioproperties_samplerate');
+        'taglib_audioproperties_samplerate',
+      );
   late final taglib_audioproperties_samplerate =
       _taglib_audioproperties_samplerate
           .asFunction<int Function(Pointer<TagLib_AudioProperties>)>();
 
   late final _taglib_audioproperties_channels = _dylib
       .lookup<NativeFunction<Int32 Function(Pointer<TagLib_AudioProperties>)>>(
-          'taglib_audioproperties_channels');
+        'taglib_audioproperties_channels',
+      );
   late final taglib_audioproperties_channels = _taglib_audioproperties_channels
       .asFunction<int Function(Pointer<TagLib_AudioProperties>)>();
 
   // ===== ID3v2 API =====
 
-  late final _taglib_id3v2_set_default_text_encoding =
-      _dylib.lookup<NativeFunction<Void Function(Int32)>>(
-          'taglib_id3v2_set_default_text_encoding');
+  late final _taglib_id3v2_set_default_text_encoding = _dylib
+      .lookup<NativeFunction<Void Function(Int32)>>(
+        'taglib_id3v2_set_default_text_encoding',
+      );
   late final taglib_id3v2_set_default_text_encoding =
       _taglib_id3v2_set_default_text_encoding.asFunction<void Function(int)>();
 
   // ===== Properties API =====
 
-  late final _taglib_property_set = _dylib.lookup<
-      NativeFunction<
-          Void Function(Pointer<TagLib_File>, Pointer<Utf8>,
-              Pointer<Utf8>)>>('taglib_property_set');
-  late final taglib_property_set = _taglib_property_set.asFunction<
-      void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)>();
+  late final _taglib_property_set = _dylib
+      .lookup<
+        NativeFunction<
+          Void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)
+        >
+      >('taglib_property_set');
+  late final taglib_property_set = _taglib_property_set
+      .asFunction<
+        void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)
+      >();
 
-  late final _taglib_property_set_append = _dylib.lookup<
-      NativeFunction<
-          Void Function(Pointer<TagLib_File>, Pointer<Utf8>,
-              Pointer<Utf8>)>>('taglib_property_set_append');
-  late final taglib_property_set_append =
-      _taglib_property_set_append.asFunction<
-          void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)>();
+  late final _taglib_property_set_append = _dylib
+      .lookup<
+        NativeFunction<
+          Void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)
+        >
+      >('taglib_property_set_append');
+  late final taglib_property_set_append = _taglib_property_set_append
+      .asFunction<
+        void Function(Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Utf8>)
+      >();
 
-  late final _taglib_property_keys = _dylib.lookup<
-      NativeFunction<
-          Pointer<Pointer<Utf8>> Function(
-              Pointer<TagLib_File>)>>('taglib_property_keys');
+  late final _taglib_property_keys = _dylib
+      .lookup<
+        NativeFunction<Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>)>
+      >('taglib_property_keys');
   late final taglib_property_keys = _taglib_property_keys
       .asFunction<Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>)>();
 
-  late final _taglib_property_get = _dylib.lookup<
-      NativeFunction<
-          Pointer<Pointer<Utf8>> Function(
-              Pointer<TagLib_File>, Pointer<Utf8>)>>('taglib_property_get');
-  late final taglib_property_get = _taglib_property_get.asFunction<
-      Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>, Pointer<Utf8>)>();
+  late final _taglib_property_get = _dylib
+      .lookup<
+        NativeFunction<
+          Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>, Pointer<Utf8>)
+        >
+      >('taglib_property_get');
+  late final taglib_property_get = _taglib_property_get
+      .asFunction<
+        Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>, Pointer<Utf8>)
+      >();
 
-  late final _taglib_property_free =
-      _dylib.lookup<NativeFunction<Void Function(Pointer<Pointer<Utf8>>)>>(
-          'taglib_property_free');
-  late final taglib_property_free =
-      _taglib_property_free.asFunction<void Function(Pointer<Pointer<Utf8>>)>();
+  late final _taglib_property_free = _dylib
+      .lookup<NativeFunction<Void Function(Pointer<Pointer<Utf8>>)>>(
+        'taglib_property_free',
+      );
+  late final taglib_property_free = _taglib_property_free
+      .asFunction<void Function(Pointer<Pointer<Utf8>>)>();
 
   // ===== Complex Properties API =====
 
-  late final _taglib_complex_property_set = _dylib.lookup<
-      NativeFunction<
-          Int32 Function(Pointer<TagLib_File>, Pointer<Utf8>,
-              Pointer<Pointer<Void>>)>>('taglib_complex_property_set');
-  late final taglib_complex_property_set =
-      _taglib_complex_property_set.asFunction<
-          int Function(
-              Pointer<TagLib_File>, Pointer<Utf8>, Pointer<Pointer<Void>>)>();
+  late final _taglib_complex_property_set = _dylib
+      .lookup<
+        NativeFunction<
+          Int32 Function(
+            Pointer<TagLib_File>,
+            Pointer<Utf8>,
+            Pointer<Pointer<Void>>,
+          )
+        >
+      >('taglib_complex_property_set');
+  late final taglib_complex_property_set = _taglib_complex_property_set
+      .asFunction<
+        int Function(
+          Pointer<TagLib_File>,
+          Pointer<Utf8>,
+          Pointer<Pointer<Void>>,
+        )
+      >();
 
-  late final _taglib_complex_property_keys = _dylib.lookup<
-      NativeFunction<
-          Pointer<Pointer<Utf8>> Function(
-              Pointer<TagLib_File>)>>('taglib_complex_property_keys');
+  late final _taglib_complex_property_keys = _dylib
+      .lookup<
+        NativeFunction<Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>)>
+      >('taglib_complex_property_keys');
   late final taglib_complex_property_keys = _taglib_complex_property_keys
       .asFunction<Pointer<Pointer<Utf8>> Function(Pointer<TagLib_File>)>();
 
-  late final _taglib_complex_property_get = _dylib.lookup<
-      NativeFunction<
-          Pointer<Pointer<Pointer<Void>>> Function(Pointer<TagLib_File>,
-              Pointer<Utf8>)>>('taglib_complex_property_get');
-  late final taglib_complex_property_get =
-      _taglib_complex_property_get.asFunction<
+  late final _taglib_complex_property_get = _dylib
+      .lookup<
+        NativeFunction<
           Pointer<Pointer<Pointer<Void>>> Function(
-              Pointer<TagLib_File>, Pointer<Utf8>)>();
+            Pointer<TagLib_File>,
+            Pointer<Utf8>,
+          )
+        >
+      >('taglib_complex_property_get');
+  late final taglib_complex_property_get = _taglib_complex_property_get
+      .asFunction<
+        Pointer<Pointer<Pointer<Void>>> Function(
+          Pointer<TagLib_File>,
+          Pointer<Utf8>,
+        )
+      >();
 
-  late final _taglib_picture_from_complex_property = _dylib.lookup<
-          NativeFunction<
-              Void Function(Pointer<Pointer<Pointer<Void>>>,
-                  Pointer<TagLib_Complex_Property_Picture_Data>)>>(
-      'taglib_picture_from_complex_property');
+  late final _taglib_picture_from_complex_property = _dylib
+      .lookup<
+        NativeFunction<
+          Void Function(
+            Pointer<Pointer<Pointer<Void>>>,
+            Pointer<TagLib_Complex_Property_Picture_Data>,
+          )
+        >
+      >('taglib_picture_from_complex_property');
   late final taglib_picture_from_complex_property =
-      _taglib_picture_from_complex_property.asFunction<
-          void Function(Pointer<Pointer<Pointer<Void>>>,
-              Pointer<TagLib_Complex_Property_Picture_Data>)>();
+      _taglib_picture_from_complex_property
+          .asFunction<
+            void Function(
+              Pointer<Pointer<Pointer<Void>>>,
+              Pointer<TagLib_Complex_Property_Picture_Data>,
+            )
+          >();
 
-  late final _taglib_complex_property_free_keys =
-      _dylib.lookup<NativeFunction<Void Function(Pointer<Pointer<Utf8>>)>>(
-          'taglib_complex_property_free_keys');
+  late final _taglib_complex_property_free_keys = _dylib
+      .lookup<NativeFunction<Void Function(Pointer<Pointer<Utf8>>)>>(
+        'taglib_complex_property_free_keys',
+      );
   late final taglib_complex_property_free_keys =
       _taglib_complex_property_free_keys
           .asFunction<void Function(Pointer<Pointer<Utf8>>)>();
 
   late final _taglib_complex_property_free = _dylib
       .lookup<NativeFunction<Void Function(Pointer<Pointer<Pointer<Void>>>)>>(
-          'taglib_complex_property_free');
+        'taglib_complex_property_free',
+      );
   late final taglib_complex_property_free = _taglib_complex_property_free
       .asFunction<void Function(Pointer<Pointer<Pointer<Void>>>)>();
 }

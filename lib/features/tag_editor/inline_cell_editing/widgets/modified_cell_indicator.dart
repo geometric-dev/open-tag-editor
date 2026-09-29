@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 /// A small colored corner triangle indicating a cell has been modified
 /// but not yet saved to disk.
 class ModifiedCellIndicator extends StatelessWidget {
-  const ModifiedCellIndicator({
-    super.key,
-    this.size = 8.0,
-  });
+  const ModifiedCellIndicator({super.key, this.size = 8.0});
 
   /// Size of the triangle indicator in logical pixels.
   final double size;

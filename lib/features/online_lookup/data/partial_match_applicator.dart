@@ -16,8 +16,8 @@ class PartialMatchApplicator {
   PartialMatchApplicator({
     required TagWriterService tagWriter,
     required FileListNotifier fileListNotifier,
-  })  : _tagWriter = tagWriter,
-        _fileListNotifier = fileListNotifier;
+  }) : _tagWriter = tagWriter,
+       _fileListNotifier = fileListNotifier;
 
   final TagWriterService _tagWriter;
   final FileListNotifier _fileListNotifier;
@@ -38,9 +38,7 @@ class PartialMatchApplicator {
   /// Track-level field names.
   ///
   /// These fields are written only to files that have a track assignment.
-  static const Set<String> trackFields = {
-    'title',
-  };
+  static const Set<String> trackFields = {'title'};
 
   /// Applies metadata to files based on partial match results.
   ///
@@ -156,11 +154,7 @@ class PartialMatchApplicator {
         successCount++;
       } catch (e) {
         fileResults.add(
-          ApplyFileResult(
-            path: file.path,
-            success: false,
-            error: e.toString(),
-          ),
+          ApplyFileResult(path: file.path, success: false, error: e.toString()),
         );
         failureCount++;
       }

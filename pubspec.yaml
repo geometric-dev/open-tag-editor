@@ -4,8 +4,10 @@ version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
-  flutter: ">=3.22.0"
+  # 3.41 is the floor: ReorderableListView.onReorderItem and RadioGroup
+  # replaced APIs this project now relies on.
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:

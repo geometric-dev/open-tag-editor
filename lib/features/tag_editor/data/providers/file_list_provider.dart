@@ -6,8 +6,8 @@ import '../../../../shared/models/audio_file.dart';
 /// Holds the list of currently loaded audio files.
 final fileListProvider =
     StateNotifierProvider<FileListNotifier, List<AudioFile>>((ref) {
-  return FileListNotifier();
-});
+      return FileListNotifier();
+    });
 
 /// Tracks which files are currently selected (legacy, use editor_state_provider).
 final selectedFilesLegacyProvider = StateProvider<Set<String>>((ref) => {});
@@ -63,8 +63,6 @@ class FileListNotifier extends StateNotifier<List<AudioFile>> {
   /// Updates multiple files (e.g., after batch edit).
   void updateFiles(List<AudioFile> updatedFiles) {
     final updateMap = {for (final f in updatedFiles) f.path: f};
-    state = [
-      for (final file in state) updateMap[file.path] ?? file,
-    ];
+    state = [for (final file in state) updateMap[file.path] ?? file];
   }
 }

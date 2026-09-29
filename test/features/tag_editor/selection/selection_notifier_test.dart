@@ -97,10 +97,7 @@ void main() {
         notifier.extendDown(paths);
         notifier.extendDown(paths);
 
-        expect(
-          notifier.state.selectedPaths,
-          {'b.mp3', 'c.mp3', 'd.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {'b.mp3', 'c.mp3', 'd.mp3'});
         expect(notifier.state.anchorPath, 'b.mp3');
       });
     });
@@ -127,10 +124,7 @@ void main() {
         notifier.extendUp(paths);
         notifier.extendUp(paths);
 
-        expect(
-          notifier.state.selectedPaths,
-          {'a.mp3', 'b.mp3', 'c.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3', 'c.mp3'});
         expect(notifier.state.anchorPath, 'c.mp3');
       });
     });
@@ -140,10 +134,7 @@ void main() {
         notifier.select('c.mp3');
         notifier.extendToStart(paths);
 
-        expect(
-          notifier.state.selectedPaths,
-          {'a.mp3', 'b.mp3', 'c.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3', 'c.mp3'});
         expect(notifier.state.anchorPath, 'c.mp3');
       });
 
@@ -168,10 +159,7 @@ void main() {
         notifier.select('c.mp3');
         notifier.extendToEnd(paths);
 
-        expect(
-          notifier.state.selectedPaths,
-          {'c.mp3', 'd.mp3', 'e.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {'c.mp3', 'd.mp3', 'e.mp3'});
         expect(notifier.state.anchorPath, 'c.mp3');
       });
 
@@ -201,10 +189,12 @@ void main() {
 
         // Should add range from anchor (e.mp3) to target (c.mp3)
         // That's c.mp3, d.mp3, e.mp3 unioned with existing
-        expect(
-          notifier.state.selectedPaths,
-          {'a.mp3', 'c.mp3', 'd.mp3', 'e.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {
+          'a.mp3',
+          'c.mp3',
+          'd.mp3',
+          'e.mp3',
+        });
         expect(notifier.state.anchorPath, 'e.mp3');
       });
 
@@ -255,10 +245,7 @@ void main() {
         notifier.select('a.mp3');
         notifier.addToSelection({'c.mp3', 'd.mp3'});
 
-        expect(
-          notifier.state.selectedPaths,
-          {'a.mp3', 'c.mp3', 'd.mp3'},
-        );
+        expect(notifier.state.selectedPaths, {'a.mp3', 'c.mp3', 'd.mp3'});
       });
 
       test('preserves existing anchor', () {
@@ -331,10 +318,7 @@ void main() {
       notifier.select('a.mp3');
       notifier.extendByPage(paths, 1, 2);
 
-      expect(
-        notifier.state.selectedPaths,
-        {'a.mp3', 'b.mp3', 'c.mp3'},
-      );
+      expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3', 'c.mp3'});
       expect(notifier.state.anchorPath, 'a.mp3');
     });
 

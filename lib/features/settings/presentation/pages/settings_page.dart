@@ -50,10 +50,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 80, vertical: 48),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 720,
-          maxHeight: 520,
-        ),
+        constraints: const BoxConstraints(maxWidth: 720, maxHeight: 520),
         child: Column(
           children: [
             // --- Title bar ---
@@ -92,9 +89,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border(
-                          right: BorderSide(
-                            color: colorScheme.outlineVariant,
-                          ),
+                          right: BorderSide(color: colorScheme.outlineVariant),
                         ),
                       ),
                       child: ListView(
@@ -111,9 +106,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
                     ),
                   ),
                   // Right content pane
-                  Expanded(
-                    child: _buildContent(context, ref),
-                  ),
+                  Expanded(child: _buildContent(context, ref)),
                 ],
               ),
             ),
@@ -167,10 +160,9 @@ class _SidebarItem extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color:
-                      isSelected ? colorScheme.primary : colorScheme.onSurface,
-                ),
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+            ),
           ),
         ),
       ),
@@ -395,9 +387,9 @@ class _SettingsPane extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         ...children,
@@ -420,9 +412,7 @@ class _SettingsPane extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Reset to Defaults'),
-        content: const Text(
-          'Reset all settings in this category to defaults?',
-        ),
+        content: const Text('Reset all settings in this category to defaults?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -462,16 +452,16 @@ class _ThemeModeRow extends StatelessWidget {
               children: [
                 Text(
                   'Theme',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 Text(
                   'Applies immediately',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 10,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -590,9 +580,7 @@ class _DropdownRow<T> extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            child: Text(label, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           const SizedBox(width: 16),
           SizedBox(
             width: 160,

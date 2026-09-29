@@ -31,13 +31,13 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
     FilenameSanitizer? sanitizer,
     ConflictDetector? conflictDetector,
     RenameExecutor? executor,
-  })  : _parser = parser ?? MaskParser(),
-        _evaluator = evaluator ?? MaskEvaluator(),
-        _caseTransformer = caseTransformer ?? const CaseTransformer(),
-        _sanitizer = sanitizer ?? FilenameSanitizer(),
-        _conflictDetector = conflictDetector ?? const ConflictDetector(),
-        _executor = executor ?? RenameExecutor(),
-        super(const RenamerState());
+  }) : _parser = parser ?? MaskParser(),
+       _evaluator = evaluator ?? MaskEvaluator(),
+       _caseTransformer = caseTransformer ?? const CaseTransformer(),
+       _sanitizer = sanitizer ?? FilenameSanitizer(),
+       _conflictDetector = conflictDetector ?? const ConflictDetector(),
+       _executor = executor ?? RenameExecutor(),
+       super(const RenamerState());
 
   /// The list of audio files to rename.
   final List<AudioFile> files;
@@ -99,13 +99,14 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
       final plans = state.previews
           .where((p) => p.status == RenamePreviewStatus.ok)
           .map((p) {
-        final audioFile = files.firstWhere((f) => f.path == p.originalPath);
-        return RenamePlan(
-          sourcePath: p.originalPath,
-          targetPath: p.newPath,
-          audioFile: audioFile,
-        );
-      }).toList();
+            final audioFile = files.firstWhere((f) => f.path == p.originalPath);
+            return RenamePlan(
+              sourcePath: p.originalPath,
+              targetPath: p.newPath,
+              audioFile: audioFile,
+            );
+          })
+          .toList();
 
       final result = await _executor.execute(
         plans,
@@ -116,8 +117,9 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
       final renames = <String, String>{};
       for (final plan in plans) {
         // Only include plans that were actually renamed (not skipped/errored).
-        final wasError =
-            result.errors.any((e) => e.filePath == plan.sourcePath);
+        final wasError = result.errors.any(
+          (e) => e.filePath == plan.sourcePath,
+        );
         if (!wasError) {
           renames[plan.sourcePath] = plan.targetPath;
         }
@@ -129,10 +131,7 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
         undoRedoManager.execute(command);
       }
 
-      state = state.copyWith(
-        isExecuting: false,
-        executionResult: result,
-      );
+      state = state.copyWith(isExecuting: false, executionResult: result);
 
       return result;
     } catch (e) {
@@ -140,18 +139,10 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
         renamedCount: 0,
         skippedCount: 0,
         errorCount: files.length,
-        errors: [
-          RenameError(
-            filePath: '',
-            message: e.toString(),
-          ),
-        ],
+        errors: [RenameError(filePath: '', message: e.toString())],
       );
 
-      state = state.copyWith(
-        isExecuting: false,
-        executionResult: result,
-      );
+      state = state.copyWith(isExecuting: false, executionResult: result);
 
       return result;
     }
@@ -160,10 +151,7 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
   /// Regenerates previews for all files based on current state.
   void _regeneratePreviews() {
     if (state.tokens.isEmpty || state.parseError != null) {
-      state = state.copyWith(
-        previews: const [],
-        conflicts: const {},
-      );
+      state = state.copyWith(previews: const [], conflicts: const {});
       return;
     }
 
@@ -279,10 +267,7 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
       return preview;
     }).toList();
 
-    state = state.copyWith(
-      previews: updatedPreviews,
-      conflicts: conflicts,
-    );
+    state = state.copyWith(previews: updatedPreviews, conflicts: conflicts);
   }
 
   /// Extracts the directory portion of a file path (including trailing separator).

@@ -119,7 +119,8 @@ class MaskEvaluator {
 
       // Remove adjacent literal delimiter before this empty variable.
       if (i > 0 && pairs[i - 1].token is LiteralToken) {
-        final hasNextVariable = i + 1 < pairs.length &&
+        final hasNextVariable =
+            i + 1 < pairs.length &&
             (pairs[i + 1].token is VariableToken ||
                 pairs[i + 1].token is IgnoreToken);
         if (hasNextVariable) {
@@ -130,7 +131,8 @@ class MaskEvaluator {
 
       // Remove adjacent literal delimiter after this empty variable.
       if (i + 1 < pairs.length && pairs[i + 1].token is LiteralToken) {
-        final hasPrevVariable = i > 0 &&
+        final hasPrevVariable =
+            i > 0 &&
             (pairs[i - 1].token is VariableToken ||
                 pairs[i - 1].token is IgnoreToken);
         if (hasPrevVariable) {

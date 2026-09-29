@@ -89,10 +89,7 @@ class NativeLibraryLoader {
   /// installs placed it under data\.
   static List<String> _windowsCandidates() {
     final execDir = File(Platform.resolvedExecutable).parent.path;
-    return [
-      '$execDir\\taglib_c.dll',
-      '$execDir\\data\\taglib_c.dll',
-    ];
+    return ['$execDir\\taglib_c.dll', '$execDir\\data\\taglib_c.dll'];
   }
 
   /// macOS search locations, most preferred first.
@@ -103,10 +100,7 @@ class NativeLibraryLoader {
     // The executable is at <app_bundle>/Contents/MacOS/app_name,
     // so Frameworks is at <app_bundle>/Contents/Frameworks/.
     final frameworksDir = '${Directory(execPath).parent.path}/Frameworks';
-    return [
-      '$frameworksDir/libtaglib_c.dylib',
-      '$execPath/libtaglib_c.dylib',
-    ];
+    return ['$frameworksDir/libtaglib_c.dylib', '$execPath/libtaglib_c.dylib'];
   }
 
   /// Linux search locations, most preferred first.
