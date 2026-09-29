@@ -36,28 +36,54 @@ function Resolve-RedistDir {
         return $RedistDir
     }
 
-    # GitHub-hosted Windows runners carry several VS toolchains; take the
-    # newest one that has a redist payload.
+    # Locate the Visual Studio installation. vswhere is authoritative and
+    # present on every GitHub-hosted runner; the glob is a fallback.
+    $vsRoots = @()
+
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+    if (Test-Path $vswhere) {
+        $installPath = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath 2>$null
+        if ($installPath) { $vsRoots += $installPath }
+    }
+
     $vsRoot = "C:\Program Files\Microsoft Visual Studio"
     if (Test-Path $vsRoot) {
-        $candidates = Get-ChildItem -Path $vsRoot -Directory -ErrorAction SilentlyContinue |
-            Sort-Object Name -Descending |
-            ForEach-Object {
-                Get-ChildItem -Path $_.FullName -Recurse -Filter "VC" -Directory -ErrorAction SilentlyContinue
-            }
-        foreach ($c in $candidates) {
-            $redist = Join-Path $c.FullName "Redist\MSVC"
-            if (Test-Path $redist) {
-                $latest = Get-ChildItem -Path $redist -Directory -ErrorAction SilentlyContinue |
-                    Sort-Object Name -Descending |
-                    Select-Object -First 1
-                if ($latest) {
-                    $payload = Join-Path $latest.FullName "x64\Microsoft.VC143.CRT"
-                    if (Test-Path $payload) { return $payload }
-                }
-            }
-        }
+        $vsRoots += Get-ChildItem -Path $vsRoot -Directory -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName
     }
+
+    # The redistributable payload ships as
+    #   <vs>\VC\Tools\MSVC\<ver>\Redist\MSVC\<ver>\x64\Microsoft.VC*.CRT
+    # (VS 18 lays it out as <vs>\VC\Redist\MSVC\<ver>\x64\...), so glob the
+    # payload directory directly rather than reconstructing the path. The
+    # toolset suffix (VC143, VC145, ...) and the intermediate directory
+    # layout both vary between releases.
+    $payloads = foreach ($root in $vsRoots) {
+        Get-ChildItem -Path $root -Recurse -Depth 6 `
+            -Directory -Filter "Microsoft.VC*.CRT" -ErrorAction SilentlyContinue
+    }
+
+    # Sort key: the last path segment that parses as a version, which is the
+    # redist toolset version (e.g. 14.51.36231) rather than the VC14x suffix.
+    function Get-VersionKey($dir) {
+        $segments = $dir.FullName -split '\\'
+        [array]::Reverse($segments)
+        foreach ($s in $segments) {
+            $parsed = $null
+            if ([version]::TryParse($s, [ref]$parsed)) { return $parsed }
+        }
+        return [version]'0.0'
+    }
+
+    # x64 is mandatory (the app is x64-only); prefer the newest toolset.
+    $x64 = $payloads | Where-Object { $_.FullName -match '\\x64\\' } |
+        Sort-Object { Get-VersionKey $_ } -Descending
+    if ($x64) { return $x64[0].FullName }
+
+    $other = $payloads | Sort-Object { Get-VersionKey $_ } -Descending
+    if ($other) { return $other[0].FullName }
 
     $system32 = Join-Path $env:SystemRoot "System32"
     if (Test-Path $system32) { return $system32 }

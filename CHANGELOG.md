@@ -43,18 +43,30 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - CI: `format` and `analyze` gates, tests on Windows and Linux, and
   verified release bundles for Windows, macOS and Linux uploaded as
   artifacts. macOS/Linux TagLib is rebuilt from source on every run.
+- `docs/known-issues.md` records defects that CI has confirmed but that
+  are not yet fixed, so a test skip can never quietly hide a regression.
 
 ### Changed
 - SDK floor raised to Flutter 3.41 / Dart 3.10 (the version that replaced
   the APIs this project now uses) and the tree reformatted for the
   modern tall-style formatter; the tree is now analyzer-clean including
   lints, which CI enforces.
+- Grid, breadcrumb and quick-switcher tests build their sample paths with
+  `package:path` instead of hard-coded `C:\Users\...` literals, so the
+  suite exercises the same logic on POSIX hosts. The implementation was
+  already correct; the assertions were Windows-only.
 
 ### Fixed
 - ID3v1 `_hasTag` read its signature from the wrong offset, breaking
   replace-in-place; append mode no longer resurrects deleted files.
 - Toolbar folder/file pickers used `BuildContext` after an `await` without
   re-checking `mounted`.
+- `build-taglib.sh` now clones TagLib's `3rdparty/utfcpp` submodule, which
+  a shallow clone silently omitted.
+- `bundle-crt.ps1` locates the VC++ redistributable payload via `vswhere`
+  and a direct glob, covering both the `VC/Tools/MSVC/*/Redist` and
+  VS 18's `VC/Redist` layouts, and requires the x64 payload.
+
 
 
 ## [0.2.0] - 2026-08-23

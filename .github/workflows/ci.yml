@@ -169,10 +169,13 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install TagLib build dependencies
+      - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libicu-dev libutfcpp-dev zlib1g-dev
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libicu-dev libutfcpp-dev zlib1g-dev
 
       - name: Install dependencies
         run: flutter pub get

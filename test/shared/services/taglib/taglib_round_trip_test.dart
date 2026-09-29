@@ -26,14 +26,16 @@ void main() {
   final dllFile = File(
     p.join(Directory.current.path, 'windows', 'taglib_c.dll'),
   );
-  final dllAvailable = dllFile.existsSync();
+  // The Windows DLLs are committed, so their presence proves nothing on a
+  // POSIX host: attempting to load a PE image there throws. Gate on the
+  // platform as well as the file.
+  final dllAvailable = Platform.isWindows && dllFile.existsSync();
 
   late Directory tempDir;
   late TagLibReaderService reader;
   late TagLibWriterService writer;
 
   setUpAll(() {
-    if (!dllAvailable) return;
     // Load tag.dll first so taglib_c.dll's dependency resolves even though
     // the test runner executable lives elsewhere (flutter cache).
     final tagDll = File(p.join(Directory.current.path, 'windows', 'tag.dll'));
@@ -55,6 +57,9 @@ void main() {
   });
 
   tearDownAll(() {
+    // setUpAll never runs when the platform gate skips every test, so
+    // tempDir is legitimately uninitialised here.
+    if (!dllAvailable) return;
     if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
   });
 

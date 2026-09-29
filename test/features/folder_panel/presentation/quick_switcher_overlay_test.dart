@@ -6,18 +6,26 @@ import 'package:open_tag_editor/features/folder_panel/data/bookmark_entry.dart';
 import 'package:open_tag_editor/features/folder_panel/data/bookmarks_notifier.dart';
 import 'package:open_tag_editor/features/folder_panel/presentation/quick_switcher_overlay.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/recent_folders_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Sample paths are assembled with [p.join] rather than hard-coded
+/// `C:\Users\Music\...` so the overlay's path handling is exercised
+/// identically on POSIX hosts.
 void main() {
+  final rockPath = p.join('C:', 'Users', 'Music', 'Rock');
+  final jazzPath = p.join('C:', 'Users', 'Music', 'Jazz');
+  final popPath = p.join('C:', 'Users', 'Music', 'Pop');
+
   final testBookmarks = [
-    const BookmarkEntry(path: r'C:\Users\Music\Rock', name: 'Rock'),
-    const BookmarkEntry(path: r'C:\Users\Music\Jazz', name: 'Jazz'),
-    const BookmarkEntry(path: r'C:\Users\Music\Pop', name: 'Pop'),
+    BookmarkEntry(path: rockPath, name: 'Rock'),
+    BookmarkEntry(path: jazzPath, name: 'Jazz'),
+    BookmarkEntry(path: popPath, name: 'Pop'),
   ];
 
   final testRecentFolders = [
-    r'C:\Users\Music\Classical',
-    r'C:\Users\Music\Electronic',
+    p.join('C:', 'Users', 'Music', 'Classical'),
+    p.join('C:', 'Users', 'Music', 'Electronic'),
   ];
 
   Widget buildTestWidget({
@@ -285,7 +293,7 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pump();
 
-        expect(selectedPath, r'C:\Users\Music\Rock');
+        expect(selectedPath, rockPath);
       });
 
       testWidgets('Enter selects after navigating with arrow keys', (
@@ -311,7 +319,7 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pump();
 
-        expect(selectedPath, r'C:\Users\Music\Pop');
+        expect(selectedPath, popPath);
       });
 
       testWidgets('Enter selects filtered result', (tester) async {
@@ -333,7 +341,7 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pump();
 
-        expect(selectedPath, r'C:\Users\Music\Jazz');
+        expect(selectedPath, jazzPath);
       });
     });
 

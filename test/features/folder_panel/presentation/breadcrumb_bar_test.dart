@@ -4,8 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/features/folder_panel/presentation/breadcrumb_bar.dart';
 import 'package:open_tag_editor/features/tag_editor/presentation/widgets/address_bar.dart';
+import 'package:path/path.dart' as p;
 
+/// The sample folder is assembled with [p.join] instead of a hard-coded
+/// `C:\Users\Music`, and the expected segments come from [p.split]. The
+/// widget splits with the `path` package, so on POSIX the drive component
+/// reads `C:` rather than `C:\`; asserting the literal made the suite
+/// Windows-only.
 void main() {
+  final musicFolder = p.join('C:', 'Users', 'Music');
+  final documentsFolder = p.join('C:', 'Users', 'Documents');
+  final usersFolder = p.join('C:', 'Users');
+  final driveSegment = p.split(musicFolder).first;
+
   group('BreadcrumbBar', () {
     Widget buildTestWidget({
       String? folderPath,
@@ -28,16 +39,15 @@ void main() {
     });
 
     testWidgets('displays path segments for a loaded folder', (tester) async {
-      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
+      await tester.pumpWidget(buildTestWidget(folderPath: musicFolder));
 
-      // On Windows, path splits to ['C:\', 'Users', 'Music']
-      expect(find.text(r'C:\'), findsOneWidget);
+      expect(find.text(driveSegment), findsOneWidget);
       expect(find.text('Users'), findsOneWidget);
       expect(find.text('Music'), findsOneWidget);
     });
 
     testWidgets('last segment is bold and not clickable', (tester) async {
-      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
+      await tester.pumpWidget(buildTestWidget(folderPath: musicFolder));
 
       final musicText = tester.widget<Text>(find.text('Music'));
       expect(musicText.style?.fontWeight, FontWeight.bold);
@@ -49,7 +59,7 @@ void main() {
       String? selectedPath;
       await tester.pumpWidget(
         buildTestWidget(
-          folderPath: r'C:\Users\Music',
+          folderPath: musicFolder,
           onFolderSelected: (path) => selectedPath = path,
         ),
       );
@@ -58,33 +68,33 @@ void main() {
       await tester.tap(find.text('Users'));
       await tester.pump();
 
-      expect(selectedPath, r'C:\Users');
+      expect(selectedPath, usersFolder);
     });
 
     testWidgets('tapping root segment navigates to root', (tester) async {
       String? selectedPath;
       await tester.pumpWidget(
         buildTestWidget(
-          folderPath: r'C:\Users\Music',
+          folderPath: musicFolder,
           onFolderSelected: (path) => selectedPath = path,
         ),
       );
 
-      // Tap the 'C:\' segment (root)
-      await tester.tap(find.text(r'C:\'));
+      // Tap the drive segment (root)
+      await tester.tap(find.text(driveSegment));
       await tester.pump();
 
-      expect(selectedPath, r'C:\');
+      expect(selectedPath, driveSegment);
     });
 
     testWidgets('shows recursive toggle', (tester) async {
-      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
+      await tester.pumpWidget(buildTestWidget(folderPath: musicFolder));
 
       expect(find.text('Recursive'), findsOneWidget);
     });
 
     testWidgets('shows chevron dividers between segments', (tester) async {
-      await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
+      await tester.pumpWidget(buildTestWidget(folderPath: musicFolder));
 
       // There should be chevron icons between segments (2 for 3 segments)
       expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
@@ -100,7 +110,7 @@ void main() {
       testWidgets('double-click enters edit mode showing TextField', (
         tester,
       ) async {
-        await tester.pumpWidget(buildTestWidget(folderPath: r'C:\Users\Music'));
+        await tester.pumpWidget(buildTestWidget(folderPath: musicFolder));
 
         // Simulate double-tap on the last segment (non-clickable, no navigation)
         await tester.tap(find.text('Music'));
@@ -111,7 +121,7 @@ void main() {
         // TextField should now be visible with the full path
         expect(find.byType(TextField), findsOneWidget);
         final textField = tester.widget<TextField>(find.byType(TextField));
-        expect(textField.controller?.text, r'C:\Users\Music');
+        expect(textField.controller?.text, musicFolder);
       });
 
       testWidgets('Enter in edit mode submits path and exits edit mode', (
@@ -120,7 +130,7 @@ void main() {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(
-            folderPath: r'C:\Users\Music',
+            folderPath: musicFolder,
             onFolderSelected: (path) => selectedPath = path,
           ),
         );
@@ -133,12 +143,12 @@ void main() {
 
         // Clear and type a new path
         final textField = find.byType(TextField);
-        await tester.enterText(textField, r'C:\Users\Documents');
+        await tester.enterText(textField, documentsFolder);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
 
         // Should have called onFolderSelected with the typed path
-        expect(selectedPath, r'C:\Users\Documents');
+        expect(selectedPath, documentsFolder);
         // Should exit edit mode (no TextField visible)
         expect(find.byType(TextField), findsNothing);
       });
@@ -149,7 +159,7 @@ void main() {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(
-            folderPath: r'C:\Users\Music',
+            folderPath: musicFolder,
             onFolderSelected: (path) => selectedPath = path,
           ),
         );
@@ -182,7 +192,7 @@ void main() {
         String? selectedPath;
         await tester.pumpWidget(
           buildTestWidget(
-            folderPath: r'C:\Users\Music',
+            folderPath: musicFolder,
             onFolderSelected: (path) => selectedPath = path,
           ),
         );

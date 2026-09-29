@@ -34,8 +34,19 @@ mkdir -p "$TAGLIB_WORKDIR"
 if [ ! -d "$SRC_DIR/.git" ]; then
   echo "==> Cloning TagLib $TAGLIB_VERSION"
   rm -rf "$SRC_DIR"
-  git clone --depth 1 --branch "$TAGLIB_VERSION" \
+  # TagLib vendors utfcpp as the 3rdparty/utfcpp submodule and will not
+  # configure without it, so the clone must recurse.
+  git clone --depth 1 --recurse-submodules --shallow-submodules \
+    --branch "$TAGLIB_VERSION" \
     https://github.com/taglib/taglib.git "$SRC_DIR"
+else
+  echo "==> Reusing existing TagLib clone at $SRC_DIR"
+fi
+
+if [ ! -f "$SRC_DIR/3rdparty/utfcpp/CMakeLists.txt" ] &&
+   [ ! -d "$SRC_DIR/3rdparty/utfcpp/include" ]; then
+  echo "==> Fetching TagLib submodules (utfcpp)"
+  git -C "$SRC_DIR" submodule update --init --depth 1 --recursive
 fi
 
 # TagLib 2.x names the C-binding library tag_c; the app expects

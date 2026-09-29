@@ -2,13 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/features/tag_editor/data/models/grid_item.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/grid_items_provider.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
+  // Built with [p.join] rather than hard-coded separators so the suite
+  // exercises the same grouping logic on POSIX hosts as on Windows.
+  final root = p.join('C:', 'Music');
+
   group('buildGridItems', () {
     test('empty list returns empty', () {
       final result = buildGridItems(
         files: [],
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -18,20 +23,20 @@ void main() {
 
     test('recursive=false returns FileGridItems only, no separators', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Pop\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'Pop', 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Jazz\\song3.mp3',
+        AudioFile(
+          path: p.join(root, 'Jazz', 'song3.mp3'),
           filename: 'song3.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -40,7 +45,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: false,
         isSorted: false,
       );
@@ -57,20 +62,20 @@ void main() {
 
     test('isSorted=true returns FileGridItems only, no separators', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Pop\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'Pop', 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Jazz\\song3.mp3',
+        AudioFile(
+          path: p.join(root, 'Jazz', 'song3.mp3'),
           filename: 'song3.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -79,7 +84,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: true,
       );
@@ -93,14 +98,14 @@ void main() {
 
     test('null rootFolder returns FileGridItems only', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Pop\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'Pop', 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -123,8 +128,8 @@ void main() {
 
     test('single file produces one separator + one file', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song.mp3'),
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -133,7 +138,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -147,20 +152,20 @@ void main() {
 
     test('all files in root folder', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\song3.mp3',
+        AudioFile(
+          path: p.join(root, 'song3.mp3'),
           filename: 'song3.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -169,7 +174,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -184,20 +189,20 @@ void main() {
 
     test('multi-folder ordering: root first, then alphabetical', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\song.mp3',
+        AudioFile(
+          path: p.join(root, 'song.mp3'),
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Zebra\\song.mp3',
+        AudioFile(
+          path: p.join(root, 'Zebra', 'song.mp3'),
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Alpha\\song.mp3',
+        AudioFile(
+          path: p.join(root, 'Alpha', 'song.mp3'),
           filename: 'song.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -206,7 +211,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -220,20 +225,20 @@ void main() {
 
     test('files within group sorted by filename case-insensitive', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\Charlie.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'Charlie.mp3'),
           filename: 'Charlie.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\alpha.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'alpha.mp3'),
           filename: 'alpha.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\Beta.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'Beta.mp3'),
           filename: 'Beta.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -242,7 +247,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -256,20 +261,20 @@ void main() {
 
     test('fileIndex preserves original list position', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Pop\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'Pop', 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Rock\\song3.mp3',
+        AudioFile(
+          path: p.join(root, 'Rock', 'song3.mp3'),
           filename: 'song3.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -278,7 +283,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
@@ -293,14 +298,14 @@ void main() {
 
     test('intermediate directories without files get no separator', () {
       final files = [
-        const AudioFile(
-          path: 'C:\\Music\\Artist\\Album\\song1.mp3',
+        AudioFile(
+          path: p.join(root, 'Artist', 'Album', 'song1.mp3'),
           filename: 'song1.mp3',
           extension: '.mp3',
           fileSize: 1000,
         ),
-        const AudioFile(
-          path: 'C:\\Music\\Artist\\Album\\song2.mp3',
+        AudioFile(
+          path: p.join(root, 'Artist', 'Album', 'song2.mp3'),
           filename: 'song2.mp3',
           extension: '.mp3',
           fileSize: 1000,
@@ -309,7 +314,7 @@ void main() {
 
       final result = buildGridItems(
         files: files,
-        rootFolder: 'C:\\Music',
+        rootFolder: root,
         isRecursive: true,
         isSorted: false,
       );
