@@ -31,20 +31,23 @@ jobs:
           flutter --version
           dart --version
 
+      # Required: dart format reads analysis_options.yaml to determine the
+      # package language version, and cannot resolve
+      # `package:flutter_lints/flutter.yaml` without a package_config.json.
+      # Without this the formatter silently falls back to a default style and
+      # rejects files that are correct under the project's real settings.
+      - name: Install dependencies
+        run: flutter pub get
+
       - name: Check formatting
         run: |
           dart format --output=none --set-exit-if-changed . || {
-            # Re-run capturing the list, then diff the first file the
-            # formatter rejected so the difference is visible in the log.
             changed="$(dart format --output=none . 2>/dev/null \
               | sed -n 's/^Changed \(.*\)$/\1/p' | head -n 1)"
             echo "::group::formatter rejected: $changed"
             if [ -n "$changed" ]; then
               dart format --output=show "$changed" > /tmp/fmt.dart 2>/dev/null || true
               diff -u "$changed" /tmp/fmt.dart | head -n 40 || true
-              echo "--- line endings in the checkout:"
-              file "$changed" || true
-              od -c "$changed" | head -n 2
             fi
             echo "::endgroup::"
             exit 1
