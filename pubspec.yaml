@@ -1,6 +1,6 @@
 name: open_tag_editor
 description: An open-source music tag editor and file renamer. A modern alternative to Tag&Rename.
-version: 0.1.0
+version: 0.3.0
 publish_to: none
 
 environment:

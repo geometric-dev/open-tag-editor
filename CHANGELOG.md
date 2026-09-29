@@ -6,6 +6,25 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-29
+
+Verified release: Windows, macOS (universal) and Linux bundles are built and
+structurally checked on every push, and the whole suite runs on Windows and
+Linux with a lint-clean tree enforced in CI.
+
+The headline fix is that **editing a multi-value tag no longer flattens it**.
+Reading had always joined values with `"; "`, but the writer passed that
+joined string straight through, so the first ordinary edit of a field holding
+two artists turned two ARTIST properties into one property literally
+containing `A; B`. Multi-value fields are now written as real repeated
+properties, verified against the library on both ID3v2 and Vorbis Comment.
+
+Also new: tag deletion and cleanup, ReplayGain read/display/clear, a
+preserved-tags list for online applies, drag-reorderable column headers, an
+empty state that is a usable starting point, high-contrast themes, text
+scaling and screen-reader semantics, a confirm-before-save setting, and
+Ctrl+Arrow / Ctrl+Space / F5 navigation.
+
 ### Added — accessibility and theming (PRD 15)
 - **High-contrast themes.** The default palette is generated from a seed
   colour, producing mid-tone borders and text-on-surface pairs that a
@@ -23,6 +42,15 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
   announced instead of being silent.
 - **A labelled node on the error count**, which is a `GestureDetector` and
   previously announced as nothing.
+
+### Fixed — online lookup (PRD 21)
+- A **partial** match apply now honours the preserved-tags list, like a full
+  match already did. A user who protected ReplayGain kept it on one apply
+  path and lost it on the other.
+- A failed cover-art fetch is no longer swallowed. Every sibling error path
+  in the lookup state provider reported to the error log; this one did not,
+  so the apply panel offered an "apply cover art" checkbox that silently did
+  nothing.
 
 ### Added — online lookup (PRD 21)
 - **A preserved-tags list** for online metadata applies, with ReplayGain

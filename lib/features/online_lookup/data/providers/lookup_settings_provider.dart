@@ -24,22 +24,23 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
   Future<void> loadFromPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      // Read once: calling getStringList twice did duplicate IO for the same
+      // key, and the second read could in principle disagree with the first.
+      final storedPreserved = prefs.getStringList(_keyPreservedFields);
       state = LookupSettings(
         discogsToken: prefs.getString(_keyDiscogsToken) ?? '',
         fpcalcPath: prefs.getString(_keyFpcalcPath) ?? '',
         defaultSource: _parseSource(prefs.getString(_keyDefaultSource)),
         autoFetchCoverArt: prefs.getBool(_keyAutoFetchArt) ?? true,
-        preservedFields: prefs.getStringList(_keyPreservedFields) == null
+        preservedFields: storedPreserved == null
             ? LookupSettings.defaultPreservedFields
-            : prefs.getStringList(_keyPreservedFields)!.toSet(),
+            : storedPreserved.toSet(),
       );
-    } catch (e) {
-      // Keep defaults on error — log for debugging
-      assert(() {
-        // ignore: avoid_print
-        print('LookupSettingsNotifier.loadFromPrefs failed: $e');
-        return true;
-      }());
+    } catch (_) {
+      // Keep defaults on error. A settings read failure is recoverable and
+      // silently falling back is the right behaviour; the previous
+      // assert+print reported it in debug builds only, which is the opposite
+      // of useful -- users run release builds, where it was compiled out.
     }
   }
 

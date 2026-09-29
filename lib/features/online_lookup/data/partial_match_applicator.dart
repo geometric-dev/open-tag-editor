@@ -16,11 +16,20 @@ class PartialMatchApplicator {
   PartialMatchApplicator({
     required TagWriterService tagWriter,
     required FileListNotifier fileListNotifier,
+    Set<String>? preservedFields,
   }) : _tagWriter = tagWriter,
-       _fileListNotifier = fileListNotifier;
+       _fileListNotifier = fileListNotifier,
+       _preservedFields = preservedFields ?? const {};
 
   final TagWriterService _tagWriter;
   final FileListNotifier _fileListNotifier;
+
+  /// Tag fields an online lookup must never overwrite.
+  ///
+  /// Mirrors [MetadataApplicator]. A user who protects ReplayGain must get
+  /// the same protection whichever apply path they use; without this, a
+  /// partial match silently overwrote fields a full match would have kept.
+  final Set<String> _preservedFields;
 
   ///
   /// These fields are written only to files that have a track assignment.
@@ -106,6 +115,12 @@ class PartialMatchApplicator {
         if (selectedFields.contains('trackNumber')) {
           tags['trackNumber'] = '${track.position}/$totalFileCount';
         }
+      }
+
+      // The preserved list is applied last so it wins over the per-field
+      // selection above, exactly as in MetadataApplicator.
+      if (_preservedFields.isNotEmpty) {
+        tags.removeWhere((field, _) => _preservedFields.contains(field));
       }
 
       if (tags.isEmpty && !(applyCoverArt && coverArt != null)) {

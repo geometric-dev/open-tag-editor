@@ -102,5 +102,9 @@ final partialMatchApplicatorProvider = Provider<PartialMatchApplicator>((ref) {
   return PartialMatchApplicator(
     tagWriter: ref.read(tagWriterProvider),
     fileListNotifier: ref.read(fileListProvider.notifier),
+    // Same preserved list as the full-match path. These two applicators
+    // share a write tail but not a tag builder, which is exactly how they
+    // drifted apart: protecting a field worked on one path and not the other.
+    preservedFields: ref.watch(lookupSettingsProvider).preservedFields,
   );
 });
