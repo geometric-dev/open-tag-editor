@@ -22,20 +22,6 @@ class PartialMatchApplicator {
   final TagWriterService _tagWriter;
   final FileListNotifier _fileListNotifier;
 
-  /// Album-level field names.
-  ///
-  /// These fields are written to all non-opted-out files regardless of
-  /// whether they have a track assignment.
-  static const Set<String> albumFields = {
-    'album',
-    'albumArtist',
-    'artist',
-    'year',
-    'genre',
-    'discNumber',
-  };
-
-  /// Track-level field names.
   ///
   /// These fields are written only to files that have a track assignment.
   static const Set<String> trackFields = {'title'};

@@ -14,9 +14,6 @@ import 'models/track_file_match.dart';
 class TrackMatcher {
   TrackMatcher._();
 
-  /// Duration tolerance for matching in milliseconds (3 seconds).
-  static const _toleranceMs = 3000;
-
   /// Weight for the track number signal in composite score.
   static const double trackNumberWeight = 0.5;
 
@@ -269,73 +266,5 @@ class TrackMatcher {
       result[p[j] - 1] = j - 1;
     }
     return result;
-  }
-
-  /// Matches tracks to files by duration similarity.
-  ///
-  /// Each track is matched to the closest-duration unmatched file
-  /// within the tolerance window.
-  // ignore: unused_element
-  static List<TrackFileMatch> _matchByDuration(
-    List<TrackInfo> tracks,
-    List<AudioFile> files,
-  ) {
-    final results = <TrackFileMatch>[];
-    final unmatchedFiles = List<AudioFile?>.from(files);
-
-    for (final track in tracks) {
-      final trackDurationMs = track.durationMs;
-
-      if (trackDurationMs == null) {
-        // Can't match by duration without track duration
-        results.add(
-          TrackFileMatch(
-            track: track,
-            file: null,
-            confidence: MatchConfidence.unmatched,
-          ),
-        );
-        continue;
-      }
-
-      AudioFile? bestMatch;
-      int bestDiff = _toleranceMs + 1;
-      int bestIndex = -1;
-
-      for (var i = 0; i < unmatchedFiles.length; i++) {
-        final file = unmatchedFiles[i];
-        if (file == null) continue;
-
-        final fileDurationMs = ((file.duration ?? 0) * 1000).round();
-        final diff = (trackDurationMs - fileDurationMs).abs();
-
-        if (diff <= _toleranceMs && diff < bestDiff) {
-          bestMatch = file;
-          bestDiff = diff;
-          bestIndex = i;
-        }
-      }
-
-      if (bestMatch != null) {
-        unmatchedFiles[bestIndex] = null; // Mark as used
-        results.add(
-          TrackFileMatch(
-            track: track,
-            file: bestMatch,
-            confidence: MatchConfidence.duration,
-          ),
-        );
-      } else {
-        results.add(
-          TrackFileMatch(
-            track: track,
-            file: null,
-            confidence: MatchConfidence.unmatched,
-          ),
-        );
-      }
-    }
-
-    return results;
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/services/rename_service.dart';
 import '../../../../shared/services/tag_reader_service.dart';
 import '../../../../shared/services/taglib/backup_manager.dart';
 import '../../../../shared/services/taglib/disabled_writer_service.dart';
@@ -64,11 +63,6 @@ final tagWriterProvider = Provider<TagWriterService>((ref) {
       );
     },
   );
-});
-
-/// Provider for the rename service.
-final renameServiceProvider = Provider<RenameService>((ref) {
-  return RenameService();
 });
 
 /// Provider for the batch tag-save service.

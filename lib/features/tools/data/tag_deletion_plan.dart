@@ -31,7 +31,7 @@ class FieldUsage {
 
   /// Human-readable label for the dialog, falling back to the raw key for
   /// anything TagLib surfaced that the app has no enum entry for.
-  String get label => displayNameFor(field);
+  String get label => _displayNameFor(field);
 }
 
 /// A field inventory plus the exact per-file work a clear operation will do.
@@ -77,7 +77,7 @@ class ClearPlan {
 }
 
 /// Returns the display name for an app field name.
-String displayNameFor(String field) {
+String _displayNameFor(String field) {
   for (final value in TagField.values) {
     if (value.name == field) return value.displayName;
   }

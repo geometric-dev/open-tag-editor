@@ -159,47 +159,6 @@ class MusicBrainzService {
     }
   }
 
-  /// Fetches recording metadata by MusicBrainz recording ID.
-  ///
-  /// Used after AcoustID identification to get full metadata.
-  /// Returns a map of tag field names to values, or null on failure.
-  Future<Map<String, String>?> getRecordingMetadata(String recordingId) async {
-    final url = Uri.parse(
-      '$_baseUrl/recording/$recordingId',
-    ).replace(queryParameters: {'inc': 'artists+releases', 'fmt': 'json'});
-
-    try {
-      final response = await rateLimiter.get(url, headers: _headers);
-
-      if (response.statusCode != 200) return null;
-
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final tags = <String, String>{};
-
-      tags['title'] = json['title'] as String? ?? '';
-
-      final artistCredit = json['artist-credit'] as List<dynamic>?;
-      if (artistCredit != null && artistCredit.isNotEmpty) {
-        tags['artist'] = artistCredit.first['name'] as String? ?? '';
-      }
-
-      // Get album info from first release
-      final releases = json['releases'] as List<dynamic>?;
-      if (releases != null && releases.isNotEmpty) {
-        final release = releases.first as Map<String, dynamic>;
-        tags['album'] = release['title'] as String? ?? '';
-        final date = release['date'] as String?;
-        if (date != null && date.length >= 4) {
-          tags['year'] = date.substring(0, 4);
-        }
-      }
-
-      return tags;
-    } catch (_) {
-      return null;
-    }
-  }
-
   /// Builds a MusicBrainz Lucene query string from search parameters.
   String _buildQuery({String? artist, String? album, String? year}) {
     final parts = <String>[];

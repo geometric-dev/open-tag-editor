@@ -37,11 +37,6 @@ class DataGrid extends ConsumerWidget {
 
   /// Rows jumped by PageUp/PageDown.
   static const int pageJumpRows = 20;
-
-  /// Upper bound on rows measured during auto-fit. Beyond this the
-  /// extra TextPainter layouts cost more than the precision is worth.
-  static const int autoFitSampleCap = 1000;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final files = ref.watch(filteredSortedFileListProvider);

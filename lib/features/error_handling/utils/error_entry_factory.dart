@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
-import '../../../shared/services/rename_service.dart';
+import '../../../shared/models/rename_result.dart';
 import '../../../shared/services/tag_reader_service.dart';
 import '../models/error_entry.dart';
 import '../models/operation_context.dart';

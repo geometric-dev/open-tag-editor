@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../shared/models/audio_file.dart';
@@ -9,24 +8,8 @@ final fileListProvider =
       return FileListNotifier();
     });
 
-/// Tracks which files are currently selected (legacy, use editor_state_provider).
-final selectedFilesLegacyProvider = StateProvider<Set<String>>((ref) => {});
-
 /// Filter text for the file list.
 final fileFilterProvider = StateProvider<String>((ref) => '');
-
-/// Filtered file list based on the search filter.
-final filteredFileListProvider = Provider<List<AudioFile>>((ref) {
-  final files = ref.watch(fileListProvider);
-  final filter = ref.watch(fileFilterProvider).toLowerCase();
-
-  if (filter.isEmpty) return files;
-
-  return files.where((file) {
-    return file.filename.toLowerCase().contains(filter) ||
-        file.tags.values.any((v) => v.toLowerCase().contains(filter));
-  }).toList();
-});
 
 class FileListNotifier extends StateNotifier<List<AudioFile>> {
   FileListNotifier() : super([]);

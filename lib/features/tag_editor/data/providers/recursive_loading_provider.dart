@@ -32,12 +32,6 @@ class RecursiveLoadingNotifier extends StateNotifier<bool> {
     _persist();
   }
 
-  /// Sets the recursive loading state explicitly.
-  void setEnabled(bool enabled) {
-    state = enabled;
-    _persist();
-  }
-
   Future<void> _persist() async {
     try {
       final prefs = await SharedPreferences.getInstance();

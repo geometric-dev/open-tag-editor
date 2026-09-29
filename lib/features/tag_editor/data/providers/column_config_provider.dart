@@ -22,9 +22,6 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
   /// Minimum allowed column width in logical pixels.
   static const double minColumnWidth = 40.0;
 
-  /// Maximum allowed auto-fit width in logical pixels.
-  static const double maxAutoFitWidth = 500.0;
-
   /// Loads persisted config from SharedPreferences.
   Future<void> loadFromPrefs() async {
     try {

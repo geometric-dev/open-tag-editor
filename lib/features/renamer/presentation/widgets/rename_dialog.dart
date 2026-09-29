@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/services/rename_service.dart';
+import '../../../../shared/models/rename_result.dart';
 import '../../../error_handling/providers/error_providers.dart';
 import '../../../error_handling/utils/error_entry_factory.dart';
 import '../../../settings/data/providers/settings_providers.dart';

@@ -98,6 +98,24 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 - `NotificationService`, which was never instantiated. Its snackbar logic
   had been inlined at the call sites, so it only looked like the project's
   notification abstraction.
+- Dead code found by a quality audit and verified unreferenced across
+  `lib/` and `test/`: `BatchNotification`, four superseded selection/file
+  providers, `ConflictDetector.autoIncrement` (a second, unused
+  implementation of "append (1) until unique" that also disagreed with the
+  live one on case sensitivity), `TrackMatcher._matchByDuration` (~60 lines
+  hidden behind an `// ignore: unused_element`), `LookupHelpers`'s
+  superseded `mergeResults` and unused `groupTracksByDisc`,
+  `MusicBrainzService.getRecordingMetadata`, three settings mutators nothing
+  called, and three unreferenced constants — one of which
+  (`PartialMatchApplicator.albumFields`) had drifted from behaviour by
+  listing a `genre` field the applicator never writes.
+- `RenameService` (136 lines) plus its test. Only `RenameResult` and
+  `RenameConflictException` from that file were live, so they moved to
+  `lib/shared/models/rename_result.dart`; the service itself was reachable
+  in production only through a provider nothing read, and the renamer
+  feature uses `RenameExecutor` instead.
+
+### Changed — error handling (PRD 12)
 
 ### Added — unsaved-changes work (PRD 07)
 - **Confirm before saving tags** setting (General ▸ General). All four save

@@ -6,13 +6,6 @@ import '../../../../shared/models/audio_file.dart';
 import 'file_list_provider.dart';
 import 'selection_provider.dart';
 
-/// Tracks the currently selected file paths.
-///
-/// Bridges to the new [selectionProvider] for backward compatibility.
-final selectedFilePathsProvider = Provider<Set<String>>((ref) {
-  return ref.watch(selectionProvider).selectedPaths;
-});
-
 /// Returns the AudioFile objects for the current selection.
 final selectedFilesProvider = Provider<List<AudioFile>>((ref) {
   final allFiles = ref.watch(fileListProvider);
@@ -23,12 +16,6 @@ final selectedFilesProvider = Provider<List<AudioFile>>((ref) {
   return allFiles
       .where((f) => selection.selectedPaths.contains(f.path))
       .toList();
-});
-
-/// Returns the single selected file (if exactly one is selected).
-final singleSelectedFileProvider = Provider<AudioFile?>((ref) {
-  final selected = ref.watch(selectedFilesProvider);
-  return selected.length == 1 ? selected.first : null;
 });
 
 /// Tracks whether there are unsaved modifications.

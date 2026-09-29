@@ -55,12 +55,6 @@ class LookupSettingsNotifier extends StateNotifier<LookupSettings> {
     _persist();
   }
 
-  /// Updates the default search source.
-  void setDefaultSource(SearchSource source) {
-    state = state.copyWith(defaultSource: source);
-    _persist();
-  }
-
   /// Updates the auto-fetch cover art setting.
   void setAutoFetchCoverArt(bool enabled) {
     state = state.copyWith(autoFetchCoverArt: enabled);
