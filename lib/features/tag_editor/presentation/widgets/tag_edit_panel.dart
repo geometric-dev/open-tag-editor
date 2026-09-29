@@ -21,6 +21,7 @@ import '../../../album_art/data/providers/album_art_providers.dart';
 import '../../../album_art/presentation/widgets/batch_progress_overlay.dart';
 import '../../../album_art/presentation/widgets/drop_zone_wrapper.dart';
 import '../../../album_art/presentation/widgets/image_preview_modal.dart';
+import '../../../tools/data/multi_value.dart';
 import '../../data/commands/tag_edit_command.dart';
 import '../../data/providers/editor_state_provider.dart'
     show
@@ -415,14 +416,28 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
               ),
             ),
           _buildField('title'),
-          _buildField('artist'),
-          _buildField('albumArtist'),
+          // Multi-value fields get the chip editor; the rest get a text
+          // field. Keeping the split explicit per field (rather than
+          // inferring it) means a field can move between the two without
+          // any behaviour silently changing.
+          if (isMultiValueField('artist'))
+            _buildMultiValueField('artist')
+          else
+            _buildField('artist'),
+          if (isMultiValueField('albumArtist'))
+            _buildMultiValueField('albumArtist')
+          else
+            _buildField('albumArtist'),
           _buildField('album'),
           Row(
             children: [
               Expanded(child: _buildField('year')),
               const SizedBox(width: 8),
-              Expanded(child: _buildField('genre')),
+              Expanded(
+                child: isMultiValueField('genre')
+                    ? _buildMultiValueField('genre')
+                    : _buildField('genre'),
+              ),
             ],
           ),
           Row(
@@ -432,8 +447,14 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
               Expanded(child: _buildField('discNumber')),
             ],
           ),
-          _buildField('composer'),
-          _buildField('conductor'),
+          if (isMultiValueField('composer'))
+            _buildMultiValueField('composer')
+          else
+            _buildField('composer'),
+          if (isMultiValueField('conductor'))
+            _buildMultiValueField('conductor')
+          else
+            _buildField('conductor'),
           _buildField('publisher'),
           Row(
             children: [
@@ -524,6 +545,106 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
     );
   }
 
+  /// Chip editor for a field that holds several values.
+  ///
+  /// The plain text field cannot express "add one value without touching the
+  /// others", and typing a semicolon by hand is exactly the fragile
+  /// behaviour PRD 20 exists to remove. Every edit here is a single undoable
+  /// command, so a run of chip changes collapses to one Ctrl+Z per user
+  /// action rather than one per chip.
+  Widget _buildMultiValueField(String field) {
+    final theme = Theme.of(context);
+    final isMixed = widget.selectedFiles.length > 1;
+    final rawValues = widget.selectedFiles
+        .map((f) => f.tags[field] ?? '')
+        .toSet();
+    final hasMultipleValues = isMixed && rawValues.length > 1;
+
+    // Operate on the joined display value, which is what the panel already
+    // shows, so adding a value preserves whatever is on disk.
+    final current = _controllers[field]?.text ?? '';
+    final values = MultiValue.parse(
+      current,
+      field,
+      splitSingleValueFields: false,
+    );
+
+    void commit(List<String> next) {
+      _onFieldChanged(
+        field,
+        MultiValue.format(next, MultiValueSeparator.semicolon),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(
+                  _fieldLabels[field] ?? field,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: hasMultipleValues
+                    ? Text(
+                        '<mixed>',
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      )
+                    : Text(
+                        values.isEmpty
+                            ? 'No values'
+                            : '${values.length} value'
+                                  '${values.length == 1 ? '' : 's'}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              for (final value in values)
+                InputChip(
+                  label: Text(value, style: const TextStyle(fontSize: 11)),
+                  onDeleted: () =>
+                      commit(MultiValue.removeValue(values, value)),
+                  deleteIcon: const Icon(Icons.close, size: 14),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              // Typing and pressing Enter adds a value without needing a
+              // separate Add button.
+              _MultiValueAddField(
+                onSubmit: (text) {
+                  if (text.trim().isEmpty) return;
+                  commit(MultiValue.addValue(values, text));
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildField(String field) {
     final isMixed = widget.selectedFiles.length > 1;
     final values = widget.selectedFiles.map((f) => f.tags[field] ?? '').toSet();
@@ -591,6 +712,54 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
 // ---------------------------------------------------------------------------
 // Album Art tab
 // ---------------------------------------------------------------------------
+
+/// The inline "add a value" input shown after a field's chips.
+class _MultiValueAddField extends StatefulWidget {
+  const _MultiValueAddField({required this.onSubmit});
+
+  final void Function(String value) onSubmit;
+
+  @override
+  State<_MultiValueAddField> createState() => _MultiValueAddFieldState();
+}
+
+class _MultiValueAddFieldState extends State<_MultiValueAddField> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text;
+    if (value.trim().isEmpty) return;
+    widget.onSubmit(value);
+    // Clear so the next value can be typed straight away. The caller
+    // rebuilds, so the field does not need to retain what was typed.
+    _controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 130,
+      child: TextField(
+        controller: _controller,
+        style: const TextStyle(fontSize: 11),
+        decoration: const InputDecoration(
+          isDense: true,
+          hintText: 'Add value…',
+          hintStyle: TextStyle(fontSize: 11),
+          contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          border: OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+    );
+  }
+}
 
 class _AlbumArtTab extends ConsumerStatefulWidget {
   const _AlbumArtTab({required this.selectedFiles});

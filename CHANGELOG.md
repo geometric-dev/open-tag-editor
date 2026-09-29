@@ -6,6 +6,27 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Fixed — multi-value tags (PRD 20)
+- **Editing a multi-value field no longer flattens it on the next save.**
+  Reading already joined values with `"; "`, but the writer passed that
+  joined string straight to `taglib_property_set`, turning `["A", "B"]` into
+  one property containing `"A; B"`. Multi-value fields are now cleared and
+  each value appended with `taglib_property_set_append`.
+- **Validation no longer rejects its own normalisations.** Multi-value fields
+  are compared as value sets rather than raw strings, so dropping an empty
+  segment or changing separator does not abort the write.
+
+### Added — multi-value tags (PRD 20)
+- A closed set of multi-value fields (artist, album artist, genre, composer,
+  conductor, lyricist). Deliberately closed: a value that genuinely contains
+  a semicolon, such as `AC/DC; Live`, must not be shredded.
+- Separator detection on read for the null-byte, `"; "`, `";"`, `" / "` and
+  `"/"` conventions, so a file written by another tool stays readable.
+- A chip editor in the tag panel for multi-value fields: one removable chip
+  per value plus an inline add field, each edit a single undoable command.
+- Verified against the real TagLib DLL on ID3v2 and Vorbis Comment files,
+  including replace-does-not-append and clear-removes-every-value.
+
 ### Added — drag-and-drop (PRD 16)
 - Drag-to-reorder column headers. Long-press to pick a header up; an
   insertion line marks the gap it will land in, and the drop converts that

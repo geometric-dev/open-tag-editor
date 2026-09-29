@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 
 import '../../../features/settings/data/models/tag_write_options.dart';
+import '../../../features/tools/data/multi_value.dart';
 import '../../models/audio_file.dart';
 import '../tag_reader_service.dart';
 import 'atomic_write_manager.dart';
@@ -241,6 +242,13 @@ class TagLibWriterService implements TagWriterService {
   ///
   /// Handles track/disc number formatting (combining number and total as
   /// "3/12") and clearing properties when the value is empty.
+  ///
+  /// Multi-value fields are written as genuine repeated properties: the
+  /// existing value is cleared and each value appended in turn, using
+  /// `taglib_property_set_append`. Writing the joined display string through
+  /// `taglib_property_set` instead would collapse "Artist A; Artist B" into
+  /// one literal property, which is how a second artist gets silently
+  /// destroyed on the next save.
   void _writeProperties(Pointer<TagLib_File> file, Map<String, String> tags) {
     // Process track/disc totals alongside their numbers
     final processedTags = _preprocessTrackDiscFields(tags);
@@ -262,6 +270,8 @@ class TagLibWriterService implements TagWriterService {
         if (value.isEmpty) {
           // Clear the property by passing nullptr as value
           _bindings.taglib_property_set(file, keyNative, nullptr);
+        } else if (isMultiValueField(appField)) {
+          _writeMultiValue(file, keyNative, value, appField);
         } else {
           final valueNative = value.toNativeUtf8();
           try {
@@ -272,6 +282,34 @@ class TagLibWriterService implements TagWriterService {
         }
       } finally {
         malloc.free(keyNative);
+      }
+    }
+  }
+
+  /// Replaces [key] with one property per value in [joinedValue].
+  void _writeMultiValue(
+    Pointer<TagLib_File> file,
+    Pointer<Utf8> keyNative,
+    String joinedValue,
+    String appField,
+  ) {
+    final values = MultiValue.parse(
+      joinedValue,
+      appField,
+      splitSingleValueFields: true,
+    );
+
+    // Clear first: appending to whatever was already there would merge the
+    // new values with the old ones instead of replacing them.
+    _bindings.taglib_property_set(file, keyNative, nullptr);
+    if (values.isEmpty) return;
+
+    for (final value in values) {
+      final valueNative = value.toNativeUtf8();
+      try {
+        _bindings.taglib_property_set_append(file, keyNative, valueNative);
+      } finally {
+        malloc.free(valueNative);
       }
     }
   }

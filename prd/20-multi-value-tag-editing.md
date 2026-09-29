@@ -1,5 +1,55 @@
 # PRD 20: Multi-Value Tag Editing (P2)
 
+## Status: data layer and writing shipped; UI partially
+
+The highest-risk part of this PRD was the one that was silently broken
+before: **editing a joined multi-value field flattened it to a single
+literal value on the next save.** Reading already joined values with `"; "`,
+but the writer passed that joined string straight to `taglib_property_set`,
+turning `["A", "B"]` into one property containing `"A; B"`.
+
+Delivered:
+
+- **Real multi-value writing.** Multi-value fields are now cleared and each
+  value appended with `taglib_property_set_append`, so Vorbis Comments get
+  repeated `ARTIST=` entries and ID3v2 gets its own multi-value encoding —
+  whichever the library's binding layer provides. Verified against the real
+  DLL on both MP3 (ID3v2) and FLAC (Vorbis Comment), including
+  replace-does-not-append and clear-removes-every-value.
+- **A closed set of multi-value fields** (`artist`, `albumArtist`, `genre`,
+  `composer`, `conductor`, `lyricist`). Deliberately closed: a value that
+  genuinely contains a semicolon, like `AC/DC; Live`, must not be shredded.
+  Non-multi-value fields are never split, and there is a test for it.
+- **Separator detection on read.** The null-byte, `"; "`, `";"`, `" / "`
+  and `"/"` conventions are all recognised, so a file written by another tool
+  stays readable regardless of what this install prefers.
+- **Validation compares multi-value fields as value sets**, not as raw
+  strings. Without this the writer's own normalisation (dropping empty
+  segments) failed validation and aborted the write — validation would have
+  made the feature unusable.
+- **A chip editor in the tag panel** for the six multi-value fields: one
+  removable chip per value, plus an inline add field. Each edit is a single
+  undoable command.
+
+Not delivered, and why:
+
+- **Batch Set / Add / Remove / Replace across a multi-file selection.** These
+  need per-file value *sets* rather than a joined string, which means changing
+  `AudioFile.tags` to hold `List<String>` for these fields. That is a
+  cross-cutting model change touching the reader, the grid, the export path
+  and every existing command, and it is worth doing as its own piece of work
+  rather than half-landed here.
+- **Drag-to-reorder chips.** The list operations (`MultiValue.reorder`) exist
+  and are tested; the drag affordance is not wired up.
+- **The "×3" grid badge and per-value tooltips.** The joined display is
+  unchanged, so a multi-value cell still looks like a single value.
+- **The separator preference and the compatibility-mode preference.** The
+  parser accepts every convention regardless, so the feature works without
+  them; exposing a choice where all options behave identically would be
+  noise. `MultiValueSeparator` exists as the seam to add the setting to.
+- **Inline grid cell editing of multi-value cells.** They still open a plain
+  text field.
+
 ## Problem Statement
 
 Several tag fields legitimately contain multiple values — multiple artists on a track, multiple genres, multiple composers. Different tag formats handle this differently: Vorbis Comments and MP4 atoms support true multi-value fields (repeated field names), while ID3v2 uses separator characters (null byte, semicolon, or slash depending on the frame). Current tag editing treats all fields as single strings, which means:
