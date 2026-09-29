@@ -741,71 +741,108 @@ class _DataRow extends ConsumerWidget {
       rowBackground = colorScheme.onSurface.withValues(alpha: 0.03);
     }
 
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        canRequestFocus: false,
-        onTap: () {
-          final isCtrl = HardwareKeyboard.instance.logicalKeysPressed.any(
-            (k) =>
-                k == LogicalKeyboardKey.controlLeft ||
-                k == LogicalKeyboardKey.controlRight ||
-                k == LogicalKeyboardKey.metaLeft ||
-                k == LogicalKeyboardKey.metaRight,
-          );
-          final isShift = HardwareKeyboard.instance.logicalKeysPressed.any(
-            (k) =>
-                k == LogicalKeyboardKey.shiftLeft ||
-                k == LogicalKeyboardKey.shiftRight,
-          );
-          onTap(_KeyModifiers(isCtrl: isCtrl, isShift: isShift));
-        },
-        onDoubleTap: isEditingThisRow ? null : onDoubleTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: rowBackground,
-            border: Border(
-              bottom: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+    return Semantics(
+      // One node per row rather than one per cell: a screen reader
+      // announcing eight columns for every row of a 10,000-file library
+      // makes the grid unusable. The row carries the filename, selection
+      // state and a count of the values it holds; individual values are
+      // reached by focusing a cell, which the grid already supports.
+      container: true,
+      label: file.filename,
+      value: _rowAccessibilityValue(),
+      selected: isSelected,
+      hint: file.readError != null ? 'Unreadable: ${file.readError}' : null,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: () {
+            final isCtrl = HardwareKeyboard.instance.logicalKeysPressed.any(
+              (k) =>
+                  k == LogicalKeyboardKey.controlLeft ||
+                  k == LogicalKeyboardKey.controlRight ||
+                  k == LogicalKeyboardKey.metaLeft ||
+                  k == LogicalKeyboardKey.metaRight,
+            );
+            final isShift = HardwareKeyboard.instance.logicalKeysPressed.any(
+              (k) =>
+                  k == LogicalKeyboardKey.shiftLeft ||
+                  k == LogicalKeyboardKey.shiftRight,
+            );
+            onTap(_KeyModifiers(isCtrl: isCtrl, isShift: isShift));
+          },
+          onDoubleTap: isEditingThisRow ? null : onDoubleTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: rowBackground,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
               ),
             ),
-          ),
-          child: Row(
-            children: List.generate(visibleColumns.length, (i) {
-              final column = visibleColumns[i];
-              final width = i < effectiveWidths.length
-                  ? effectiveWidths[i]
-                  : column.defaultWidth;
+            child: Row(
+              children: List.generate(visibleColumns.length, (i) {
+                final column = visibleColumns[i];
+                final width = i < effectiveWidths.length
+                    ? effectiveWidths[i]
+                    : column.defaultWidth;
 
-              if (column.id == 'tagIndicator') {
-                return _TagIndicatorCell(file: file, width: width);
-              }
+                if (column.id == 'tagIndicator') {
+                  return _TagIndicatorCell(file: file, width: width);
+                }
 
-              final value =
-                  column.valueExtractor?.call(file, rootFolder: rootFolder) ??
-                  '';
+                final value =
+                    column.valueExtractor?.call(file, rootFolder: rootFolder) ??
+                    '';
 
-              // Use EditableCell for editable columns
-              if (isColumnEditable(column.id)) {
-                return EditableCell(
-                  coordinate: CellCoordinate(
-                    rowIndex: rowIndex,
-                    columnId: column.id,
-                  ),
-                  value: value,
-                  width: width,
-                  isModified:
-                      file.isModified &&
-                      file.modifiedTags.containsKey(column.id),
-                );
-              }
+                // Use EditableCell for editable columns
+                if (isColumnEditable(column.id)) {
+                  return EditableCell(
+                    coordinate: CellCoordinate(
+                      rowIndex: rowIndex,
+                      columnId: column.id,
+                    ),
+                    value: value,
+                    width: width,
+                    isModified:
+                        file.isModified &&
+                        file.modifiedTags.containsKey(column.id),
+                  );
+                }
 
-              return _TextCell(value: value, width: width);
-            }),
+                return _TextCell(value: value, width: width);
+              }),
+            ),
           ),
         ),
       ),
     );
+  }
+
+  /// A short spoken summary of what this row holds.
+  ///
+  /// Kept to the fields a user navigates by, and capped in length: a screen
+  /// reader reading a whole row's worth of tags aloud on every arrow key
+  /// would be unusable on a large library.
+  String _rowAccessibilityValue() {
+    if (file.readError != null) return 'Unreadable';
+
+    final parts = <String>[];
+    final title = file.tags['title'];
+    if (title != null && title.isNotEmpty) parts.add(title);
+
+    final artist = file.tags['artist'];
+    if (artist != null && artist.isNotEmpty) parts.add(artist);
+
+    final album = file.tags['album'];
+    if (album != null && album.isNotEmpty) parts.add(album);
+
+    if (file.isModified) parts.add('unsaved changes');
+
+    if (parts.isEmpty) return 'No tags';
+    final summary = parts.join(', ');
+    return summary.length <= 120 ? summary : '${summary.substring(0, 117)}…';
   }
 }
 

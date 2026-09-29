@@ -44,6 +44,72 @@ void main() {
     });
   });
 
+  group('accessibility settings', () {
+    test('high contrast defaults to off and persists', () async {
+      final notifier = GeneralSettingsNotifier();
+      await notifier.loadFromPrefs();
+      expect(notifier.state.highContrast, isFalse);
+
+      notifier.setHighContrast(true);
+      await Future<void>.delayed(Duration.zero);
+
+      final reloaded = GeneralSettingsNotifier();
+      await reloaded.loadFromPrefs();
+      expect(reloaded.state.highContrast, isTrue);
+    });
+
+    test('ui scale defaults to 1.0 and persists', () async {
+      final notifier = GeneralSettingsNotifier();
+      await notifier.loadFromPrefs();
+      expect(notifier.state.uiScale, 1.0);
+
+      notifier.setUiScale(1.3);
+      await Future<void>.delayed(Duration.zero);
+
+      final reloaded = GeneralSettingsNotifier();
+      await reloaded.loadFromPrefs();
+      expect(reloaded.state.uiScale, 1.3);
+    });
+
+    test('ui scale is clamped to a range the UI can actually render', () async {
+      final notifier = GeneralSettingsNotifier();
+      await notifier.loadFromPrefs();
+
+      notifier.setUiScale(0.01);
+      expect(notifier.state.uiScale, GeneralSettings.minUiScale);
+
+      notifier.setUiScale(99);
+      expect(notifier.state.uiScale, GeneralSettings.maxUiScale);
+    });
+
+    test('effectiveUiScale clamps even if state was loaded out of range', () {
+      const absurd = GeneralSettings(uiScale: 50);
+      expect(absurd.effectiveUiScale, GeneralSettings.maxUiScale);
+    });
+
+    test('every offered scale option is inside the supported range', () {
+      for (final option in GeneralSettings.uiScaleOptions) {
+        expect(
+          option,
+          inInclusiveRange(
+            GeneralSettings.minUiScale,
+            GeneralSettings.maxUiScale,
+          ),
+        );
+      }
+    });
+
+    test('the offered options include 100% and are strictly increasing', () {
+      expect(GeneralSettings.uiScaleOptions, contains(1.0));
+      for (var i = 1; i < GeneralSettings.uiScaleOptions.length; i++) {
+        expect(
+          GeneralSettings.uiScaleOptions[i],
+          greaterThan(GeneralSettings.uiScaleOptions[i - 1]),
+        );
+      }
+    });
+  });
+
   group('persistence of the other general settings', () {
     test('all fields round-trip', () async {
       final notifier = GeneralSettingsNotifier();

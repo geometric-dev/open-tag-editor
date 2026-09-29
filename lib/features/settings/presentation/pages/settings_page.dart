@@ -219,7 +219,68 @@ class _GeneralPane extends StatelessWidget {
           onChanged: (mode) =>
               ref.read(generalSettingsProvider.notifier).setThemeMode(mode),
         ),
+        _CheckboxRow(
+          label: 'High contrast',
+          subtitle:
+              'Stronger foreground/background separation and heavier borders. '
+              'The default palette is generated from a seed colour, which can '
+              'be hard to read on a poor display',
+          value: settings.highContrast,
+          onChanged: (v) =>
+              ref.read(generalSettingsProvider.notifier).setHighContrast(v),
+        ),
+        _UiScaleRow(
+          value: settings.effectiveUiScale,
+          onChanged: (v) =>
+              ref.read(generalSettingsProvider.notifier).setUiScale(v),
+        ),
       ],
+    );
+  }
+}
+
+/// Text-scale selector.
+///
+/// Uses the discrete options rather than a slider so the value is
+/// reproducible across sessions and comparable between installations.
+class _UiScaleRow extends StatelessWidget {
+  const _UiScaleRow({required this.value, required this.onChanged});
+
+  final double value;
+  final void Function(double) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Interface text size', style: theme.textTheme.bodyMedium),
+          Text(
+            'Scales all text. Combines with the operating system’s own '
+            'text size rather than replacing it',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final option in GeneralSettings.uiScaleOptions)
+                ChoiceChip(
+                  label: Text('${(option * 100).round()}%'),
+                  selected: (value - option).abs() < 0.01,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onSelected: (_) => onChanged(option),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -238,6 +299,8 @@ class _FileProtectionPane extends StatelessWidget {
         ref.read(generalSettingsProvider.notifier).setBackupEnabled(true);
         ref.read(generalSettingsProvider.notifier).setPreserveTimestamp(false);
         ref.read(generalSettingsProvider.notifier).setConfirmBeforeSave(false);
+        ref.read(generalSettingsProvider.notifier).setHighContrast(false);
+        ref.read(generalSettingsProvider.notifier).setUiScale(1.0);
       },
       children: [
         _CheckboxRow(

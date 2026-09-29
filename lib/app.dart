@@ -173,19 +173,37 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(
-      generalSettingsProvider.select((s) => s.themeMode),
-    );
+    final settings = ref.watch(generalSettingsProvider);
+    final themeMode = settings.themeMode;
 
     return MaterialApp(
       title: 'Open Tag Editor',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: settings.highContrast
+          ? AppTheme.highContrastLight
+          : AppTheme.light,
+      darkTheme: settings.highContrast
+          ? AppTheme.highContrastDark
+          : AppTheme.dark,
       themeMode: switch (themeMode) {
         AppThemeMode.system => ThemeMode.system,
         AppThemeMode.light => ThemeMode.light,
         AppThemeMode.dark => ThemeMode.dark,
+      },
+      // Applies the user's text scale on top of whatever the platform has
+      // already set, rather than replacing it, so the two compose instead of
+      // one silently overriding the other.
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: media.textScaler.clamp(
+              minScaleFactor: GeneralSettings.minUiScale,
+              maxScaleFactor: GeneralSettings.maxUiScale,
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
       },
       home: const EditorKeyboardShortcuts(child: HomePage()),
     );

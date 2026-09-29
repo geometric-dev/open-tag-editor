@@ -15,23 +15,64 @@ class AppTheme {
   /// Visual density for a compact desktop layout.
   static const _density = VisualDensity(horizontal: -2, vertical: -2);
 
-  static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
+  static ThemeData get light => _buildTheme(
+    ColorScheme.fromSeed(seedColor: _seedColor, brightness: Brightness.light),
+  );
+
+  static ThemeData get dark => _buildTheme(
+    ColorScheme.fromSeed(seedColor: _seedColor, brightness: Brightness.dark),
+  );
+
+  /// High-contrast variants.
+  ///
+  /// The default scheme is derived from a seed colour, which produces
+  /// mid-tone surfaces and outlines. On a low-quality monitor, or for a user
+  /// with reduced contrast sensitivity, those borders and the text on them
+  /// are hard to resolve. These builds push surfaces to the extremes and
+  /// darken the outlines so edges are unambiguous.
+  static ThemeData get highContrastLight =>
+      _buildTheme(_highContrast(Brightness.light), highContrast: true);
+
+  static ThemeData get highContrastDark =>
+      _buildTheme(_highContrast(Brightness.dark), highContrast: true);
+
+  /// Builds a scheme with maximal surface/foreground separation.
+  static ColorScheme _highContrast(Brightness brightness) {
+    final base = ColorScheme.fromSeed(
       seedColor: _seedColor,
-      brightness: Brightness.light,
+      brightness: brightness,
     );
-    return _buildTheme(colorScheme);
+    final isLight = brightness == Brightness.light;
+
+    return base.copyWith(
+      // Push the surfaces apart instead of letting the tonal palette sit
+      // them close together.
+      surface: isLight ? Colors.white : Colors.black,
+      onSurface: isLight ? Colors.black : Colors.white,
+      surfaceContainerLowest: isLight ? Colors.white : Colors.black,
+      surfaceContainerLow: isLight ? Colors.white : const Color(0xFF0A0A0A),
+      surfaceContainer: isLight
+          ? const Color(0xFFF2F2F2)
+          : const Color(0xFF121212),
+      surfaceContainerHigh: isLight
+          ? const Color(0xFFE6E6E6)
+          : const Color(0xFF1C1C1C),
+      surfaceContainerHighest: isLight
+          ? const Color(0xFFD9D9D9)
+          : const Color(0xFF262626),
+      // Outlines carry the structure here, so make them unambiguous rather
+      // than tonal.
+      outline: isLight ? Colors.black : Colors.white,
+      outlineVariant: isLight
+          ? const Color(0xFF555555)
+          : const Color(0xFFAAAAAA),
+    );
   }
 
-  static ThemeData get dark {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: _seedColor,
-      brightness: Brightness.dark,
-    );
-    return _buildTheme(colorScheme);
-  }
-
-  static ThemeData _buildTheme(ColorScheme colorScheme) {
+  static ThemeData _buildTheme(
+    ColorScheme colorScheme, {
+    bool highContrast = false,
+  }) {
     final isLight = colorScheme.brightness == Brightness.light;
 
     return ThemeData(
@@ -166,10 +207,12 @@ class AppTheme {
         thumbVisibility: WidgetStatePropertyAll(true),
       ),
       // --- Dividers ---
+      // Heavier when high contrast is on: the default relies on a 1px tonal
+      // line, which is exactly what a low-contrast screen cannot resolve.
       dividerTheme: DividerThemeData(
-        thickness: 1,
-        space: 1,
-        color: colorScheme.outlineVariant,
+        thickness: highContrast ? 2 : 1,
+        space: highContrast ? 2 : 1,
+        color: highContrast ? colorScheme.outline : colorScheme.outlineVariant,
       ),
       // --- Snackbar: compact ---
       snackBarTheme: SnackBarThemeData(

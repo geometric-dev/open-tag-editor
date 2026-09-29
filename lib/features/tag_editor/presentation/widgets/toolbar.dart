@@ -830,6 +830,9 @@ class _ToolbarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // No explicit Semantics needed: IconButton promotes `tooltip` to the
+    // button's accessible name and drops the icon from the tree, so the
+    // button already has exactly one name.
     return IconButton(
       icon: Icon(icon, size: 20),
       tooltip: tooltip,

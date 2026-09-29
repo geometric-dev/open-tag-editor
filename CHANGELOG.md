@@ -6,6 +6,24 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — accessibility and theming (PRD 15)
+- **High-contrast themes.** The default palette is generated from a seed
+  colour, producing mid-tone borders and text-on-surface pairs that a
+  low-quality display cannot resolve. The high-contrast variants push
+  surfaces to the extremes, make outlines unambiguous and double divider
+  thickness. Opt-in; the brand hue is preserved.
+- **Interface text size** (75%–150%), applied through `MediaQuery.textScaler`
+  and clamped, so it composes with the operating system's own text scale
+  rather than overwriting it. Discrete options, so the value is reproducible
+  between sessions.
+- **Semantics on grid rows**: filename, a capped spoken summary (title,
+  artist, album, unsaved state) and selection state. One node per row, not
+  per cell — a per-cell node on a large library is unusable.
+- **A live region on the status bar**, so the result of a save or a load is
+  announced instead of being silent.
+- **A labelled node on the error count**, which is a `GestureDetector` and
+  previously announced as nothing.
+
 ### Added — online lookup (PRD 21)
 - **A preserved-tags list** for online metadata applies, with ReplayGain
   preserved by default. An apply is the one place where ReplayGain is

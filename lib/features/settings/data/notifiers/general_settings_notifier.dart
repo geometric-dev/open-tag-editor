@@ -14,6 +14,8 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
   static const _keyPreserveTimestamp = 'settings_v1_general_preserve_timestamp';
   static const _keyConfirmBeforeSave =
       'settings_v1_general_confirm_before_save';
+  static const _keyHighContrast = 'settings_v1_general_high_contrast';
+  static const _keyUiScale = 'settings_v1_general_ui_scale';
   static const _keyThemeMode = 'settings_v1_general_theme_mode';
 
   /// Loads settings from SharedPreferences.
@@ -26,6 +28,8 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
         backupEnabled: prefs.getBool(_keyBackupEnabled) ?? true,
         preserveTimestamp: prefs.getBool(_keyPreserveTimestamp) ?? false,
         confirmBeforeSave: prefs.getBool(_keyConfirmBeforeSave) ?? false,
+        highContrast: prefs.getBool(_keyHighContrast) ?? false,
+        uiScale: prefs.getDouble(_keyUiScale) ?? 1.0,
         themeMode: _parseThemeMode(prefs.getString(_keyThemeMode)),
       );
     } catch (_) {
@@ -57,6 +61,23 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
     _persist();
   }
 
+  /// Updates the high-contrast setting.
+  void setHighContrast(bool value) {
+    state = state.copyWith(highContrast: value);
+    _persist();
+  }
+
+  /// Updates the interface text scale, clamped to the supported range.
+  void setUiScale(double value) {
+    state = state.copyWith(
+      uiScale: value.clamp(
+        GeneralSettings.minUiScale,
+        GeneralSettings.maxUiScale,
+      ),
+    );
+    _persist();
+  }
+
   /// Updates the application theme mode.
   void setThemeMode(AppThemeMode mode) {
     state = state.copyWith(themeMode: mode);
@@ -83,6 +104,8 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
       await prefs.setBool(_keyBackupEnabled, state.backupEnabled);
       await prefs.setBool(_keyPreserveTimestamp, state.preserveTimestamp);
       await prefs.setBool(_keyConfirmBeforeSave, state.confirmBeforeSave);
+      await prefs.setBool(_keyHighContrast, state.highContrast);
+      await prefs.setDouble(_keyUiScale, state.uiScale);
       await prefs.setString(_keyThemeMode, state.themeMode.name);
     } catch (_) {
       // Best-effort persistence
