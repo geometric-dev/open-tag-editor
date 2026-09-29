@@ -59,39 +59,235 @@ class ColumnHeaders extends ConsumerWidget {
           ),
         ),
       ),
-      child: Row(
-        children: List.generate(visibleColumns.length, (i) {
-          final column = visibleColumns[i];
-          final width = i < effectiveWidths.length
-              ? effectiveWidths[i]
-              : column.defaultWidth;
-          return _ColumnHeaderCell(
-            columnIndex: i,
-            column: column,
-            effectiveWidth: width,
-            sortState: sortState,
-            onSort: () =>
-                ref.read(sortStateProvider.notifier).toggleSort(column.id),
-            onToggleVisibility: (columnId) => ref
-                .read(columnConfigProvider.notifier)
-                .toggleVisibility(columnId),
-            onResize: (newWidth) => ref
-                .read(columnConfigProvider.notifier)
-                .setColumnWidth(column.id, newWidth),
-            onResizeEnd: () =>
-                ref.read(columnConfigProvider.notifier).persistWidths(),
-            onAutoFit: () => onAutoFit?.call(column.id),
-            onResetWidths: () =>
-                ref.read(columnConfigProvider.notifier).resetColumnWidths(),
-            onReorder: (oldIndex, newIndex) => ref
-                .read(columnConfigProvider.notifier)
-                .reorderColumn(oldIndex, newIndex),
-            allColumns: defaultColumns,
-            visibleColumnIds: config.visibleColumnIds,
-            hasSelection: hasSelection,
-            onRemoveSelected: onRemoveSelected,
+      child: _DragReorderRow(
+        visibleColumns: visibleColumns,
+        effectiveWidths: effectiveWidths,
+        sortState: sortState,
+        onMove: (oldIndex, newIndex) => ref
+            .read(columnConfigProvider.notifier)
+            .moveColumn(oldIndex, newIndex),
+        buildCell:
+            ({
+              required int index,
+              required ColumnDefinition column,
+              required double width,
+            }) {
+              return _ColumnHeaderCell(
+                columnIndex: index,
+                column: column,
+                effectiveWidth: width,
+                sortState: sortState,
+                onSort: () =>
+                    ref.read(sortStateProvider.notifier).toggleSort(column.id),
+                onToggleVisibility: (columnId) => ref
+                    .read(columnConfigProvider.notifier)
+                    .toggleVisibility(columnId),
+                onResize: (newWidth) => ref
+                    .read(columnConfigProvider.notifier)
+                    .setColumnWidth(column.id, newWidth),
+                onResizeEnd: () =>
+                    ref.read(columnConfigProvider.notifier).persistWidths(),
+                onAutoFit: () => onAutoFit?.call(column.id),
+                onResetWidths: () =>
+                    ref.read(columnConfigProvider.notifier).resetColumnWidths(),
+                onReorder: (oldIndex, newIndex) => ref
+                    .read(columnConfigProvider.notifier)
+                    .reorderColumn(oldIndex, newIndex),
+                allColumns: defaultColumns,
+                visibleColumnIds: config.visibleColumnIds,
+                hasSelection: hasSelection,
+                onRemoveSelected: onRemoveSelected,
+              );
+            },
+      ),
+    );
+  }
+}
+
+/// The header row with drag-to-reorder support.
+///
+/// The dropped column is inserted at the *gap* the pointer is nearest, so the
+/// insertion line shows where the column will land rather than snapping to
+/// whichever header happens to be hovered. Indices handed to [onMove] are
+/// already adjusted for the removal of the dragged column.
+class _DragReorderRow extends StatefulWidget {
+  const _DragReorderRow({
+    required this.visibleColumns,
+    required this.effectiveWidths,
+    required this.sortState,
+    required this.onMove,
+    required this.buildCell,
+  });
+
+  final List<ColumnDefinition> visibleColumns;
+  final List<double> effectiveWidths;
+  final SortState sortState;
+
+  /// (oldIndex, newIndex-after-removal) -> void
+  final void Function(int oldIndex, int newIndex) onMove;
+
+  final Widget Function({
+    required int index,
+    required ColumnDefinition column,
+    required double width,
+  })
+  buildCell;
+
+  @override
+  State<_DragReorderRow> createState() => _DragReorderRowState();
+}
+
+class _DragReorderRowState extends State<_DragReorderRow> {
+  /// Index of the column being dragged, or null when not dragging.
+  int? _draggingIndex;
+
+  /// Gap index the dragged column would be inserted at while hovering.
+  int? _dropGap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final columns = widget.visibleColumns;
+
+    return Row(
+      children: [
+        for (var i = 0; i < columns.length; i++) ...[
+          if (_dropGap == i) _InsertionLine(color: colorScheme.primary),
+          _buildDraggableSlot(i, columns, colorScheme),
+        ],
+        // Trailing gap, so a column can be dropped last.
+        if (_dropGap == columns.length)
+          _InsertionLine(color: colorScheme.primary),
+      ],
+    );
+  }
+
+  Widget _buildDraggableSlot(
+    int index,
+    List<ColumnDefinition> columns,
+    ColorScheme colorScheme,
+  ) {
+    final column = columns[index];
+    final width = index < widget.effectiveWidths.length
+        ? widget.effectiveWidths[index]
+        : column.defaultWidth;
+
+    final content = widget.buildCell(
+      index: index,
+      column: column,
+      width: width,
+    );
+
+    // Fixed columns (the tag indicator and the filename) stay put, so they
+    // are not draggable at all rather than being silently rejected on drop.
+    final draggable = isFixedColumn(column.id)
+        ? content
+        : LongPressDraggable<int>(
+            data: index,
+            dragAnchorStrategy: pointerDragAnchorStrategy,
+            feedback: _DragFeedback(
+              label: column.label.isEmpty ? column.id : column.label,
+              width: width,
+            ),
+            onDragStarted: () => setState(() => _draggingIndex = index),
+            onDragEnd: (_) => setState(() {
+              _draggingIndex = null;
+              _dropGap = null;
+            }),
+            childWhenDragging: Opacity(opacity: 0.35, child: content),
+            child: content,
           );
-        }),
+
+    return DragTarget<int>(
+      onWillAcceptWithDetails: (details) {
+        // Accept only from a different column, and only into a legal gap.
+        if (details.data == index) return false;
+        return _legalGap(index, details.data);
+      },
+      onAcceptWithDetails: (details) {
+        final from = details.data;
+        // onWillAccept has already rejected illegal gaps.
+        setState(() {
+          _draggingIndex = null;
+          _dropGap = null;
+        });
+        _commit(from, index);
+      },
+      onMove: (_) {
+        if (_draggingIndex != null && _dropGap != index) {
+          setState(() => _dropGap = index);
+        }
+      },
+      onLeave: (_) {
+        if (_dropGap == index) setState(() => _dropGap = null);
+      },
+      builder: (context, _, _) => SizedBox(width: width, child: draggable),
+    );
+  }
+
+  /// Whether dropping [from] at gap [gap] is allowed.
+  bool _legalGap(int gap, int from) {
+    if (gap < 0 || gap > widget.visibleColumns.length) return false;
+    // The first column is fixed; nothing may be dropped before it.
+    if (gap == 0 && widget.visibleColumns.isNotEmpty) return false;
+    // A column cannot be dropped into the gap immediately after itself,
+    // which is where it already is.
+    if (gap == from || gap == from + 1) return false;
+    return true;
+  }
+
+  void _commit(int from, int gap) {
+    // Converting a "insert at gap" position into the post-removal index
+    // that moveColumn expects: dropping at a gap after the source shifts the
+    // target down by one, because the source vacated that slot.
+    final newIndex = gap > from ? gap - 1 : gap;
+    if (newIndex == from) return;
+    widget.onMove(from, newIndex);
+  }
+}
+
+bool isFixedColumn(String columnId) =>
+    columnId == 'tagIndicator' || columnId == 'filename';
+
+class _InsertionLine extends StatelessWidget {
+  const _InsertionLine({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 2,
+      // Inset so the line reads as a divider between headers rather than
+      // overlapping the neighbour's border.
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      color: color,
+    );
+  }
+}
+
+class _DragFeedback extends StatelessWidget {
+  const _DragFeedback({required this.label, required this.width});
+
+  final String label;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(3),
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Container(
+        width: width.clamp(60.0, 240.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall,
+        ),
       ),
     );
   }

@@ -6,6 +6,16 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — drag-and-drop (PRD 16)
+- Drag-to-reorder column headers. Long-press to pick a header up; an
+  insertion line marks the gap it will land in, and the drop converts that
+  gap into a post-removal index before reaching the notifier. The fixed
+  columns are not draggable at all, so a drag can never be silently rejected
+  on drop, and nothing can be dropped before the first column.
+- `ColumnConfigNotifier.moveColumn` implements the post-removal index
+  convention the drag uses, leaving `reorderColumn` for the menu's
+  Move Left / Move Right, which pass raw indices.
+
 ### Added — empty state and onboarding (PRD 13)
 - A real empty state: app icon, drop hint, the supported-format list
   generated from `SupportedFormats` (so it cannot drift from what actually

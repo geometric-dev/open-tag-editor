@@ -1,5 +1,33 @@
 # PRD 16: Drag-and-Drop Enhancements (P4)
 
+## Status: mostly shipped
+
+Already delivered before this review: file/folder drop onto the window with an
+unsaved-changes guard and drag feedback, image drop onto the album-art panel
+with validation, and menu-based column reordering.
+
+Added here:
+
+- **Drag-to-reorder column headers.** Long-press a header to pick it up; an
+  insertion line shows the gap it will land in rather than snapping to
+  whichever header is hovered, and the drop converts that gap into a
+  post-removal index before calling the notifier.
+- The fixed columns (the tag indicator and the filename) are not draggable at
+  all, rather than being draggable and silently rejected on drop. Nothing may
+  be dropped before the first column.
+
+Not delivered, and why:
+
+- **Drag-reorder of lookup match rows.** The panel uses a popup menu to
+  reassign a track, which is a clearer affordance for a list of matches than
+  dragging, and the list is short.
+- **Manual file-list reordering in the unsorted state.** The list always has
+  an explicit sort, and a manual order field that silently does nothing while
+  a sort is active would be worse than not having one.
+- **Invalid-drop "not allowed" affordance and drop animations.** The drop
+  zones that matter (the window and the album-art panel) already have
+  feedback; the header reorder is constrained, not invalid-dropping.
+
 ## Problem Statement
 
 Several features specify drag-and-drop interactions that are not fully implemented: column reorder uses only a context menu (no actual drag), track-to-file matching in the lookup dialog lacks drag reorder, and there's no drag-based file reorder for manual sorting.

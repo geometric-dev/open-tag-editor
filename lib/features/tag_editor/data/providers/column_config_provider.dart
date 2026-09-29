@@ -119,6 +119,28 @@ class ColumnConfigNotifier extends StateNotifier<ColumnConfig> {
     _persist();
   }
 
+  /// Moves a column from [oldIndex] to [newIndex], where [newIndex] already
+  /// refers to a position in the list *after* [oldIndex] has been removed.
+  ///
+  /// This is the convention used by the drag-to-reorder header, which tracks
+  /// the drop target while the item is still in the list. Use
+  /// [reorderColumn] for the menu's Move Left / Move Right, which pass raw
+  /// pre-removal indices.
+  void moveColumn(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.visibleColumnIds.length) return;
+    // Fixed columns must not move off the front, so the smallest reachable
+    // target for a drag is index 1 when the tag indicator is present.
+    final minIndex =
+        state.visibleColumnIds.isNotEmpty &&
+            _fixedColumnIds.contains(state.visibleColumnIds.first)
+        ? 1
+        : 0;
+    if (newIndex < minIndex) return;
+    if (newIndex >= state.visibleColumnIds.length) return;
+    if (oldIndex == newIndex) return;
+    reorderColumn(oldIndex, newIndex);
+  }
+
   /// Resets to default column configuration.
   void resetToDefaults() {
     state = _defaultConfig();
