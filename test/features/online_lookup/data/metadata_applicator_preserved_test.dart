@@ -34,13 +34,13 @@ void main() {
   setUp(() {
     tagWriter = RecordingTagWriter();
     fileList = FileListNotifier();
-    file = AudioFile(
+    file = const AudioFile(
       path: '/music/a.mp3',
       filename: 'a.mp3',
       extension: '.mp3',
       fileSize: 1024,
       duration: 240,
-      tags: const {'replayGainTrackGain': '-6.5 dB', 'rating': '5'},
+      tags: {'replayGainTrackGain': '-6.5 dB', 'rating': '5'},
     );
     fileList.addFiles([file]);
   });
