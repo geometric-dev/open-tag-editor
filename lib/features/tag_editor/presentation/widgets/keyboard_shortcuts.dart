@@ -8,6 +8,7 @@ import '../../../../features/error_handling/utils/error_entry_factory.dart';
 import '../../../../features/folder_panel/data/sibling_navigation_service.dart';
 import '../../../../features/folder_panel/data/sibling_resolver.dart';
 import '../../../../features/folder_panel/presentation/quick_switcher_overlay.dart';
+import '../../../../shared/widgets/save_confirmation.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../data/providers/editor_state_provider.dart';
 import '../../data/providers/file_list_provider.dart';
@@ -74,6 +75,11 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
 
   Future<void> _saveAll(BuildContext context, WidgetRef ref) async {
     final statusNotifier = ref.read(statusMessageProvider.notifier);
+
+    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
+      statusNotifier.state = 'Save cancelled';
+      return;
+    }
 
     statusNotifier.state = 'Saving...';
 

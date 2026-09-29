@@ -8,6 +8,7 @@ class GeneralSettings {
     this.fileCountThreshold = 500,
     this.backupEnabled = true,
     this.preserveTimestamp = false,
+    this.confirmBeforeSave = false,
     this.themeMode = AppThemeMode.system,
   });
 
@@ -25,6 +26,15 @@ class GeneralSettings {
   /// (Tag&Rename: “Don’t change file timestamp on saving tags”).
   final bool preserveTimestamp;
 
+  /// When true, an explicit confirmation is required before tags are written
+  /// to disk.
+  ///
+  /// Off by default: the save path is reached constantly (Ctrl+S, the
+  /// toolbar, the tag panel, the unsaved-changes guard) and prompting on
+  /// every one of those would be noise rather than safety. Turning it on is
+  /// for users who prefer an explicit stop before files are modified.
+  final bool confirmBeforeSave;
+
   /// Application theme mode.
   final AppThemeMode themeMode;
 
@@ -34,6 +44,7 @@ class GeneralSettings {
     int? fileCountThreshold,
     bool? backupEnabled,
     bool? preserveTimestamp,
+    bool? confirmBeforeSave,
     AppThemeMode? themeMode,
   }) {
     return GeneralSettings(
@@ -41,6 +52,7 @@ class GeneralSettings {
       fileCountThreshold: fileCountThreshold ?? this.fileCountThreshold,
       backupEnabled: backupEnabled ?? this.backupEnabled,
       preserveTimestamp: preserveTimestamp ?? this.preserveTimestamp,
+      confirmBeforeSave: confirmBeforeSave ?? this.confirmBeforeSave,
       themeMode: themeMode ?? this.themeMode,
     );
   }

@@ -21,6 +21,7 @@ import '../../../../features/tools/presentation/tag_sync_dialog.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
+import '../../../../shared/widgets/save_confirmation.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
@@ -179,6 +180,12 @@ class EditorToolbar extends ConsumerWidget {
   Future<void> _saveChanges(WidgetRef ref, BuildContext context) async {
     final statusNotifier = ref.read(statusMessageProvider.notifier);
 
+    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
+      statusNotifier.state = 'Save cancelled';
+      return;
+    }
+
+    if (!context.mounted) return;
     statusNotifier.state = 'Saving...';
 
     final summary = await ref.read(tagSaveServiceProvider).saveAllModified();

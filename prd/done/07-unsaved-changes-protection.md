@@ -1,5 +1,25 @@
 # PRD 07: Unsaved Changes Protection (P1)
 
+## Status: shipped
+
+Delivered:
+
+- Close guard, folder-load guard at every entry point, and the `*` window
+  title indicator, all driven by `hasUnsavedChangesProvider`.
+- A modified-cell indicator per grid cell plus the status-bar count.
+- **Confirm before saving tags** (`GeneralSettings.confirmBeforeSave`).
+  `UnsavedChangesGuard._executeSave` already documented this dialog but it
+  was never implemented; it now exists, and all four save entry points
+  (toolbar, Ctrl+S, tag panel, unsaved-changes guard) route through one
+  `SaveConfirmation.confirmIfNeeded` so the setting cannot be bypassed by
+  taking a different route to the same write. It defaults to off, because
+  prompting on every save would be noise rather than safety.
+
+Deliberate deviation: the PRD asks for separate "Save & Continue" / "Discard
+& Continue" wording when loading a folder. A single dialog with
+Cancel / Discard / Save is used for both cases, since the decision the user
+is making is identical and a second wording would only invite mistakes.
+
 ## Problem Statement
 
 Users can lose tag edits silently by closing the app, loading a new folder, or navigating away while modifications are pending. The "Confirm before saving" setting exists in the UI but is not implemented. There is no visual cue in the window title indicating unsaved state.

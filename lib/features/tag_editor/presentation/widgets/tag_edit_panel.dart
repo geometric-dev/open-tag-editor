@@ -12,6 +12,7 @@ import '../../../../features/tools/data/replay_gain.dart';
 import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/providers/tag_field_validation_provider.dart';
 import '../../../../shared/services/taglib/taglib_types.dart';
+import '../../../../shared/widgets/save_confirmation.dart';
 import '../../../../shared/widgets/validation_indicator.dart';
 import '../../../album_art/data/image_validator.dart';
 import '../../../album_art/data/mixed_art_detector.dart';
@@ -45,6 +46,11 @@ class TagEditPanel extends ConsumerStatefulWidget {
 class _TagEditPanelState extends ConsumerState<TagEditPanel> {
   Future<void> _saveChanges(BuildContext context, WidgetRef ref) async {
     final statusNotifier = ref.read(statusMessageProvider.notifier);
+
+    if (!await SaveConfirmation.confirmIfNeeded(context: context, ref: ref)) {
+      statusNotifier.state = 'Save cancelled';
+      return;
+    }
 
     statusNotifier.state = 'Saving...';
 

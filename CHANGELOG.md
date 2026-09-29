@@ -6,6 +6,15 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added — unsaved-changes work (PRD 07)
+- **Confirm before saving tags** setting (General ▸ General). All four save
+  entry points — toolbar, Ctrl+S, tag panel, and the unsaved-changes guard —
+  route through one `SaveConfirmation` helper, so enabling it cannot be
+  bypassed by taking a different route to the same write. Off by default;
+  dismissing the dialog counts as a cancel, not a silent save.
+- Settings notifier tests covering persistence of every general setting,
+  including the clamping of the large-folder threshold.
+
 ### Added — Tag&Rename parity wave
 - **GNUdb lookup** (freedb successor): matches selected album tracks by a
   virtual CD table-of-contents computed from durations; new source chip in

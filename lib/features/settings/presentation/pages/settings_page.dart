@@ -203,6 +203,16 @@ class _GeneralPane extends StatelessWidget {
               .read(generalSettingsProvider.notifier)
               .setFileCountThreshold(int.tryParse(v) ?? 500),
         ),
+        _CheckboxRow(
+          label: 'Confirm before saving tags',
+          subtitle:
+              'Ask for confirmation before writing tags to disk. Applies to the '
+              'toolbar, Ctrl+S, the tag panel and the unsaved-changes prompt',
+          value: settings.confirmBeforeSave,
+          onChanged: (v) => ref
+              .read(generalSettingsProvider.notifier)
+              .setConfirmBeforeSave(v),
+        ),
         _ThemeModeRow(
           value: settings.themeMode,
           onChanged: (mode) =>
@@ -226,6 +236,7 @@ class _FileProtectionPane extends StatelessWidget {
       onReset: () {
         ref.read(generalSettingsProvider.notifier).setBackupEnabled(true);
         ref.read(generalSettingsProvider.notifier).setPreserveTimestamp(false);
+        ref.read(generalSettingsProvider.notifier).setConfirmBeforeSave(false);
       },
       children: [
         _CheckboxRow(
