@@ -16,6 +16,11 @@ build/
 *.ipr
 *.iws
 
+# Kiro IDE agent working files (specs and steering docs).
+# These were committed before the project moved to prd/ as the durable
+# record; they remain in history, but new changes to them are not tracked.
+.kiro/
+
 # OS
 .DS_Store
 Thumbs.db

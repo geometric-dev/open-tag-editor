@@ -4,11 +4,16 @@ Thanks for your interest in contributing! Here's how to get started.
 
 ## Development Setup
 
-1. Install Flutter SDK (>= 3.22.0)
-2. Clone the repo and run `flutter pub get`
-3. (Only when `native/taglib_c.h` changes) regenerate FFI bindings:
+1. Install Flutter SDK **3.41 or newer**, ideally the version pinned in
+   `.fvmrc` (3.47.5) — see [Toolchain version](#toolchain-version)
+2. Install CMake and a C++ toolchain (required to build the native runner)
+3. Clone the repo and run `flutter pub get`
+4. (Only when `native/taglib_c.h` changes) regenerate FFI bindings:
    `dart run ffigen --config native/ffigen.yaml`
-4. Run the app: `flutter run -d windows` (or `macos` / `linux`)
+5. Run the app: `flutter run -d windows` (or `macos` / `linux`)
+
+The FFI bindings are committed, so a fresh clone needs no extra generation
+step and the build works without a native toolchain beyond the standard one.
 
 ## Project Structure
 
