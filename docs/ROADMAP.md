@@ -1,42 +1,49 @@
 # Roadmap
 
-Direction agreed for the 0.2 → 0.3 lines. 0.2 (current) is the
-"Trust & Quality" release: see CHANGELOG.
+0.3.0 is released and verified on all three desktop platforms; see the
+CHANGELOG. This file tracks what is left.
 
-## 0.2.x — hardening
+## Carried over from 0.2.x
 
-- [x] Run `scripts/verify-release.ps1` in CI on a built artifact (not just locally)
-- [x] Bundle or auto-install VC++ runtime in the Windows installer
-      (`scripts/bundle-crt.ps1`; the installer itself is still 0.3 work)
 - [ ] Surface "native TagLib missing — writes disabled" as a status-bar state
       instead of silent degradation (architect follow-up from platform review)
 - [ ] Golden tests for the data grid; large-library (10k rows) perf pass
 - [ ] Wire lookup *apply* results into the error log per-file (today only
       whole-step failures are logged)
+- [x] Run `scripts/verify-release.ps1` in CI on a built artifact
+- [x] Bundle the VC++ runtime in the Windows bundle (`scripts/bundle-crt.ps1`;
+      a signed installer is still outstanding)
 
-## 0.3.0 — feature wave
+## 0.4 — carry-over from 0.3
 
-- [ ] Multi-value tag fields (multiple artists/genres) end-to-end:
-      model, grid display, panel editor, TagLib mapping
-- [x] ReplayGain: read/display RG info, preserve verified, add
-      optional clear/normalize actions — read-only panel section, optional
-      columns and a Clear ReplayGain action shipped; *normalize* (i.e.
-      recalculating the values) is out of scope, it needs decoding
-- [ ] Drag-reorder column headers (menu-based reorder shipped in 0.2)
+- [ ] **Whole-block tag removal.** Clear All Tags / Clear Fields / Remove
+      ID3v1 shipped, but removing an entire ID3v2, APEv2 or Vorbis block is
+      impossible: the bundled `native/taglib_c.h` exposes no removal call,
+      only field-level `taglib_property_set`. Needs a native change and a
+      rebuilt `tag.dll`.
+- [ ] **Multi-value fields as lists, end to end.** Writing, reading, display
+      and a chip editor shipped, and the silent flattening bug is fixed. Still
+      outstanding: `AudioFile.tags` holding `List<String>` for these fields,
+      so the batch Set/Add/Remove/Replace operations and the grid's `×N` badge
+      have something to work with. That is a cross-cutting model change.
+- [ ] **Album clustering (Ctrl+Shift+C)** for online lookup — group-by view
+      over the custom-painted grid, collapsible group rows, fuzzy tolerance.
+- [ ] **Undo failure reporting.** `UndoableCommand.undo()` returns `void`, so
+      a rename that fails to move back is silently dropped from the stack
+      while the UI shows it as done. Needs a result type and an error-log
+      surface.
+- [ ] **Timestamp-preservation failures are silent.** With the setting on, a
+      failed `setLastModified` still reports the write as successful.
+- [ ] **Per-apply "include preserved tags" override** in the lookup apply
+      panel (the applicator already accepts the set per instance).
 - [ ] Lookup applicators on background isolates with progress ports
-- [ ] Tag deletion & cleanup PRD (strip ID3v1, remove empty frames) —
-      Clear All Tags / Clear Fields / Remove ID3v1 shipped; whole-block
-      ID3v2, APEv2 and Vorbis removal is blocked on the native library
-      exposing a removal call (see `native/taglib_c.h`, which has none)
-- [x] macOS/Linux CI jobs that build TagLib and attach native artifacts;
-      Xcode copy-phase + Linux packaging so both platforms ship like Windows
-- [ ] Installer (MSIX or Inno) bundling DLLs + VC++ runtime, signed builds
-- [ ] Accessibility audit: Semantics coverage beyond tooltips, high-contrast
-      theme, keyboard-only walkthrough
-- [ ] Empty-state/onboarding polish; README screenshots
+- [ ] Signed installer (MSIX or Inno) bundling DLLs + VC++ runtime
+- [ ] README screenshots
 
 ## Deferred / under consideration
 
-- ReplayGain calculation (requires decoding audio — heavy dependency)
+- ReplayGain *calculation* (requires decoding audio — heavy dependency)
 - Auto-update channel
 - Plugin-style format extensions beyond the TagLib set
+- Generic custom-frame support (TagLib surfaces arbitrary `TXXX` frames as
+  `NAME_TXXX`; showing them all would need a display-name policy)
