@@ -91,13 +91,13 @@ void main() {
     setUp(() {
       notifier = FileListNotifier();
       notifier.addFiles([
-        AudioFile(
+        const AudioFile(
           path: '/a.mp3',
           filename: 'a.mp3',
           extension: '.mp3',
           fileSize: 1,
-          tags: const {'title': 'Existing'},
-          originalTags: const {'title': 'Existing'},
+          tags: {'title': 'Existing'},
+          originalTags: {'title': 'Existing'},
         ),
       ]);
     });
