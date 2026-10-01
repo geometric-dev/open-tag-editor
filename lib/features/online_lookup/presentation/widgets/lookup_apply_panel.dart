@@ -163,6 +163,8 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
         ),
         const SizedBox(height: 12),
         _buildFieldSelection(),
+        const SizedBox(height: 8),
+        _buildSemanticsNote(context),
         const SizedBox(height: 12),
         Expanded(
           child: ListView.builder(
@@ -206,6 +208,8 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
         ),
         const SizedBox(height: 12),
         _buildFieldSelection(),
+        const SizedBox(height: 8),
+        _buildSemanticsNote(context),
         const SizedBox(height: 12),
         Expanded(
           child: ListView.builder(
@@ -254,6 +258,27 @@ class _LookupApplyPanelState extends ConsumerState<LookupApplyPanel> {
     return '$matchedCount of $totalCount files matched to tracks'
         ' \u2022 $unmatchedCount files will receive album info only'
         ' \u2022 Applying to $applyingToCount of $totalCount files';
+  }
+
+  /// States what applying does when the source has no value for a field.
+  ///
+  /// The three tag-writing surfaces state their contracts differently: the tag
+  /// panel says clearing a field removes it everywhere, the extractor offers an
+  /// explicit overwrite / fill-empty mode, and this panel used to state
+  /// nothing -- it simply skipped fields the release page had no data for. That
+  /// is the right behaviour (a missing track number should not wipe the
+  /// existing one), but with no wording the user reads it as the apply having
+  /// failed.
+  Widget _buildSemanticsNote(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      'Fields with no value in the matched release are left unchanged. '
+      'To remove tags instead, use Tools ▸ Clear Fields…',
+      style: theme.textTheme.bodySmall?.copyWith(
+        fontSize: 10,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
   }
 
   Widget _buildHeader(
