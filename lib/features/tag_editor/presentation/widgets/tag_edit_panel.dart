@@ -25,6 +25,30 @@ import '../../data/providers/editor_state_provider.dart'
     show TagPanelTab, selectedFilesProvider, tagPanelActiveTabProvider;
 import '../../data/providers/file_list_provider.dart' show fileListProvider;
 
+/// Placeholder shown by a panel tab that needs a selection to do anything.
+class _PanelEmptyState extends StatelessWidget {
+  const _PanelEmptyState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Panel for editing tag fields of the selected file(s).
 ///
 /// Uses a flat, desktop-native layout with compact segmented tabs
@@ -48,15 +72,11 @@ class _TagEditPanelState extends ConsumerState<TagEditPanel> {
     final selectedFiles = ref.watch(selectedFilesProvider);
     final activeTab = ref.watch(tagPanelActiveTabProvider);
 
-    if (selectedFiles.isEmpty) {
-      return Center(
-        child: Text(
-          'Select one or more files to edit tags',
-          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)),
-        ),
-      );
-    }
-
+    // No early return for an empty selection: it used to hide the tab row,
+    // which made the File Info and Album Art tabs unreachable until a file
+    // was selected -- including File Info, which is exactly the tab you want
+    // when you are deciding what to select. Each tab renders its own
+    // "nothing selected" state instead.
     return Column(
       children: [
         // --- Selection header ---
@@ -73,7 +93,9 @@ class _TagEditPanelState extends ConsumerState<TagEditPanel> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  selectedFiles.length == 1
+                  selectedFiles.isEmpty
+                      ? 'No file selected'
+                      : selectedFiles.length == 1
                       ? selectedFiles.first.filename
                       : '${selectedFiles.length} files selected',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -361,6 +383,16 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
 
   @override
   Widget build(BuildContext context) {
+    // The panel no longer short-circuits on an empty selection so the tab
+    // row stays reachable, so this tab has to say so itself. Without it the
+    // fields render empty and editable, and typing into one silently does
+    // nothing because the command has no target files.
+    if (widget.selectedFiles.isEmpty) {
+      return const _PanelEmptyState(
+        message: 'Select a file to view and edit its tags',
+      );
+    }
+
     final isMixed = widget.selectedFiles.length > 1;
 
     return SingleChildScrollView(
@@ -748,6 +780,16 @@ class _AlbumArtTabState extends ConsumerState<_AlbumArtTab> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Same reason as the Tags tab: the panel keeps its tab row visible with
+    // nothing selected, and every batch action here is a no-op without a
+    // target file.
+    if (widget.selectedFiles.isEmpty) {
+      return const _PanelEmptyState(
+        message: 'Select one or more files to manage their cover art',
+      );
+    }
+
     final artState = detectArtState(widget.selectedFiles);
     final displayArt = _getDisplayArt(artState);
 

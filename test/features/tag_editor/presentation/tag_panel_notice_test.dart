@@ -85,14 +85,28 @@ void main() {
 
       expect(find.textContaining('clearing a field'), findsNothing);
     });
-
-    testWidgets('shows only the single-file prompt with no selection', (
+    testWidgets('with no selection the tab row stays reachable', (
       tester,
     ) async {
       await pumpPanel(tester, files: const []);
 
+      // The panel no longer short-circuits, so the tabs stay reachable
+      // without selecting a file -- File Info is exactly the tab you want
+      // when deciding what to select.
+      expect(find.text('Tags'), findsOneWidget);
+      expect(find.text('Album Art'), findsOneWidget);
+      expect(find.text('File Info'), findsOneWidget);
+      expect(find.text('No file selected'), findsOneWidget);
+    });
+
+    testWidgets('with no selection the Tags tab says so', (tester) async {
+      await pumpPanel(tester, files: const []);
+
+      // Guards the failure this change could introduce: fields that render
+      // empty and editable but silently do nothing, because the edit command
+      // has no target files.
       expect(
-        find.text('Select one or more files to edit tags'),
+        find.text('Select a file to view and edit its tags'),
         findsOneWidget,
       );
     });
