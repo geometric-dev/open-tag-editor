@@ -29,7 +29,7 @@ class TagEditCommand implements UndoableCommand {
   }
 
   @override
-  void execute() {
+  bool execute() {
     final currentFiles = fileListNotifier.currentFiles;
     final updatedFiles = <AudioFile>[];
 
@@ -54,6 +54,7 @@ class TagEditCommand implements UndoableCommand {
     if (updatedFiles.isNotEmpty) {
       fileListNotifier.updateFiles(updatedFiles);
     }
+    return updatedFiles.isNotEmpty;
   }
 
   @override
@@ -106,7 +107,7 @@ class BatchTagEditCommand implements UndoableCommand {
   String get description => 'Batch edit (${filePaths.length} files)';
 
   @override
-  void execute() {
+  bool execute() {
     final currentFiles = fileListNotifier.currentFiles;
     final updatedFiles = <AudioFile>[];
 
@@ -133,6 +134,7 @@ class BatchTagEditCommand implements UndoableCommand {
     if (updatedFiles.isNotEmpty) {
       fileListNotifier.updateFiles(updatedFiles);
     }
+    return updatedFiles.isNotEmpty;
   }
 
   @override

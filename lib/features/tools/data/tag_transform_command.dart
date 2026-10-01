@@ -27,7 +27,7 @@ class TagTransformCommand implements UndoableCommand {
   final String description;
 
   @override
-  void execute() {
+  bool execute() {
     final updated = <AudioFile>[];
     for (final file in fileListNotifier.currentFiles) {
       final delta = deltas[file.path];
@@ -45,6 +45,7 @@ class TagTransformCommand implements UndoableCommand {
       }
     }
     if (updated.isNotEmpty) fileListNotifier.updateFiles(updated);
+    return updated.isNotEmpty;
   }
 
   @override

@@ -5,8 +5,13 @@ abstract class UndoableCommand {
   /// Human-readable description of this command.
   String get description;
 
-  /// Execute the command (apply the change).
-  void execute();
+  /// Applies the change.
+  ///
+  /// Returns whether anything actually changed. A command that decides it has
+  /// nothing to do should return false rather than reporting success: the undo
+  /// manager uses this to avoid pushing a dead entry onto the stack, where it
+  /// would silently consume the user's next Ctrl+Z.
+  bool execute();
 
   /// Undo the command (revert the change).
   void undo();
@@ -18,9 +23,15 @@ class UndoRedoManager extends StateNotifier<UndoRedoState> {
 
   static const _maxHistory = 100;
 
-  /// Execute a command and add it to the undo stack.
-  void execute(UndoableCommand command) {
-    command.execute();
+  /// Executes a command and adds it to the undo stack if it changed anything.
+  ///
+  /// Returns whether the command was recorded. A no-op command still runs
+  /// (so callers can keep one code path) but does not occupy a slot on the
+  /// stack: without this, pressing Enter in a field without changing it
+  /// created an entry that looked like history and made the next Ctrl+Z do
+  /// nothing visible.
+  bool execute(UndoableCommand command) {
+    if (!command.execute()) return false;
 
     final newUndoStack = [...state.undoStack, command];
     // Trim if exceeding max history
@@ -32,6 +43,7 @@ class UndoRedoManager extends StateNotifier<UndoRedoState> {
       undoStack: newUndoStack,
       redoStack: const [], // Clear redo stack on new action
     );
+    return true;
   }
 
   /// Undo the last command.

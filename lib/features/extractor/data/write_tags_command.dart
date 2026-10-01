@@ -41,7 +41,7 @@ class WriteTagsCommand implements UndoableCommand {
   }
 
   @override
-  void execute() {
+  bool execute() {
     final currentFiles = fileListNotifier.currentFiles;
     final updatedFiles = <AudioFile>[];
 
@@ -74,6 +74,7 @@ class WriteTagsCommand implements UndoableCommand {
     if (updatedFiles.isNotEmpty) {
       fileListNotifier.updateFiles(updatedFiles);
     }
+    return updatedFiles.isNotEmpty;
   }
 
   @override

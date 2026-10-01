@@ -55,7 +55,7 @@ class AlbumArtCommand implements UndoableCommand {
   }
 
   @override
-  void execute() {
+  bool execute() {
     final updatedFiles = <AudioFile>[];
 
     for (final file in fileListNotifier.currentFiles) {
@@ -76,6 +76,7 @@ class AlbumArtCommand implements UndoableCommand {
     }
 
     fileListNotifier.updateFiles(updatedFiles);
+    return updatedFiles.isNotEmpty;
   }
 
   @override

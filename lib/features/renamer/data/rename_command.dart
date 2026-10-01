@@ -17,7 +17,8 @@ class RenameCommand implements UndoableCommand {
   }
 
   @override
-  void execute() {
+  bool execute() {
+    var moved = false;
     for (final entry in renames.entries) {
       try {
         final file = File(entry.key);
@@ -27,11 +28,13 @@ class RenameCommand implements UndoableCommand {
             targetDir.createSync(recursive: true);
           }
           file.renameSync(entry.value);
+          moved = true;
         }
       } catch (_) {
         // Graceful failure — file may have been moved externally.
       }
     }
+    return moved;
   }
 
   @override

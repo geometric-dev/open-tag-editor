@@ -27,7 +27,7 @@ class ClearTagsCommand implements UndoableCommand {
   final String description;
 
   @override
-  void execute() {
+  bool execute() {
     final updated = <AudioFile>[];
     for (final file in fileListNotifier.currentFiles) {
       final fields = plan.fieldsToClearByPath[file.path];
@@ -42,6 +42,7 @@ class ClearTagsCommand implements UndoableCommand {
       updated.add(file.copyWith(tags: newTags, isModified: true));
     }
     if (updated.isNotEmpty) fileListNotifier.updateFiles(updated);
+    return updated.isNotEmpty;
   }
 
   @override

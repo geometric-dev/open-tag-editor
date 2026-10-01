@@ -55,8 +55,11 @@ class StripId3v1Command implements UndoableCommand {
   final String description;
 
   @override
-  void execute() {
-    stripId3v1From(files);
+  bool execute() {
+    // Only record an undo entry if a block was actually removed; a plan
+    // built from files that have since lost their ID3v1 block should not
+    // occupy a slot on the undo stack.
+    return stripId3v1From(files).stripped.isNotEmpty;
   }
 
   @override

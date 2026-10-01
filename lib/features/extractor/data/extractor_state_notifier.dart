@@ -301,9 +301,9 @@ class _NoOpWrapperCommand implements UndoableCommand {
   String get description => _inner.description;
 
   @override
-  void execute() {
+  bool execute() {
     // Re-execute on redo.
-    _inner.execute();
+    return _inner.execute();
   }
 
   @override
