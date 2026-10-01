@@ -33,6 +33,7 @@ import '../../data/providers/filtered_sorted_file_list_provider.dart';
 import '../../data/providers/service_providers.dart';
 import '../../data/services/editor_open_service.dart';
 import '../widgets/address_bar.dart';
+import 'shortcut_help_dialog.dart';
 
 /// Menu labels for the Tools-menu actions, kept in one place so the menu
 /// build and the dispatch switch cannot disagree about wording.
@@ -776,6 +777,11 @@ class EditorToolbar extends ConsumerWidget {
               final notifier = ref.read(errorPanelVisibleProvider.notifier);
               notifier.state = !notifier.state;
             },
+          ),
+          _ToolbarButton(
+            icon: Icons.keyboard,
+            tooltip: 'Keyboard Shortcuts (F1)',
+            onPressed: () => ShortcutHelpDialog.show(context),
           ),
           _ToolbarButton(
             icon: Icons.settings,

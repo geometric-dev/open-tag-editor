@@ -11,6 +11,7 @@ import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../data/providers/file_list_provider.dart';
 import '../../data/providers/folder_loading_provider.dart';
 import '../../data/providers/selection_provider.dart';
+import 'shortcut_help_dialog.dart';
 
 /// Wraps a child widget with keyboard shortcut handlers for the editor.
 class EditorKeyboardShortcuts extends ConsumerWidget {
@@ -56,6 +57,11 @@ class EditorKeyboardShortcuts extends ConsumerWidget {
             final service = FolderLoadingService(ref.read);
             service.reloadTagsFromDisk();
           });
+        },
+        const SingleActivator(LogicalKeyboardKey.f1): () {
+          // F1 is the platform convention for application help, and it is
+          // the only way to find the shortcuts list now that it exists.
+          ShortcutHelpDialog.show(context);
         },
         const SingleActivator(LogicalKeyboardKey.keyG, control: true): () {
           QuickSwitcherOverlay.show(context, ref, (path) async {
