@@ -344,6 +344,10 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
     final isSorted = widget.sortState.columnId == widget.column.id;
     final isResizable = widget.column.id != 'tagIndicator';
     final isSortable = widget.column.id != 'tagIndicator';
+    // The tag indicator and filename are pinned; every other column can be
+    // dragged, and the grip is shown on hover so the capability is visible
+    // rather than discovered by accident.
+    final canReorder = !isFixedColumn(widget.column.id);
 
     // Determine background colour: sorted tint > hover tint > none
     Color? backgroundColor;
@@ -362,12 +366,8 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
       child: Stack(
         children: [
           MouseRegion(
-            onEnter: isSortable
-                ? (_) => setState(() => _isHovered = true)
-                : null,
-            onExit: isSortable
-                ? (_) => setState(() => _isHovered = false)
-                : null,
+            onEnter: (_) => setState(() => _isHovered = true),
+            onExit: (_) => setState(() => _isHovered = false),
             child: GestureDetector(
               onTap: isSortable ? widget.onSort : null,
               onSecondaryTapUp: (details) {
@@ -407,6 +407,27 @@ class _ColumnHeaderCellState extends State<_ColumnHeaderCell> {
                             : Icons.arrow_downward,
                         size: 14,
                         color: Theme.of(context).colorScheme.primary,
+                      ),
+                    // Drag affordance. Columns can be reordered by
+                    // long-press-dragging, but nothing said so -- the only
+                    // advertised way was Move Left / Move Right in the
+                    // context menu. Shows on hover so it costs no space at
+                    // rest, and is announced as the reordering handle it is.
+                    if (canReorder && _isHovered)
+                      Semantics(
+                        label:
+                            'Drag to reorder the ${widget.column.label} '
+                            'column',
+                        child: Tooltip(
+                          message: 'Drag to reorder',
+                          child: Icon(
+                            Icons.drag_indicator,
+                            size: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
                   ],
                 ),
