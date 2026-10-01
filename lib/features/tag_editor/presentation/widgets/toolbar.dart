@@ -35,6 +35,24 @@ import '../../data/services/editor_open_service.dart';
 import '../widgets/address_bar.dart';
 import 'shortcut_help_dialog.dart';
 
+/// Divider between groups of toolbar buttons.
+///
+/// Named for what it is rather than using a bare `VerticalDivider`
+/// everywhere, so a future change to one divider does not silently restyle
+/// all of them.
+class _ToolbarGroupDivider extends StatelessWidget {
+  const _ToolbarGroupDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalDivider(
+      indent: 8,
+      endIndent: 8,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+}
+
 /// Menu labels for the Tools-menu actions, kept in one place so the menu
 /// build and the dispatch switch cannot disagree about wording.
 String _toolMenuLabel(String value) => switch (value) {
@@ -594,6 +612,9 @@ class EditorToolbar extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          // Grouped by task, with a divider between groups. Fifteen
+          // undifferentiated icons gave no clue which of them belonged to
+          // opening, editing, transforming or exporting.
           _ToolbarButton(
             icon: Icons.folder_open,
             tooltip: 'Open Folder',
@@ -610,7 +631,7 @@ class EditorToolbar extends ConsumerWidget {
             onPressed: () =>
                 ref.read(folderPanelStateProvider.notifier).toggle(),
           ),
-          const VerticalDivider(indent: 8, endIndent: 8),
+          const _ToolbarGroupDivider(),
           _ToolbarButton(
             icon: Icons.save,
             tooltip: 'Save Changes (Ctrl+S)',
@@ -634,7 +655,7 @@ class EditorToolbar extends ConsumerWidget {
                 ? () => ref.read(undoRedoProvider.notifier).redo()
                 : null,
           ),
-          const VerticalDivider(indent: 8, endIndent: 8),
+          const _ToolbarGroupDivider(),
           _ToolbarButton(
             icon: Icons.drive_file_rename_outline,
             tooltip: 'Rename Files',
