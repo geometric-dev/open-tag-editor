@@ -39,6 +39,9 @@ class EnhancedStatusBar extends ConsumerWidget {
           // Status message. A live region so a screen reader announces the
           // result of a save or a load; without it the only feedback from a
           // batch operation is silence.
+          //
+          // Expanded, not Expanded+Spacer: the status text takes the slack
+          // and the trailing stats keep their natural width.
           Expanded(
             child: Semantics(
               liveRegion: true,
@@ -51,7 +54,6 @@ class EnhancedStatusBar extends ConsumerWidget {
               ),
             ),
           ),
-          const Spacer(),
           // Error count indicator
           if (errorCount > 0) ...[
             Semantics(

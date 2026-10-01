@@ -713,8 +713,11 @@ class EditorToolbar extends ConsumerWidget {
               PopupMenuItem(
                 value: 'tags:stripId3v1',
                 enabled: ref.read(fileListProvider).isNotEmpty,
-                child: const Text(
-                  'Remove ID3v1 Tag',
+child: const Text(
+                  // Ellipsis, like its sibling destructive actions: this one
+                  // opens a confirmation dialog and the ellipsis is the only
+                  // thing that signals that.
+                  'Remove ID3v1 Tag…',
                   style: TextStyle(fontSize: 12),
                 ),
               ),
