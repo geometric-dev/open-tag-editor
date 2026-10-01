@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import '../../../../core/utils/file_utils.dart';
@@ -213,8 +214,18 @@ class FolderLoadingService {
     }
 
     statusNotifier.state = 'Reading tags for ${audioFiles.length} file(s)...';
+    // Publish the count so the UI can show a determinate progress bar.
+    // Without it a large load looked identical to an idle grid, and the only
+    // feedback was a status-bar line most users never look at.
+    final progress = _read(folderLoadProgressProvider.notifier);
+    progress.state = FolderLoadProgress(total: audioFiles.length, completed: 0);
+
     final paths = audioFiles.map((f) => f.path).toList();
     final files = await reader.readTagsBatch(paths);
+    progress.state = FolderLoadProgress(
+      total: audioFiles.length,
+      completed: files.length,
+    );
 
     // Detect files that failed to read tags
     final failedFiles = files.where((f) => f.readError != null).toList();
@@ -233,5 +244,33 @@ class FolderLoadingService {
     _read(recentFoldersProvider.notifier).addFolder(folderPath);
     _read(windowStateProvider.notifier).setLastFolderPath(folderPath);
     statusNotifier.state = 'Loaded ${files.length} file(s)';
+    progress.state = FolderLoadProgress(
+      total: audioFiles.length,
+      completed: audioFiles.length,
+    );
   }
 }
+
+/// Progress of the current folder load, for the UI to render.
+class FolderLoadProgress {
+  const FolderLoadProgress({required this.total, required this.completed});
+
+  /// No load in flight.
+  static const FolderLoadProgress idle = FolderLoadProgress(
+    total: 0,
+    completed: 0,
+  );
+
+  final int total;
+  final int completed;
+
+  bool get isActive => total > 0 && completed < total;
+
+  /// 0..1, or null when indeterminate.
+  double? get fraction => total <= 0 ? null : completed / total;
+}
+
+/// Folder-load progress, cleared when a load finishes or is abandoned.
+final folderLoadProgressProvider = StateProvider<FolderLoadProgress>(
+  (ref) => FolderLoadProgress.idle,
+);

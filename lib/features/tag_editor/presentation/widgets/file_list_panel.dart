@@ -13,6 +13,7 @@ import '../../data/providers/grid_items_provider.dart';
 import '../../data/providers/selection_provider.dart';
 import '../helpers/grid_navigation.dart';
 import 'data_grid/data_grid.dart';
+import 'folder_load_indicator.dart';
 
 /// Panel showing the list of loaded audio files with address bar,
 /// data grid, filter controls, and status bar.
@@ -35,6 +36,8 @@ class FileListPanel extends ConsumerWidget {
         child: ClipRect(
           child: Column(
             children: [
+              // Load progress, above the grid it belongs to.
+              const FolderLoadIndicator(),
               // Breadcrumb bar with folder path navigation
               BreadcrumbBar(
                 onFolderSelected: (path) async {
