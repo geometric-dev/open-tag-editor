@@ -372,8 +372,14 @@ class _TagFieldsTabState extends ConsumerState<_TagFieldsTab> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Editing ${widget.selectedFiles.length} files. '
-                'Empty fields will not be changed.',
+                // States the two things that actually happen. The previous
+                // copy promised "Empty fields will not be changed", which was
+                // false: clearing a field removes it from every selected file,
+                // and the writer passes that on as a delete. This is the only
+                // place the user is told before it happens.
+                'Editing ${widget.selectedFiles.length} files. Typing a value '
+                'overwrites it in every file; clearing a field removes it from '
+                'every file.',
                 style: TextStyle(
                   fontSize: 11,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
