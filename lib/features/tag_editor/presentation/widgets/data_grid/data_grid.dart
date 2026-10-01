@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/models/audio_file.dart';
 import '../../../../../shared/services/taglib/taglib_types.dart';
+import '../../../../../shared/widgets/save_flow.dart';
 import '../../../data/column_width_resolver.dart';
 import '../../../data/models/column_definition.dart';
 import '../../../data/models/grid_item.dart';
@@ -12,6 +13,7 @@ import '../../../data/providers/column_config_provider.dart';
 import '../../../data/providers/editor_state_provider.dart';
 import '../../../data/providers/file_list_provider.dart';
 import '../../../data/providers/filtered_sorted_file_list_provider.dart';
+import '../../../data/providers/folder_loading_provider.dart';
 import '../../../data/providers/grid_items_provider.dart';
 import '../../../data/providers/selection_provider.dart';
 import '../../../inline_cell_editing/models/cell_coordinate.dart';
@@ -22,6 +24,7 @@ import '../../helpers/grid_navigation.dart';
 import '../address_bar.dart';
 import 'column_headers.dart';
 import 'empty_state_view.dart';
+import 'file_row_context_menu.dart';
 import 'folder_separator_row.dart';
 import 'marquee_overlay.dart';
 
@@ -79,6 +82,8 @@ class DataGrid extends ConsumerWidget {
                     ref.read(selectionProvider.notifier).select(path);
                     ref.read(tagPanelOpenProvider.notifier).state = true;
                   },
+                  onRowContextMenu: (path, position) =>
+                      _showRowContextMenu(ref, context, path, position),
                   onAutoFit: (columnId, fitWidth) {
                     ref
                         .read(columnConfigProvider.notifier)
@@ -298,6 +303,38 @@ class DataGrid extends ConsumerWidget {
     return KeyEventResult.ignored;
   }
 
+  Future<void> _showRowContextMenu(
+    WidgetRef ref,
+    BuildContext context,
+    String path,
+    Offset position,
+  ) async {
+    final action = await FileRowContextMenu.show(
+      context,
+      ref,
+      rowPath: path,
+      position: position,
+    );
+    if (action == null) return;
+
+    switch (action) {
+      case FileRowAction.editTags:
+        ref.read(tagPanelOpenProvider.notifier).state = true;
+      case FileRowAction.refreshFromDisk:
+        await FolderLoadingService(ref.read).reloadTagsFromDisk();
+      case FileRowAction.save:
+        if (!context.mounted) return;
+        await SaveFlow.saveAll(context, ref);
+      case FileRowAction.removeFromList:
+        if (!context.mounted) return;
+        await _removeSelectedFiles(
+          ref,
+          context,
+          ref.read(selectedFilesProvider),
+        );
+    }
+  }
+
   Future<void> _removeSelectedFiles(
     WidgetRef ref,
     BuildContext context,
@@ -349,6 +386,7 @@ class _FocusableDataGrid extends StatefulWidget {
     required this.rootFolder,
     required this.onRowTap,
     required this.onRowDoubleTap,
+    required this.onRowContextMenu,
     required this.onKeyEvent,
     this.onAutoFit,
     this.hasSelection = false,
@@ -363,6 +401,9 @@ class _FocusableDataGrid extends StatefulWidget {
   final String? rootFolder;
   final void Function(String path, _KeyModifiers modifiers) onRowTap;
   final void Function(String path) onRowDoubleTap;
+
+  /// Opens the row context menu for [path] at [position].
+  final void Function(String path, Offset position) onRowContextMenu;
   final KeyEventResult Function(KeyEvent event) onKeyEvent;
   final void Function(String columnId, double fitWidth)? onAutoFit;
   final bool hasSelection;
@@ -405,6 +446,7 @@ class _FocusableDataGridState extends State<_FocusableDataGrid> {
           _ensureFocus();
         },
         onRowDoubleTap: widget.onRowDoubleTap,
+        onRowContextMenu: widget.onRowContextMenu,
         onAutoFit: widget.onAutoFit,
         hasSelection: widget.hasSelection,
         onRemoveSelected: widget.onRemoveSelected,
@@ -423,6 +465,7 @@ class _ScrollableDataGrid extends ConsumerStatefulWidget {
     required this.rootFolder,
     required this.onRowTap,
     required this.onRowDoubleTap,
+    required this.onRowContextMenu,
     this.onAutoFit,
     this.hasSelection = false,
     this.onRemoveSelected,
@@ -436,6 +479,9 @@ class _ScrollableDataGrid extends ConsumerStatefulWidget {
   final String? rootFolder;
   final void Function(String path, _KeyModifiers modifiers) onRowTap;
   final void Function(String path) onRowDoubleTap;
+
+  /// Opens the row context menu for [path] at [position].
+  final void Function(String path, Offset position) onRowContextMenu;
   final void Function(String columnId, double fitWidth)? onAutoFit;
   final bool hasSelection;
   final VoidCallback? onRemoveSelected;
@@ -671,6 +717,8 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
                                   widget.onRowTap(file.path, modifiers),
                               onDoubleTap: () =>
                                   widget.onRowDoubleTap(file.path),
+                              onContextMenu: (position) =>
+                                  widget.onRowContextMenu(file.path, position),
                             );
                         }
                       },
@@ -696,6 +744,7 @@ class _DataRow extends ConsumerWidget {
     required this.rootFolder,
     required this.onTap,
     required this.onDoubleTap,
+    required this.onContextMenu,
   });
 
   final AudioFile file;
@@ -706,6 +755,9 @@ class _DataRow extends ConsumerWidget {
   final String? rootFolder;
   final void Function(_KeyModifiers modifiers) onTap;
   final VoidCallback onDoubleTap;
+
+  /// Opens the row context menu at the pointer's position.
+  final void Function(Offset position) onContextMenu;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -767,6 +819,9 @@ class _DataRow extends ConsumerWidget {
             onTap(_KeyModifiers(isCtrl: isCtrl, isShift: isShift));
           },
           onDoubleTap: isEditingThisRow ? null : onDoubleTap,
+          onSecondaryTapUp: isEditingThisRow
+              ? null
+              : (details) => onContextMenu(details.globalPosition),
           child: Container(
             decoration: BoxDecoration(
               color: rowBackground,
@@ -837,7 +892,7 @@ class _DataRow extends ConsumerWidget {
 
     if (parts.isEmpty) return 'No tags';
     final summary = parts.join(', ');
-    return summary.length <= 120 ? summary : '${summary.substring(0, 117)}…';
+    return summary.length <= 120 ? summary : '${summary.substring(0, 117)}â€¦';
   }
 }
 
