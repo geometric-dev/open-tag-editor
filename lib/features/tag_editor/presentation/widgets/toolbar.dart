@@ -34,6 +34,38 @@ import '../../data/providers/service_providers.dart';
 import '../../data/services/editor_open_service.dart';
 import '../widgets/address_bar.dart';
 
+/// Menu labels for the Tools-menu actions, kept in one place so the menu
+/// build and the dispatch switch cannot disagree about wording.
+String _toolMenuLabel(String value) => switch (value) {
+  'tags:clearAll' => 'Clear All Tags…',
+  'tags:clearFields' => 'Clear Fields…',
+  'tags:stripId3v1' => 'Remove ID3v1 Tag…',
+  'tags:clearReplayGain' => 'Clear ReplayGain…',
+  _ => value,
+};
+
+/// A non-interactive heading inside a popup menu.
+///
+/// Used to say what a block of items does rather than relying on the user to
+/// infer it from a divider. A disabled item, because that is all a popup menu
+/// can host.
+PopupMenuEntry<String> _menuSectionHeader(String label) {
+  return PopupMenuItem<String>(
+    enabled: false,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 2),
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 9,
+          letterSpacing: 0.6,
+          color: Colors.black54,
+        ),
+      ),
+    ),
+  );
+}
+
 /// Main toolbar with common actions.
 class EditorToolbar extends ConsumerWidget {
   const EditorToolbar({super.key});
@@ -667,69 +699,60 @@ class EditorToolbar extends ConsumerWidget {
             tooltip: 'Tools',
             icon: const Icon(Icons.handyman, size: 20),
             onSelected: (value) => _onToolSelected(value, ref, context),
-            itemBuilder: (context) => [
-              for (final tool in TagTool.values)
-                PopupMenuItem(
-                  value: 'tool:${tool.name}',
-                  enabled: ref.read(selectedFilesProvider).isNotEmpty,
+            itemBuilder: (context) {
+              // Grouped by what an action does to the files, with the
+              // destructive block last and labelled. A single list of eleven
+              // items put "The Artist" directly above "Clear All Tags..."
+              // separated only by a generic divider, so nothing distinguished
+              // a rename from a deletion.
+              const destructive = <String>[
+                'tags:clearAll',
+                'tags:clearFields',
+                'tags:stripId3v1',
+                'tags:clearReplayGain',
+              ];
+
+              return [
+                for (final tool in TagTool.values)
+                  PopupMenuItem(
+                    value: 'tool:${tool.name}',
+                    enabled: ref.read(selectedFilesProvider).isNotEmpty,
+                    child: Text(
+                      tool.menuLabel,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'art:resize',
                   child: Text(
-                    tool.menuLabel,
-                    style: const TextStyle(fontSize: 12),
+                    'Resize / Convert Cover Art…',
+                    style: TextStyle(fontSize: 12),
                   ),
                 ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'art:resize',
-                child: Text(
-                  'Resize / Convert Cover Art...',
-                  style: TextStyle(fontSize: 12),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'sync:wizard',
+                  child: Text(
+                    'Tags Synchronization…',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'sync:wizard',
-                child: Text(
-                  'Tags Synchronization…',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'tags:clearAll',
-                enabled: ref.read(fileListProvider).isNotEmpty,
-                child: const Text(
-                  'Clear All Tags…',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'tags:clearFields',
-                enabled: ref.read(fileListProvider).isNotEmpty,
-                child: const Text(
-                  'Clear Fields…',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'tags:stripId3v1',
-                enabled: ref.read(fileListProvider).isNotEmpty,
-                child: const Text(
-                  // Ellipsis, like its sibling destructive actions: this one
-                  // opens a confirmation dialog and the ellipsis is the only
-                  // thing that signals that.
-                  'Remove ID3v1 Tag…',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'tags:clearReplayGain',
-                enabled: ref.read(fileListProvider).isNotEmpty,
-                child: const Text(
-                  'Clear ReplayGain…',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
+                const PopupMenuDivider(),
+                // A labelled header, not just another divider: a divider says
+                // "something changes here" without saying what.
+                _menuSectionHeader('Removes data — each asks first'),
+                for (final value in destructive)
+                  PopupMenuItem(
+                    value: value,
+                    enabled: ref.read(fileListProvider).isNotEmpty,
+                    child: Text(
+                      _toolMenuLabel(value),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+              ];
+            },
           ),
           _ToolbarButton(
             icon: Icons.edit_note,
