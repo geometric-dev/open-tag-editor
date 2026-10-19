@@ -6,6 +6,103 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-19
+
+First tag and GitHub release: the bundles CI builds on every push
+(Windows, macOS universal, Linux x64) are attached to the release page, so
+a tag finally exists to identify the build the branch has been verified
+with since 0.3.0.
+
+The theme is working features that said nothing about themselves: a grid
+that left delete and save undiscoverable, drag-reorder without a visible
+handle, shortcuts no help entry listed — and destructive operations whose
+notices described the opposite of what they do.
+
+### Added — visible affordances
+- **File row context menu** on the grid (PRD 18's outstanding right-click
+  requirement; PRD 12's per-row retry). Delete-to-remove and save were
+  reachable only by keyboard, with no visible affordance. The menu acts on
+  the current selection — a row outside it is selected first, so acting on
+  a row the user did not select never happens behind a menu opened on it —
+  and pluralises its wording off the selection size. Right-click is
+  suppressed while a cell is being edited.
+- **Help ▸ Keyboard shortcuts** (toolbar button and F1, the platform
+  convention): every binding, grouped the way a user thinks about them —
+  files, editing, selecting, saving, windows — rather than by which file
+  owns the binding. Until now only Save, Undo and Redo named their
+  shortcut; Ctrl+Arrow, Ctrl+Space, F5, Ctrl+Shift+Home/End, Alt+arrows,
+  Ctrl+G and Page Up/Down all worked and were entirely undiscoverable.
+  The list is hand-maintained in `ShortcutReference`; tests pin no
+  duplicate keys, no blank entries, and that the previously hidden
+  bindings really are listed.
+- **A drag grip on column headers.** Drag-to-reorder worked but advertised
+  only Move Left / Move Right in the context menu, although PRD 16 shipped
+  drag as the primary interaction. A `drag_indicator` appears on hover, so
+  it costs no space at rest; pinned columns (tag indicator, filename) show
+  none, matching what the drop target actually accepts; the handle is
+  semantically announced as one.
+- **A determinate progress bar while a folder loads**, above the grid. The
+  grid previously stayed visually identical to idle during a
+  multi-thousand-file isolate read, and a click that appears to do nothing
+  is a reasonable conclusion. The file count is known once listing
+  completes, so the bar is determinate rather than a spinner, and it is a
+  live region: the running count is announced as it advances, not only at
+  the end. The width factor is clamped so a miscounted total cannot
+  overflow the bar.
+
+### Fixed — what actions claim versus what they do
+- **No-op commands no longer consume the undo stack.** `execute()`
+  returned void, so the manager pushed entries unconditionally: press
+  Enter in a tag field without editing it, then Ctrl+Z, and the undo was
+  spent on an entry that did nothing — putting the real previous state one
+  step further away and wiping the redo stack. Commands now report whether
+  anything changed; both the stack push and the redo clear are skipped
+  when they did not. Fixed at the manager, so every future entry point
+  inherits it.
+- **The bulk-edit notice described the opposite of what happens.** It read
+  "Empty fields will not be changed" while clearing a populated field
+  removes that tag from *every* selected file (the writer hands an emptied
+  field to TagLib as a delete — verified by probe). The behaviour stays:
+  emptying is the only bulk tag-removal path in the panel. The notice now
+  states both halves of the contract — typing overwrites in every file,
+  clearing removes from every file — and a test fails if the old wording
+  ever comes back.
+- **The lookup apply panels say what they do to fields the release page
+  has no value for.** They skip those fields — correct, because a release
+  with no track number must not wipe the one already on the file — but
+  with no wording it read as the apply having failed, and a skipped field
+  was indistinguishable from a successful one. The full-match and
+  partial-match panels now both say it, and point at Tools ▸ Clear Fields
+  as the way to actually remove tags.
+- **Tag panel tabs render with no file selected.** The panel returned
+  early, so the tab row never appeared and File Info — format, size,
+  bitrate, sample rate: exactly the tab wanted while deciding what to
+  select — was unreachable. Tags and Album Art now render their own empty
+  state instead of a full set of editable fields with no target files.
+- **The Tools menu visibly separates its destructive actions.** The four
+  data-removing items sit under a labelled header ("Removes data — each
+  asks first", which is true: all four open a confirmation), rather than
+  a rename sitting directly above Clear All Tags behind an unlabelled
+  divider. Menu wording comes from one table shared with the dispatch
+  switch, so menu and action cannot disagree; 'Remove ID3v1 Tag' gains the
+  confirmation-dialog ellipsis every other destructive item already had;
+  and the cover-art item's '...' becomes a real ellipsis.
+
+### Changed
+- The toolbar's two group dividers come from one named widget instead of
+  two inline `VerticalDivider`s that happened to share their metrics, so
+  restyling one keeps both. No behaviour change.
+
+### Docs
+- README, CONTRIBUTING and the roadmap claims checked against the code:
+  corrected platform table and prerequisites (Flutter 3.41 / Dart 3.10,
+  fvm pins 3.47.5), the clone URL placeholder, the FFI bindings described
+  as committed (they are, via an explicit .gitignore negation), the full
+  set of 21 supported extensions, and a roadmap whose Known Limitations
+  section names the actual blockers: whole-block tag removal needs a
+  native call that does not exist, ReplayGain cannot be calculated
+  anywhere, no signed installer, and the undiagnosed ID3v1 Linux issue.
+
 ## [0.3.0] - 2026-09-29
 
 Verified release: Windows, macOS (universal) and Linux bundles are built and
