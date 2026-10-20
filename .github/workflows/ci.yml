@@ -1,8 +1,15 @@
 name: CI
 
+# A v* tag push runs this workflow as well as a main-branch push does, and
+# the publish job at the bottom attaches its bundles to a GitHub release.
+# The tag glob uses [0-9]. not bare v*: bare v* would happily accept a
+# `verify-things` tag and burn a full three-platform build before the tag
+# check in the publish job rejects it. The dots and digit classes make a
+# typo'd tag fail at trigger time instead.
 on:
   push:
     branches: [main]
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
   pull_request:
 
 concurrency:
@@ -237,3 +244,107 @@ jobs:
           name: open_tag_editor-linux-x64
           path: build/linux/x64/release/bundle
           retention-days: 14
+
+  release:
+    name: Publish release
+    # Only a tag build publishes. Everything it needs runs for every push,
+    # so "a tag release means the whole suite already passed on exactly
+    # this tree" is enforced by needs:, not by trust — and a push to main
+    # still builds all three bundles as artifacts without ever publishing.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [format, analyze, test, build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      # Everything else in the workflow can run on the default (read) token
+      # scope; creating the release and uploading assets is the only write.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same artifact names the build jobs uploaded. One pattern download
+      # instead of three steps; merge-multiple stays off, so each artifact
+      # keeps its own dist/ directory.
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: open_tag_editor-*
+          path: dist
+
+      # pubspec.yaml is the single source of truth for the version. A tag
+      # that disagrees with the app it claims to identify must fail here,
+      # not after the assets are attached to callsign that mislabelled them.
+      - name: Check tag matches the app version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          pub_version="$(sed -n 's/^version: \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' pubspec.yaml)"
+          if [ -z "$pub_version" ]; then
+            echo "::error::pubspec.yaml has no \"version: x.y.z\" line"
+            exit 1
+          fi
+          echo "tag $GITHUB_REF_NAME declares $tag_version; pubspec.yaml declares $pub_version"
+          if [ "$tag_version" != "$pub_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match pubspec.yaml version $pub_version"
+            exit 1
+          fi
+
+      # The upload path for the macOS artifact was the .app itself, so the
+      # downloaded directory is its Contents/ and must be renamed back to
+      # open_tag_editor.app. tar preserves the bundle (and any symlinks
+      # inside Contents/Frameworks); a zip of the Windows bundle is made
+      # with Compress-Archive because ubuntu runners ship pwsh but no zip(1).
+      - name: Package bundles
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          mv dist/open_tag_editor-macos-universal dist/open_tag_editor.app
+          tar -C dist -czf "dist/open_tag_editor-${tag_version}-macos-universal.tar.gz" open_tag_editor.app
+          tar -C dist -czf "dist/open_tag_editor-${tag_version}-linux-x64.tar.gz" open_tag_editor-linux-x64
+
+      - name: Zip the Windows bundle
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME.TrimStart('v')
+          Compress-Archive -Path dist/open_tag_editor-windows-x64 `
+            -DestinationPath "dist/open_tag_editor-$tag-windows-x64.zip"
+
+      # The notes are the changelog's section for this version — the same
+      # text a reader gets from the repo. A missing section is not an empty
+      # release body; it means the maintainer forgot to write one, so fail.
+      - name: Extract release notes from the changelog
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$tag_version" '
+            BEGIN { rx = "^## \\\[" ver "\\\]" }
+            index($0, "## [") == 1 { keep = ($0 ~ rx); next }
+            keep { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no '## [$tag_version]' section"
+            exit 1
+          fi
+          {
+            echo "### Bundles"
+            echo "- \`open_tag_editor-${tag_version}-windows-x64.zip\` — Windows x64. TagLib is built with MSVC, so end users need the VC++ runtime; the needed DLLs are included in the bundle."
+            echo "- \`open_tag_editor-${tag_version}-macos-universal.tar.gz\` — universal (Apple Silicon + Intel); unpack to get \`open_tag_editor.app\`."
+            echo "- \`open_tag_editor-${tag_version}-linux-x64.tar.gz\` — Linux x64, built with the GTK 3 pipeline."
+          } >> notes.md
+
+      # gh release create errors when the release already exists. That is
+      # the deliberate outcome for a re-pushed tag: re-publishing a version
+      # must rerun the whole suite, not silently patch assets onto an old
+      # build's page.
+      - name: Create release with bundles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          assets=()
+          for f in dist/open_tag_editor-*.zip dist/open_tag_editor-*.tar.gz; do
+            [ -e "$f" ] && assets+=("$f")
+          done
+          if [ "${#assets[@]}" -ne 3 ]; then
+            echo "::error::expected 3 asset archives, found ${#assets[@]}"
+            ls -la dist
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" --verify-tag \
+            --title "${GITHUB_REF_NAME#v}" \
+            --notes-file notes.md \
+            "${assets[@]}"

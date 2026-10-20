@@ -6,6 +6,14 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+### Added
+- The CI workflow accepts `v*` tag pushes: the same format/analyze/test/
+  three-platform pipeline verifies the tagged tree, then a publish job
+  fails hard if the tag disagrees with `pubspec.yaml`, repackages the
+  build artifacts into the usual bundle archives, extracts the release
+  notes from this changelog and attaches them to a GitHub release. Branch
+  builds keep building artifacts without publishing.
+
 ## [0.4.0] - 2026-10-19
 
 First tag and GitHub release: the bundles CI builds on every push
