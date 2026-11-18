@@ -91,26 +91,40 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
   /// Executes the rename operation.
   ///
   /// Only files with [RenamePreviewStatus.ok] status are included in the
-  /// execution plan.
-  Future<RenameExecutionResult> executeRename() async {
+  /// execution plan. Files in [skipPaths] are excluded (e.g. read-only files
+  /// skipped by the user).
+  Future<RenameExecutionResult> executeRename({
+    Set<String>? skipPaths,
+    bool ignoreReadOnly = false,
+  }) async {
     state = state.copyWith(isExecuting: true);
 
     try {
-      final plans = state.previews
-          .where((p) => p.status == RenamePreviewStatus.ok)
-          .map((p) {
-            final audioFile = files.firstWhere((f) => f.path == p.originalPath);
-            return RenamePlan(
-              sourcePath: p.originalPath,
-              targetPath: p.newPath,
-              audioFile: audioFile,
-            );
-          })
-          .toList();
+      final okPreviews = state.previews.where(
+        (p) => p.status == RenamePreviewStatus.ok,
+      );
+
+      final toRenamePreviews = skipPaths == null
+          ? okPreviews
+          : okPreviews.where((p) => !skipPaths.contains(p.originalPath));
+
+      final plans = toRenamePreviews.map((p) {
+        final audioFile = files.firstWhere((f) => f.path == p.originalPath);
+        return RenamePlan(
+          sourcePath: p.originalPath,
+          targetPath: p.newPath,
+          audioFile: audioFile,
+        );
+      }).toList();
+
+      final skippedByFilter = skipPaths == null
+          ? 0
+          : okPreviews.length - plans.length;
 
       final result = await _executor.execute(
         plans,
         strategy: state.conflictStrategy,
+        ignoreReadOnly: ignoreReadOnly,
       );
 
       // Build the renames map for the undo command from successful renames.
@@ -131,9 +145,20 @@ class RenamerStateNotifier extends StateNotifier<RenamerState> {
         undoRedoManager.execute(command);
       }
 
-      state = state.copyWith(isExecuting: false, executionResult: result);
+      final combinedResult = RenameExecutionResult(
+        renamedCount: result.renamedCount,
+        skippedCount: result.skippedCount + skippedByFilter,
+        errorCount: result.errorCount,
+        errors: result.errors,
+        successfulRenames: renames,
+      );
 
-      return result;
+      state = state.copyWith(
+        isExecuting: false,
+        executionResult: combinedResult,
+      );
+
+      return combinedResult;
     } catch (e) {
       final result = RenameExecutionResult(
         renamedCount: 0,

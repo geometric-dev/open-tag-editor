@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../../core/utils/file_utils.dart';
 import 'filename_sanitizer.dart';
 import 'models/conflict_strategy.dart';
 import 'models/rename_execution_result.dart';
@@ -68,10 +69,14 @@ class RenameExecutor {
 
   /// Executes the rename batch with the given conflict resolution strategy.
   ///
+  /// When [ignoreReadOnly] is true, read-only attributes are cleared if they
+  /// would prevent renaming, overwriting, or cleanup.
+  ///
   /// Returns a [RenameExecutionResult] summarizing the operation.
   Future<RenameExecutionResult> execute(
     List<RenamePlan> plans, {
     required ConflictStrategy strategy,
+    bool ignoreReadOnly = false,
   }) async {
     var renamedCount = 0;
     var skippedCount = 0;
@@ -80,6 +85,11 @@ class RenameExecutor {
 
     for (final plan in plans) {
       try {
+        final sourceFile = File(plan.sourcePath);
+        if (ignoreReadOnly && FileUtils.isFileReadOnly(sourceFile)) {
+          FileUtils.clearReadOnly(sourceFile);
+        }
+
         // Create target directory if it doesn't exist.
         final targetDir = File(plan.targetPath).parent;
         await Directory(targetDir.path).create(recursive: true);
@@ -93,6 +103,9 @@ class RenameExecutor {
               skippedCount++;
               continue;
             case ConflictStrategy.overwrite:
+              if (ignoreReadOnly && FileUtils.isFileReadOnly(targetFile)) {
+                FileUtils.clearReadOnly(targetFile);
+              }
               await targetFile.delete();
             case ConflictStrategy.autoIncrement:
               targetPath = _findUniquePath(targetPath);
@@ -100,7 +113,11 @@ class RenameExecutor {
         }
 
         // Attempt rename.
-        await _renameFile(plan.sourcePath, targetPath);
+        await _renameFile(
+          plan.sourcePath,
+          targetPath,
+          ignoreReadOnly: ignoreReadOnly,
+        );
         renamedCount++;
       } catch (e) {
         errorCount++;
@@ -124,19 +141,33 @@ class RenameExecutor {
   /// it is renamed to match the target too (Tag&Rename behaviour). A
   /// companion that cannot be renamed is reported but does not fail the
   /// audio rename, which has already succeeded.
-  Future<void> _renameFile(String sourcePath, String targetPath) async {
+  Future<void> _renameFile(
+    String sourcePath,
+    String targetPath, {
+    bool ignoreReadOnly = false,
+  }) async {
     try {
       await File(sourcePath).rename(targetPath);
     } catch (_) {
       // Fall back to copy-then-delete (handles cross-device moves).
       await File(sourcePath).copy(targetPath);
-      await File(sourcePath).delete();
+      final src = File(sourcePath);
+      if (ignoreReadOnly && FileUtils.isFileReadOnly(src)) {
+        FileUtils.clearReadOnly(src);
+      }
+      await src.delete();
     }
 
     final companion = _cdgCompanion(sourcePath);
     if (companion == null) return;
     final companionTarget = _swapExtension(targetPath, '.cdg');
     try {
+      if (ignoreReadOnly) {
+        final compFile = File(companion);
+        if (FileUtils.isFileReadOnly(compFile)) {
+          FileUtils.clearReadOnly(compFile);
+        }
+      }
       await File(companion).rename(companionTarget);
     } catch (e) {
       throw Exception('Audio renamed but companion .cdg failed: $e');

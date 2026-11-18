@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as p;
 
+import '../../../core/utils/file_utils.dart';
 import '../../models/audio_file.dart';
 import '../tag_reader_service.dart';
 import 'tag_property_mapper.dart';
@@ -58,7 +59,7 @@ class TagLibReaderService implements TagReaderService {
       );
 
       final stat = file.statSync();
-      final isReadOnly = _isFileReadOnly(file);
+      final isReadOnly = FileUtils.isFileReadOnly(file, stat);
 
       return AudioFile(
         path: path,
@@ -94,20 +95,6 @@ class TagLibReaderService implements TagReaderService {
     return Win32ShortPath.getShortPath(path) ?? path;
   }
 
-  /// Checks whether a file is read-only on the filesystem.
-  ///
-  /// Attempts to open the file for append access without modifying it.
-  /// If the open fails, the file is considered read-only.
-  static bool _isFileReadOnly(File file) {
-    try {
-      final raf = file.openSync(mode: FileMode.writeOnlyAppend);
-      raf.closeSync();
-      return false;
-    } catch (_) {
-      return true;
-    }
-  }
-
   @override
   Future<List<AudioFile>> readTagsBatch(List<String> paths) async {
     final results = <AudioFile>[];
@@ -125,7 +112,9 @@ class TagLibReaderService implements TagReaderService {
             filename: p.basename(path),
             extension: p.extension(path).toLowerCase(),
             fileSize: file.existsSync() ? file.statSync().size : 0,
-            isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+            isReadOnly: file.existsSync()
+                ? FileUtils.isFileReadOnly(file)
+                : false,
             readError: e.toString(),
           ),
         );

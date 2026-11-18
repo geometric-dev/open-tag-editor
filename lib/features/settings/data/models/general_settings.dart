@@ -12,6 +12,8 @@ class GeneralSettings {
     this.highContrast = false,
     this.uiScale = 1.0,
     this.themeMode = AppThemeMode.system,
+    this.autoUpdateEnabled = true,
+    this.autoUpdatePromptShown = false,
   });
 
   /// Whether to automatically reopen the last loaded folder on startup.
@@ -63,6 +65,12 @@ class GeneralSettings {
   /// Application theme mode.
   final AppThemeMode themeMode;
 
+  /// Whether the app automatically checks for updates in the background.
+  final bool autoUpdateEnabled;
+
+  /// Whether the initial "Enable Auto-Updates?" dialog has been shown.
+  final bool autoUpdatePromptShown;
+
   /// Creates a copy with updated fields.
   GeneralSettings copyWith({
     bool? reopenLastFolder,
@@ -73,6 +81,8 @@ class GeneralSettings {
     bool? highContrast,
     double? uiScale,
     AppThemeMode? themeMode,
+    bool? autoUpdateEnabled,
+    bool? autoUpdatePromptShown,
   }) {
     return GeneralSettings(
       reopenLastFolder: reopenLastFolder ?? this.reopenLastFolder,
@@ -83,6 +93,9 @@ class GeneralSettings {
       highContrast: highContrast ?? this.highContrast,
       uiScale: uiScale ?? this.uiScale,
       themeMode: themeMode ?? this.themeMode,
+      autoUpdateEnabled: autoUpdateEnabled ?? this.autoUpdateEnabled,
+      autoUpdatePromptShown:
+          autoUpdatePromptShown ?? this.autoUpdatePromptShown,
     );
   }
 }

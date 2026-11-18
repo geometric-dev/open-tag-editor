@@ -19,21 +19,37 @@ class FolderLoadIndicator extends ConsumerWidget {
     if (!progress.isActive) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final fraction = progress.fraction;
+
     return Semantics(
       liveRegion: true,
-      label: 'Reading tags: ${progress.completed} of ${progress.total} files',
+      label: progress.isScanning
+          ? (progress.total > 0
+                ? 'Scanning folder: ${progress.total} audio files found'
+                : 'Scanning folder...')
+          : 'Reading tags: ${progress.completed} of ${progress.total} files',
       excludeSemantics: true,
-      child: Container(
-        height: 3,
-        color: theme.colorScheme.primary.withValues(alpha: 0.15),
-        alignment: Alignment.centerLeft,
-        child: FractionallySizedBox(
-          // Clamped because a completed count above the total would
-          // otherwise overflow the bar.
-          widthFactor: (progress.fraction ?? 0).clamp(0.0, 1.0),
-          child: ColoredBox(color: theme.colorScheme.primary),
-        ),
-      ),
+      child: fraction == null
+          ? SizedBox(
+              height: 3,
+              child: LinearProgressIndicator(
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.15,
+                ),
+                color: theme.colorScheme.primary,
+              ),
+            )
+          : Container(
+              height: 3,
+              color: theme.colorScheme.primary.withValues(alpha: 0.15),
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                // Clamped because a completed count above the total would
+                // otherwise overflow the bar.
+                widthFactor: fraction.clamp(0.0, 1.0),
+                child: ColoredBox(color: theme.colorScheme.primary),
+              ),
+            ),
     );
   }
 }

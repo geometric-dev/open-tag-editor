@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/file_utils.dart';
+import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/models/rename_result.dart';
 import '../../../error_handling/providers/error_providers.dart';
 import '../../../error_handling/utils/error_entry_factory.dart';
 import '../../../settings/data/providers/settings_providers.dart';
+import '../../../tag_editor/data/providers/file_list_provider.dart';
+import '../../../tag_editor/data/providers/selection_provider.dart';
+import '../../../tag_editor/data/providers/service_providers.dart';
 import '../../data/models/case_option.dart';
 import '../../data/models/conflict_strategy.dart';
+import '../../data/models/rename_execution_result.dart';
 import '../../data/models/rename_preview.dart';
 import '../../data/models/tag_variable.dart';
 import '../../data/providers/renamer_providers.dart';
@@ -61,9 +69,68 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
   Future<void> _executeRename() async {
     final notifier = ref.read(renamerStateProvider.notifier);
     final state = ref.read(renamerStateProvider);
-    final result = await notifier.executeRename();
+
+    final okPreviews = state.previews
+        .where((p) => p.status == RenamePreviewStatus.ok)
+        .toList();
+    final okPaths = okPreviews.map((p) => p.originalPath).toSet();
+    final files = notifier.files;
+    final readOnlyFiles = files
+        .where(
+          (f) =>
+              okPaths.contains(f.path) &&
+              (f.isReadOnly || FileUtils.isFileReadOnly(File(f.path))),
+        )
+        .toList();
+
+    var skipReadOnly = false;
+    var ignoreReadOnly = false;
+
+    if (readOnlyFiles.isNotEmpty) {
+      final action = await _showReadOnlyWarningDialog(context, readOnlyFiles);
+      if (action == null || action == _ReadOnlyAction.cancel) {
+        // Cancel returns to preview
+        return;
+      } else if (action == _ReadOnlyAction.skip) {
+        skipReadOnly = true;
+      } else if (action == _ReadOnlyAction.rename) {
+        ignoreReadOnly = true;
+      }
+    }
+
+    final skipPaths = skipReadOnly
+        ? readOnlyFiles.map((f) => f.path).toSet()
+        : null;
+
+    final result = await notifier.executeRename(
+      skipPaths: skipPaths,
+      ignoreReadOnly: ignoreReadOnly,
+    );
+
+    // 1b) Partially refresh the file list for the updated files.
+    if (result.successfulRenames.isNotEmpty) {
+      ref
+          .read(fileListProvider.notifier)
+          .applyRenames(result.successfulRenames);
+      ref.read(selectionProvider.notifier).remapPaths(result.successfulRenames);
+
+      // Refresh tags for the newly renamed files to ensure in-memory tags are fresh
+      final tagReader = ref.read(tagReaderProvider);
+      final refreshed = await tagReader.readTagsBatch(
+        result.successfulRenames.values.toList(),
+      );
+      ref.read(fileListProvider.notifier).updateFiles(refreshed);
+    }
+
     if (mounted) {
       if (result.errorCount > 0) {
+        // Flag failed files with error messages in the file list
+        final errorsByPath = {
+          for (final e in result.errors)
+            e.filePath: 'Rename failed: ${e.message}',
+        };
+        ref.read(fileListProvider.notifier).setFileErrors(errorsByPath);
+
         // Convert RenameErrors to RenameResults for the error entry factory.
         final renameResults = result.errors.map((e) {
           // Look up the target path from previews.
@@ -81,34 +148,212 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
         final entries = ErrorEntryFactory.fromRenameResults(renameResults);
         ref.read(errorLogProvider.notifier).addEntries(entries);
 
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${result.renamedCount} renamed, ${result.errorCount} failed',
+        // Show persistent Rename Failure Alert Dialog (not relying on toast)
+        await _showRenameFailureDialog(context, result);
+      }
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  Future<void> _showRenameFailureDialog(
+    BuildContext context,
+    RenameExecutionResult result,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.error_outline, color: colorScheme.error, size: 22),
+              const SizedBox(width: 8),
+              const Text('Rename Incomplete'),
+            ],
+          ),
+          content: SizedBox(
+            width: 500,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${result.errorCount} of ${result.totalCount} file(s) could not be renamed.\n'
+                  '${result.renamedCount} file(s) were successfully renamed.',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(4),
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: result.errors.length,
+                    itemBuilder: (context, index) {
+                      final err = result.errors[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              err.filePath,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              err.message,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colorScheme.error,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Unrenamed files have been flagged in the list with an error indicator.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
             ),
-            duration: const Duration(seconds: 30),
-            showCloseIcon: true,
-            action: SnackBarAction(
-              label: 'View Details',
+          ),
+          actions: [
+            TextButton(
               onPressed: () {
                 ref.read(errorPanelVisibleProvider.notifier).state = true;
+                Navigator.of(context).pop();
               },
+              child: const Text('View Error Log'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<_ReadOnlyAction?> _showReadOnlyWarningDialog(
+    BuildContext context,
+    List<AudioFile> readOnlyFiles,
+  ) {
+    final count = readOnlyFiles.length;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showDialog<_ReadOnlyAction>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.lock_outline, color: colorScheme.error, size: 22),
+              const SizedBox(width: 8),
+              Text(count == 1 ? 'Read-Only File' : 'Read-Only Files'),
+            ],
+          ),
+          content: SizedBox(
+            width: 460,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  count == 1
+                      ? 'The following file is marked as read-only on the filesystem:'
+                      : '$count selected files are marked as read-only on the filesystem:',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 140),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(4),
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: readOnlyFiles.length,
+                    itemBuilder: (context, index) {
+                      final f = readOnlyFiles[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.description_outlined,
+                              size: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                f.filename,
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Cancel returns to preview. Skip will skip these read-only files. Rename will proceed and rename them anyway.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${result.renamedCount} renamed, ${result.skippedCount} skipped',
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReadOnlyAction.cancel),
+              child: const Text('Cancel'),
             ),
-            duration: const Duration(seconds: 3),
-          ),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(_ReadOnlyAction.skip),
+              child: Text(count == 1 ? 'Skip' : 'Skip ($count)'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ReadOnlyAction.rename),
+              child: const Text('Rename'),
+            ),
+          ],
         );
-      }
-      Navigator.of(context).pop();
-    }
+      },
+    );
   }
 
   Future<void> _savePreset() async {
@@ -413,3 +658,5 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     );
   }
 }
+
+enum _ReadOnlyAction { cancel, skip, rename }

@@ -75,6 +75,12 @@ class DataGrid extends ConsumerWidget {
                     modifiers,
                     filePathsFromGridItems(gridItems),
                   ),
+                  onSeparatorTap: (filePaths, modifiers) => _handleSeparatorTap(
+                    ref,
+                    filePaths,
+                    modifiers,
+                    filePathsFromGridItems(gridItems),
+                  ),
                   onRowDoubleTap: (path) {
                     // Only open side panel if not in edit mode
                     final editState = ref.read(inlineCellEditProvider);
@@ -150,6 +156,33 @@ class DataGrid extends ConsumerWidget {
               );
         }
       }
+    }
+  }
+
+  void _handleSeparatorTap(
+    WidgetRef ref,
+    List<String> filePaths,
+    KeyModifiers modifiers,
+    List<String> orderedPaths,
+  ) {
+    // Exit edit mode on separator tap (confirm current edit)
+    final editState = ref.read(inlineCellEditProvider);
+    if (editState.isEditing) {
+      ref.read(inlineCellEditProvider.notifier).confirmEdit(clearFocus: true);
+    } else if (editState.focusedCell != null) {
+      ref.read(inlineCellEditProvider.notifier).clearFocus();
+    }
+
+    final notifier = ref.read(selectionProvider.notifier);
+
+    if (modifiers.isCtrl && modifiers.isShift) {
+      notifier.addRangeSelectFolder(filePaths, orderedPaths);
+    } else if (modifiers.isShift) {
+      notifier.rangeSelectFolder(filePaths, orderedPaths);
+    } else if (modifiers.isCtrl) {
+      notifier.toggleSelectFolder(filePaths);
+    } else {
+      notifier.selectFolder(filePaths);
     }
   }
 
@@ -389,6 +422,7 @@ class _FocusableDataGrid extends StatefulWidget {
     required this.onRowContextMenu,
     required this.onKeyEvent,
     this.onAutoFit,
+    this.onSeparatorTap,
     this.hasSelection = false,
     this.onRemoveSelected,
   });
@@ -400,6 +434,8 @@ class _FocusableDataGrid extends StatefulWidget {
   final Map<String, double> widthOverrides;
   final String? rootFolder;
   final void Function(String path, _KeyModifiers modifiers) onRowTap;
+  final void Function(List<String> filePaths, KeyModifiers modifiers)?
+  onSeparatorTap;
   final void Function(String path) onRowDoubleTap;
 
   /// Opens the row context menu for [path] at [position].
@@ -445,6 +481,10 @@ class _FocusableDataGridState extends State<_FocusableDataGrid> {
           widget.onRowTap(path, modifiers);
           _ensureFocus();
         },
+        onSeparatorTap: (filePaths, modifiers) {
+          widget.onSeparatorTap?.call(filePaths, modifiers);
+          _ensureFocus();
+        },
         onRowDoubleTap: widget.onRowDoubleTap,
         onRowContextMenu: widget.onRowContextMenu,
         onAutoFit: widget.onAutoFit,
@@ -467,6 +507,7 @@ class _ScrollableDataGrid extends ConsumerStatefulWidget {
     required this.onRowDoubleTap,
     required this.onRowContextMenu,
     this.onAutoFit,
+    this.onSeparatorTap,
     this.hasSelection = false,
     this.onRemoveSelected,
   });
@@ -478,6 +519,8 @@ class _ScrollableDataGrid extends ConsumerStatefulWidget {
   final Map<String, double> widthOverrides;
   final String? rootFolder;
   final void Function(String path, _KeyModifiers modifiers) onRowTap;
+  final void Function(List<String> filePaths, KeyModifiers modifiers)?
+  onSeparatorTap;
   final void Function(String path) onRowDoubleTap;
 
   /// Opens the row context menu for [path] at [position].
@@ -698,9 +741,20 @@ class _ScrollableDataGridState extends ConsumerState<_ScrollableDataGrid> {
                       itemBuilder: (context, index) {
                         final item = widget.gridItems[index];
                         switch (item) {
-                          case SeparatorGridItem(:final relativePath):
+                          case SeparatorGridItem(
+                            :final relativePath,
+                            :final filePaths,
+                          ):
+                            final isSelected =
+                                filePaths.isNotEmpty &&
+                                filePaths.every(widget.selection.isSelected);
                             return FolderSeparatorRow(
                               relativePath: relativePath,
+                              isSelected: isSelected,
+                              onTap: (modifiers) => widget.onSeparatorTap?.call(
+                                filePaths,
+                                modifiers,
+                              ),
                             );
                           case FileGridItem(:final file, :final fileIndex):
                             final isSelected = widget.selection.isSelected(
@@ -1009,9 +1063,11 @@ class _TextCell extends StatelessWidget {
   }
 }
 
-class _KeyModifiers {
-  const _KeyModifiers({this.isCtrl = false, this.isShift = false});
+class KeyModifiers {
+  const KeyModifiers({this.isCtrl = false, this.isShift = false});
 
   final bool isCtrl;
   final bool isShift;
 }
+
+typedef _KeyModifiers = KeyModifiers;

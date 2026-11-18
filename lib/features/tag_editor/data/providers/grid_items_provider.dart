@@ -79,7 +79,6 @@ List<GridItem> buildGridItems({
   final result = <GridItem>[];
   for (final dir in sortedDirs) {
     final relativePath = computeRelativePath(dir, normalRoot);
-    result.add(SeparatorGridItem(relativePath: relativePath));
 
     // Sort files within the group by filename (case-insensitive).
     final groupFiles = groups[dir]!
@@ -88,6 +87,11 @@ List<GridItem> buildGridItems({
           b.file.filename.toLowerCase(),
         ),
       );
+
+    final groupPaths = groupFiles.map((f) => f.file.path).toList();
+    result.add(
+      SeparatorGridItem(relativePath: relativePath, filePaths: groupPaths),
+    );
 
     for (final indexed in groupFiles) {
       result.add(FileGridItem(file: indexed.file, fileIndex: indexed.index));

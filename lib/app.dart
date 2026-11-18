@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/auto_update/data/providers/update_provider.dart';
+import 'features/auto_update/presentation/widgets/first_start_update_dialog.dart';
 import 'features/folder_panel/data/bookmarks_notifier.dart';
 import 'features/folder_panel/data/folder_panel_state_notifier.dart';
 import 'features/online_lookup/data/providers/lookup_settings_provider.dart';
@@ -49,6 +51,7 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
       ref.read(bookmarksProvider.notifier).loadFromPrefs();
 
       _maybeReopenLastFolder();
+      _handleStartupAutoUpdate();
     });
 
     // Listen for tag panel open/close changes and sync to window state.
@@ -168,6 +171,37 @@ class _OpenTagEditorAppState extends ConsumerState<OpenTagEditorApp>
       if (!mounted) return;
       final service = FolderLoadingService(ref.read);
       service.loadFolder(context, lastFolder);
+    });
+  }
+
+  /// Prompts the user on first launch to configure auto-updates, or triggers
+  /// an automated background check if auto-updates are enabled.
+  Future<void> _handleStartupAutoUpdate() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final generalSettings = ref.read(generalSettingsProvider);
+
+      if (!generalSettings.autoUpdatePromptShown) {
+        final autoUpdateChosen = await FirstStartUpdateDialog.show(context);
+        if (!mounted) return;
+        final enabled = autoUpdateChosen ?? true;
+        ref
+            .read(generalSettingsProvider.notifier)
+            .setAutoUpdateEnabled(enabled);
+        ref
+            .read(generalSettingsProvider.notifier)
+            .setAutoUpdatePromptShown(true);
+
+        if (enabled) {
+          ref
+              .read(updateStateProvider.notifier)
+              .checkForUpdate(autoDownload: true);
+        }
+      } else if (generalSettings.autoUpdateEnabled) {
+        ref
+            .read(updateStateProvider.notifier)
+            .checkForUpdate(autoDownload: true);
+      }
     });
   }
 

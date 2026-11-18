@@ -21,10 +21,16 @@ class FileGridItem extends GridItem {
 
 /// A folder separator row in the grid.
 class SeparatorGridItem extends GridItem {
-  const SeparatorGridItem({required this.relativePath});
+  const SeparatorGridItem({
+    required this.relativePath,
+    this.filePaths = const [],
+  });
 
   /// The formatted relative path to display (using " / " delimiters).
   final String relativePath;
+
+  /// The audio file paths grouped under this folder separator.
+  final List<String> filePaths;
 }
 
 /// Computes the display path for a folder separator.

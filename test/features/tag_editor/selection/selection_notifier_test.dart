@@ -415,4 +415,151 @@ void main() {
       expect(result, {0});
     });
   });
+
+  group('SelectionNotifier folder selection', () {
+    late SelectionNotifier notifier;
+    // Layout: Folder 1 has [f1, f2], Folder 2 has [f3, f4], Folder 3 has [f5, f6]
+    final orderedPaths = [
+      'f1.mp3',
+      'f2.mp3',
+      'f3.mp3',
+      'f4.mp3',
+      'f5.mp3',
+      'f6.mp3',
+    ];
+    final folder1 = ['f1.mp3', 'f2.mp3'];
+    final folder2 = ['f3.mp3', 'f4.mp3'];
+    final folder3 = ['f5.mp3', 'f6.mp3'];
+
+    setUp(() {
+      notifier = SelectionNotifier();
+    });
+
+    test('selectFolder selects all files in the folder group', () {
+      notifier.selectFolder(folder2);
+
+      expect(notifier.state.selectedPaths, {'f3.mp3', 'f4.mp3'});
+      expect(notifier.state.anchorPath, 'f3.mp3');
+      expect(notifier.state.activePath, 'f4.mp3');
+      expect(notifier.state.anchorGroup, folder2);
+    });
+
+    test('toggleSelectFolder adds folder files when unselected', () {
+      notifier.select('f1.mp3');
+      notifier.toggleSelectFolder(folder2);
+
+      expect(notifier.state.selectedPaths, {'f1.mp3', 'f3.mp3', 'f4.mp3'});
+    });
+
+    test('toggleSelectFolder removes folder files when all are selected', () {
+      notifier.selectFolder(folder2);
+      notifier.toggleSelectFolder(folder2);
+
+      expect(notifier.state.selectedPaths, isEmpty);
+    });
+
+    test(
+      'toggleSelectFolder selects all folder files when partially selected',
+      () {
+        notifier.select('f3.mp3');
+        notifier.toggleSelectFolder(folder2);
+
+        expect(notifier.state.selectedPaths, {'f3.mp3', 'f4.mp3'});
+      },
+    );
+
+    test(
+      'rangeSelectFolder forward selects from anchor through all folder subfiles',
+      () {
+        // User clicks f1 in Folder 1, then Shift-clicks Folder 2
+        notifier.select('f1.mp3');
+        notifier.rangeSelectFolder(folder2, orderedPaths);
+
+        // Should select f1, f2, and ALL of folder 2 (f3, f4)
+        expect(notifier.state.selectedPaths, {
+          'f1.mp3',
+          'f2.mp3',
+          'f3.mp3',
+          'f4.mp3',
+        });
+        expect(notifier.state.anchorPath, 'f1.mp3');
+        expect(notifier.state.activePath, 'f4.mp3');
+      },
+    );
+
+    test(
+      'rangeSelectFolder backward selects from folder start through anchor',
+      () {
+        // User clicks f6 in Folder 3, then Shift-clicks Folder 2
+        notifier.select('f6.mp3');
+        notifier.rangeSelectFolder(folder2, orderedPaths);
+
+        // Should select from f3 (start of Folder 2) through f6
+        expect(notifier.state.selectedPaths, {
+          'f3.mp3',
+          'f4.mp3',
+          'f5.mp3',
+          'f6.mp3',
+        });
+        expect(notifier.state.anchorPath, 'f6.mp3');
+        expect(notifier.state.activePath, 'f4.mp3');
+      },
+    );
+
+    test(
+      'rangeSelectFolder between folders selects both folders and intervening files',
+      () {
+        // User clicks Folder 1, then Shift-clicks Folder 3
+        notifier.selectFolder(folder1);
+        notifier.rangeSelectFolder(folder3, orderedPaths);
+
+        // All files from Folder 1 through Folder 3 should be selected
+        expect(notifier.state.selectedPaths, orderedPaths.toSet());
+      },
+    );
+
+    test('rangeSelect from folder anchor backward preserves entire folder', () {
+      // User clicks Folder 2 (f3, f4), then Shift-clicks f1
+      notifier.selectFolder(folder2);
+      notifier.rangeSelect('f1.mp3', orderedPaths);
+
+      // Should include f1, f2, f3, and f4
+      expect(notifier.state.selectedPaths, {
+        'f1.mp3',
+        'f2.mp3',
+        'f3.mp3',
+        'f4.mp3',
+      });
+    });
+
+    test('rangeSelect from folder anchor forward preserves entire folder', () {
+      // User clicks Folder 2 (f3, f4), then Shift-clicks f6
+      notifier.selectFolder(folder2);
+      notifier.rangeSelect('f6.mp3', orderedPaths);
+
+      // Should include f3, f4, f5, and f6
+      expect(notifier.state.selectedPaths, {
+        'f3.mp3',
+        'f4.mp3',
+        'f5.mp3',
+        'f6.mp3',
+      });
+    });
+
+    test('addRangeSelectFolder unions range with existing selection', () {
+      notifier.select('f1.mp3');
+      // Set anchor at f3
+      notifier.toggleSelect('f3.mp3');
+      notifier.addRangeSelectFolder(folder3, orderedPaths);
+
+      // Should retain f1, and add range f3..f6
+      expect(notifier.state.selectedPaths, {
+        'f1.mp3',
+        'f3.mp3',
+        'f4.mp3',
+        'f5.mp3',
+        'f6.mp3',
+      });
+    });
+  });
 }

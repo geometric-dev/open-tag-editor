@@ -8,6 +8,7 @@ class SelectionState {
     this.selectedPaths = const {},
     this.anchorPath,
     this.activePath,
+    this.anchorGroup,
   });
 
   /// The set of currently selected file paths.
@@ -20,6 +21,9 @@ class SelectionState {
   ///
   /// When null, defaults to [anchorPath] for range calculations.
   final String? activePath;
+
+  /// The file paths of the last selected folder group, if anchor was a folder.
+  final List<String>? anchorGroup;
 
   /// Whether any files are selected.
   bool get hasSelection => selectedPaths.isNotEmpty;
@@ -36,11 +40,14 @@ class SelectionState {
     String? anchorPath,
     String? activePath,
     bool clearActivePath = false,
+    List<String>? anchorGroup,
+    bool clearAnchorGroup = false,
   }) {
     return SelectionState(
       selectedPaths: selectedPaths ?? this.selectedPaths,
       anchorPath: anchorPath ?? this.anchorPath,
       activePath: clearActivePath ? null : (activePath ?? this.activePath),
+      anchorGroup: clearAnchorGroup ? null : (anchorGroup ?? this.anchorGroup),
     );
   }
 }

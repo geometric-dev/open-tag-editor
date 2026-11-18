@@ -160,6 +160,53 @@ void main() {
       );
       expect(File(p.join(tempDir.path, 'ok renamed.mp3')).existsSync(), isTrue);
     });
+
+    test('renames read-only file when ignoreReadOnly is true', () async {
+      final srcPath = createFile('ro.mp3', content: 'READONLY_DATA');
+      final file = File(srcPath);
+
+      if (Platform.isWindows) {
+        Process.runSync('attrib', ['+r', file.path]);
+      } else {
+        Process.runSync('chmod', ['444', file.path]);
+      }
+
+      final result = await executor.execute(
+        [plan('ro.mp3', 'ro_renamed.mp3')],
+        strategy: ConflictStrategy.skip,
+        ignoreReadOnly: true,
+      );
+
+      expect(result.renamedCount, 1);
+      expect(result.errorCount, 0);
+      expect(File(srcPath).existsSync(), isFalse);
+      expect(File(p.join(tempDir.path, 'ro_renamed.mp3')).existsSync(), isTrue);
+    });
+
+    test('overwrites read-only target when ignoreReadOnly is true', () async {
+      createFile('new_source.mp3', content: 'NEW');
+      final dstPath = createFile('existing_ro.mp3', content: 'OLD');
+      final dstFile = File(dstPath);
+
+      if (Platform.isWindows) {
+        Process.runSync('attrib', ['+r', dstFile.path]);
+      } else {
+        Process.runSync('chmod', ['444', dstFile.path]);
+      }
+
+      final result = await executor.execute(
+        [plan('new_source.mp3', 'existing_ro.mp3')],
+        strategy: ConflictStrategy.overwrite,
+        ignoreReadOnly: true,
+      );
+
+      expect(result.renamedCount, 1);
+      expect(result.errorCount, 0);
+      expect(
+        File(p.join(tempDir.path, 'existing_ro.mp3')).readAsStringSync(),
+        'NEW',
+      );
+    });
   });
 
   group('RenameExecutor.dryRun', () {

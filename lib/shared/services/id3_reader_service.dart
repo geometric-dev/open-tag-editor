@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
+import '../../core/utils/file_utils.dart';
 import '../models/audio_file.dart';
 import 'tag_reader_service.dart';
 import 'taglib/taglib_types.dart';
@@ -112,7 +113,7 @@ class Id3ReaderService implements TagReaderService {
         channels: channels,
         duration: duration,
         tagFormat: tagFormat,
-        isReadOnly: _isFileReadOnly(file),
+        isReadOnly: FileUtils.isFileReadOnly(file, stat),
       );
     } catch (e) {
       if (e is TagReadException) rethrow;
@@ -136,7 +137,9 @@ class Id3ReaderService implements TagReaderService {
             filename: filename,
             extension: p.extension(path).toLowerCase(),
             fileSize: 0,
-            isReadOnly: file.existsSync() ? _isFileReadOnly(file) : false,
+            isReadOnly: file.existsSync()
+                ? FileUtils.isFileReadOnly(file)
+                : false,
             readError: e.toString(),
           ),
         );
@@ -894,17 +897,6 @@ class Id3ReaderService implements TagReaderService {
     'Rock & Roll',
     'Hard Rock',
   ];
-
-  /// Checks whether a file is read-only on the filesystem.
-  static bool _isFileReadOnly(File file) {
-    try {
-      final raf = file.openSync(mode: FileMode.writeOnlyAppend);
-      raf.closeSync();
-      return false;
-    } catch (_) {
-      return true;
-    }
-  }
 }
 
 // --- Internal result types ---

@@ -21,6 +21,7 @@ import '../../../../shared/models/audio_file.dart';
 import '../../../../shared/services/export_service.dart';
 import '../../../../shared/services/playlist_service.dart';
 import '../../../../shared/widgets/save_flow.dart';
+import '../../../auto_update/presentation/widgets/update_button.dart';
 import '../../../extractor/presentation/widgets/extractor_dialog.dart';
 import '../../../online_lookup/presentation/widgets/lookup_dialog.dart';
 import '../../../renamer/presentation/widgets/rename_dialog.dart';
@@ -804,6 +805,7 @@ class EditorToolbar extends ConsumerWidget {
             tooltip: 'Keyboard Shortcuts (F1)',
             onPressed: () => ShortcutHelpDialog.show(context),
           ),
+          const UpdateButton(),
           _ToolbarButton(
             icon: Icons.settings,
             tooltip: 'Settings',

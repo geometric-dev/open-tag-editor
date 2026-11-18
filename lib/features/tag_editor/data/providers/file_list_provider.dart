@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../../shared/models/audio_file.dart';
 
@@ -47,5 +48,38 @@ class FileListNotifier extends StateNotifier<List<AudioFile>> {
   void updateFiles(List<AudioFile> updatedFiles) {
     final updateMap = {for (final f in updatedFiles) f.path: f};
     state = [for (final file in state) updateMap[file.path] ?? file];
+  }
+
+  /// Applies a batch of path renames to in-memory files.
+  ///
+  /// For each file whose [path] is a key in [renames], updates its
+  /// path, filename, and extension while preserving tags, artwork,
+  /// and audio properties.
+  void applyRenames(Map<String, String> renames) {
+    if (renames.isEmpty) return;
+    state = [
+      for (final file in state)
+        if (renames.containsKey(file.path))
+          file.copyWith(
+            path: renames[file.path]!,
+            filename: p.basename(renames[file.path]!),
+            extension: p.extension(renames[file.path]!).toLowerCase(),
+            readError: null,
+          )
+        else
+          file,
+    ];
+  }
+
+  /// Sets or clears error messages on specific files (e.g. rename failures).
+  void setFileErrors(Map<String, String> errorsByPath) {
+    if (errorsByPath.isEmpty) return;
+    state = [
+      for (final file in state)
+        if (errorsByPath.containsKey(file.path))
+          file.copyWith(readError: errorsByPath[file.path])
+        else
+          file,
+    ];
   }
 }

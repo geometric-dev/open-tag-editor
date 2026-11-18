@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:open_tag_editor/core/utils/cancellation_token.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/folder_loading_provider.dart';
 import 'package:open_tag_editor/features/tag_editor/presentation/widgets/folder_load_indicator.dart';
 
@@ -38,6 +39,38 @@ void main() {
       const progress = FolderLoadProgress(total: 0, completed: 0);
       expect(progress.isActive, isFalse);
     });
+
+    test('scanning stage is active with indeterminate fraction', () {
+      final token = CancellationToken();
+      final progress = FolderLoadProgress(
+        stage: FolderLoadStage.scanning,
+        total: 42,
+        completed: 0,
+        cancellationToken: token,
+      );
+
+      expect(progress.isActive, isTrue);
+      expect(progress.isScanning, isTrue);
+      expect(progress.isReadingTags, isFalse);
+      expect(progress.fraction, isNull);
+      expect(progress.cancellationToken, equals(token));
+      expect(token.isCancelled, isFalse);
+      token.cancel();
+      expect(token.isCancelled, isTrue);
+    });
+
+    test('readingTags stage is active with determinate fraction', () {
+      const progress = FolderLoadProgress(
+        stage: FolderLoadStage.readingTags,
+        total: 200,
+        completed: 100,
+      );
+
+      expect(progress.isActive, isTrue);
+      expect(progress.isScanning, isFalse);
+      expect(progress.isReadingTags, isTrue);
+      expect(progress.fraction, 0.5);
+    });
   });
 
   group('indicator widget', () {
@@ -57,11 +90,29 @@ void main() {
 
       expect(find.byType(SizedBox), findsWidgets);
       expect(find.byType(FractionallySizedBox), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
     });
 
     testWidgets('renders nothing when the load has completed', (tester) async {
       await pump(tester, const FolderLoadProgress(total: 50, completed: 50));
 
+      expect(find.byType(FractionallySizedBox), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+    });
+
+    testWidgets('renders indeterminate progress bar during scanning', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const FolderLoadProgress(
+          stage: FolderLoadStage.scanning,
+          total: 10,
+          completed: 0,
+        ),
+      );
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
       expect(find.byType(FractionallySizedBox), findsNothing);
     });
 

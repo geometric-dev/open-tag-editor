@@ -5,6 +5,7 @@ class RenameExecutionResult {
     required this.skippedCount,
     required this.errorCount,
     this.errors = const [],
+    this.successfulRenames = const {},
   });
 
   /// Number of files successfully renamed.
@@ -18,6 +19,9 @@ class RenameExecutionResult {
 
   /// Details of each error encountered.
   final List<RenameError> errors;
+
+  /// Map of originalPath -> newPath for files that were renamed successfully.
+  final Map<String, String> successfulRenames;
 
   /// Total files processed.
   int get totalCount => renamedCount + skippedCount + errorCount;

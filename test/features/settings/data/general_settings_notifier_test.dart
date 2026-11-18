@@ -144,5 +144,24 @@ void main() {
       notifier.setFileCountThreshold(999999);
       expect(notifier.state.fileCountThreshold, 10000);
     });
+
+    test(
+      'autoUpdateEnabled defaults to true and round-trips through prefs',
+      () async {
+        final notifier = GeneralSettingsNotifier();
+        await notifier.loadFromPrefs();
+        expect(notifier.state.autoUpdateEnabled, isTrue);
+        expect(notifier.state.autoUpdatePromptShown, isFalse);
+
+        notifier.setAutoUpdateEnabled(false);
+        notifier.setAutoUpdatePromptShown(true);
+        await Future<void>.delayed(Duration.zero);
+
+        final reloaded = GeneralSettingsNotifier();
+        await reloaded.loadFromPrefs();
+        expect(reloaded.state.autoUpdateEnabled, isFalse);
+        expect(reloaded.state.autoUpdatePromptShown, isTrue);
+      },
+    );
   });
 }

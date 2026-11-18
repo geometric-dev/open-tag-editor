@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../auto_update/data/providers/update_provider.dart';
+import '../../../auto_update/presentation/widgets/update_dialog.dart';
 import '../../../online_lookup/data/models/lookup_settings.dart';
 import '../../../online_lookup/data/providers/lookup_settings_provider.dart';
 import '../../data/models/general_settings.dart';
@@ -233,6 +235,30 @@ class _GeneralPane extends StatelessWidget {
           value: settings.effectiveUiScale,
           onChanged: (v) =>
               ref.read(generalSettingsProvider.notifier).setUiScale(v),
+        ),
+        _CheckboxRow(
+          label: 'Automatically check for updates',
+          subtitle:
+              'Check GitHub for new releases in the background and prompt to install on restart',
+          value: settings.autoUpdateEnabled,
+          onChanged: (v) => ref
+              .read(generalSettingsProvider.notifier)
+              .setAutoUpdateEnabled(v),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.sync, size: 16),
+                label: const Text('Check for Updates Now'),
+                onPressed: () {
+                  UpdateDialog.show(context);
+                  ref.read(updateStateProvider.notifier).checkForUpdate();
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );

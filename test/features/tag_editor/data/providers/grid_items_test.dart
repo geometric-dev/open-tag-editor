@@ -323,6 +323,40 @@ void main() {
       // Only one separator for 'Artist / Album', none for 'Artist' alone.
       expect(separators.length, equals(1));
       expect(separators[0].relativePath, equals('Artist / Album'));
+      expect(separators[0].filePaths, equals([files[0].path, files[1].path]));
+    });
+
+    test('separator contains all subfile paths in sorted filename order', () {
+      final files = [
+        AudioFile(
+          path: p.join(root, 'Pop', 'track_b.mp3'),
+          filename: 'track_b.mp3',
+          extension: '.mp3',
+          fileSize: 1000,
+        ),
+        AudioFile(
+          path: p.join(root, 'Pop', 'track_a.mp3'),
+          filename: 'track_a.mp3',
+          extension: '.mp3',
+          fileSize: 1000,
+        ),
+      ];
+
+      final result = buildGridItems(
+        files: files,
+        rootFolder: root,
+        isRecursive: true,
+        isSorted: false,
+      );
+
+      final sep =
+          result.firstWhere((item) => item is SeparatorGridItem)
+              as SeparatorGridItem;
+      expect(
+        sep.filePaths,
+        equals([files[1].path, files[0].path]),
+        reason: 'Files within separator should be sorted by filename',
+      );
     });
   });
 }

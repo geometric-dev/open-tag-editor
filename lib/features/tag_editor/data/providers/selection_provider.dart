@@ -27,6 +27,7 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
       selectedPaths: {path},
       anchorPath: path,
       activePath: path,
+      anchorGroup: null,
     );
   }
 
@@ -38,7 +39,43 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     } else {
       current.add(path);
     }
-    state = SelectionState(selectedPaths: current, anchorPath: path);
+    state = SelectionState(
+      selectedPaths: current,
+      anchorPath: path,
+      anchorGroup: null,
+    );
+  }
+
+  /// Single click on a folder separator: selects all files in the folder group.
+  void selectFolder(List<String> folderPaths) {
+    if (folderPaths.isEmpty) return;
+    state = SelectionState(
+      selectedPaths: folderPaths.toSet(),
+      anchorPath: folderPaths.first,
+      activePath: folderPaths.last,
+      anchorGroup: folderPaths,
+    );
+  }
+
+  /// Ctrl+click on a folder separator: toggles the folder's files.
+  ///
+  /// If all files in the folder are already selected, deselects them.
+  /// Otherwise, adds all files in the folder to the selection.
+  void toggleSelectFolder(List<String> folderPaths) {
+    if (folderPaths.isEmpty) return;
+    final current = Set<String>.from(state.selectedPaths);
+    final allSelected = folderPaths.every(current.contains);
+    if (allSelected) {
+      current.removeAll(folderPaths);
+    } else {
+      current.addAll(folderPaths);
+    }
+    state = SelectionState(
+      selectedPaths: current,
+      anchorPath: folderPaths.first,
+      activePath: folderPaths.last,
+      anchorGroup: folderPaths,
+    );
   }
 
   /// Shift+click: select contiguous range from anchor to target.
@@ -62,15 +99,130 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
       return;
     }
 
-    final start = min(anchorIndex, targetIndex);
-    final end = max(anchorIndex, targetIndex);
+    var start = min(anchorIndex, targetIndex);
+    var end = max(anchorIndex, targetIndex);
+
+    if (state.anchorGroup != null && state.anchorGroup!.isNotEmpty) {
+      final groupIndices = state.anchorGroup!
+          .map((p) => indexes[p])
+          .whereType<int>()
+          .toList();
+      if (groupIndices.isNotEmpty) {
+        final groupMin = groupIndices.reduce(min);
+        final groupMax = groupIndices.reduce(max);
+        if (targetIndex > groupMax) {
+          start = groupMin;
+          end = targetIndex;
+        } else if (targetIndex < groupMin) {
+          start = targetIndex;
+          end = groupMax;
+        }
+      }
+    }
+
     final rangePaths = orderedPaths.sublist(start, end + 1).toSet();
 
     state = SelectionState(
       selectedPaths: rangePaths,
       anchorPath: anchor,
       activePath: path,
+      anchorGroup: state.anchorGroup,
     );
+  }
+
+  /// Shift+click on a folder separator: selects contiguous range from anchor through the folder.
+  void rangeSelectFolder(List<String> folderPaths, List<String> orderedPaths) {
+    if (folderPaths.isEmpty) return;
+    if (state.anchorPath == null) {
+      selectFolder(folderPaths);
+      return;
+    }
+
+    final rangePaths = _computeFolderRange(folderPaths, orderedPaths);
+    if (rangePaths == null) {
+      selectFolder(folderPaths);
+      return;
+    }
+
+    state = SelectionState(
+      selectedPaths: rangePaths,
+      anchorPath: state.anchorPath,
+      activePath: folderPaths.last,
+      anchorGroup: state.anchorGroup,
+    );
+  }
+
+  /// Ctrl+Shift+click on a folder separator: adds contiguous range from anchor through
+  /// the folder to the existing selection.
+  void addRangeSelectFolder(
+    List<String> folderPaths,
+    List<String> orderedPaths,
+  ) {
+    if (folderPaths.isEmpty) return;
+    if (state.anchorPath == null) {
+      toggleSelectFolder(folderPaths);
+      return;
+    }
+
+    final rangePaths = _computeFolderRange(folderPaths, orderedPaths);
+    if (rangePaths == null) return;
+
+    state = SelectionState(
+      selectedPaths: state.selectedPaths.union(rangePaths),
+      anchorPath: state.anchorPath,
+      activePath: folderPaths.last,
+      anchorGroup: state.anchorGroup,
+    );
+  }
+
+  Set<String>? _computeFolderRange(
+    List<String> folderPaths,
+    List<String> orderedPaths,
+  ) {
+    final anchor = state.anchorPath;
+    if (anchor == null || orderedPaths.isEmpty) return null;
+
+    final indexes = buildIndexMap(orderedPaths);
+    final anchorIndex = indexes[anchor] ?? -1;
+    if (anchorIndex < 0) return null;
+
+    final folderIndices = folderPaths
+        .map((p) => indexes[p])
+        .whereType<int>()
+        .toList();
+    if (folderIndices.isEmpty) return null;
+
+    final folderMin = folderIndices.reduce(min);
+    final folderMax = folderIndices.reduce(max);
+
+    var effectiveAnchorStart = anchorIndex;
+    var effectiveAnchorEnd = anchorIndex;
+    if (state.anchorGroup != null && state.anchorGroup!.isNotEmpty) {
+      final groupIndices = state.anchorGroup!
+          .map((p) => indexes[p])
+          .whereType<int>()
+          .toList();
+      if (groupIndices.isNotEmpty) {
+        effectiveAnchorStart = groupIndices.reduce(min);
+        effectiveAnchorEnd = groupIndices.reduce(max);
+      }
+    }
+
+    int start;
+    int end;
+
+    if (folderMin >= effectiveAnchorEnd) {
+      start = effectiveAnchorStart;
+      end = folderMax;
+    } else if (folderMax <= effectiveAnchorStart) {
+      start = folderMin;
+      end = effectiveAnchorEnd;
+    } else {
+      start = min(effectiveAnchorStart, folderMin);
+      end = max(effectiveAnchorEnd, folderMax);
+    }
+
+    return orderedPaths.sublist(start, end + 1).toSet();
   }
 
   /// Select all provided paths (Ctrl+A).
@@ -278,13 +430,34 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     final targetIndex = indexes[path] ?? -1;
     if (anchorIndex < 0 || targetIndex < 0) return;
 
-    final start = min(anchorIndex, targetIndex);
-    final end = max(anchorIndex, targetIndex);
+    var start = min(anchorIndex, targetIndex);
+    var end = max(anchorIndex, targetIndex);
+
+    if (state.anchorGroup != null && state.anchorGroup!.isNotEmpty) {
+      final groupIndices = state.anchorGroup!
+          .map((p) => indexes[p])
+          .whereType<int>()
+          .toList();
+      if (groupIndices.isNotEmpty) {
+        final groupMin = groupIndices.reduce(min);
+        final groupMax = groupIndices.reduce(max);
+        if (targetIndex > groupMax) {
+          start = groupMin;
+          end = targetIndex;
+        } else if (targetIndex < groupMin) {
+          start = targetIndex;
+          end = groupMax;
+        }
+      }
+    }
+
     final rangePaths = orderedPaths.sublist(start, end + 1).toSet();
 
     state = SelectionState(
       selectedPaths: state.selectedPaths.union(rangePaths),
       anchorPath: anchor,
+      activePath: path,
+      anchorGroup: state.anchorGroup,
     );
   }
 
@@ -301,6 +474,26 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     state = SelectionState(
       selectedPaths: state.selectedPaths.union(paths),
       anchorPath: state.anchorPath,
+    );
+  }
+
+  /// Remaps selected paths following a file rename operation.
+  void remapPaths(Map<String, String> pathMap) {
+    if (pathMap.isEmpty) return;
+    final newSelected = state.selectedPaths.map((p) => pathMap[p] ?? p).toSet();
+    final newAnchor = state.anchorPath != null
+        ? (pathMap[state.anchorPath] ?? state.anchorPath)
+        : null;
+    final newActive = state.activePath != null
+        ? (pathMap[state.activePath] ?? state.activePath)
+        : null;
+    final newGroup = state.anchorGroup?.map((p) => pathMap[p] ?? p).toList();
+
+    state = SelectionState(
+      selectedPaths: newSelected,
+      anchorPath: newAnchor,
+      activePath: newActive,
+      anchorGroup: newGroup,
     );
   }
 

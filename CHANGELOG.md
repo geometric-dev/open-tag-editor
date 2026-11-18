@@ -6,13 +6,94 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-18
+
+A release about the two operations users repeat most — loading a folder and
+renaming its files — plus the first built-in update path, so a released build
+can find the next one.
+
+The theme is *stop waiting and stop losing work*. A large folder used to
+freeze the grid with no way out; a rename that half-failed used to vanish
+behind a 30-second snackbar. Both now report what they are doing, both can be
+stopped or retried, and neither loses the user's place in the list.
+
 ### Added
-- The CI workflow accepts `v*` tag pushes: the same format/analyze/test/
-  three-platform pipeline verifies the tagged tree, then a publish job
-  fails hard if the tag disagrees with `pubspec.yaml`, repackages the
-  build artifacts into the usual bundle archives, extracts the release
-  notes from this changelog and attaches them to a GitHub release. Branch
-  builds keep building artifacts without publishing.
+- **In-app updates.** The app asks GitHub's releases API for the newest
+  published version and compares it to the version compiled into the build
+  (from `pubspec.yaml` via `AppVersion.current`). A new **Update button** in
+  the toolbar shows state at a glance — up to date, checking, downloading
+  with a percentage, or ready to restart — and opens a dialog with the
+  release notes and a download/install action. On first launch the app asks
+  once whether to check automatically; the answer and the fact that the
+  question was asked are both persisted, so it is asked once, not once per
+  release. Settings ▸ General gains a checkbox for background checking and a
+  **Check for Updates Now** button. Downloads are streamed to a staging
+  directory and swapped in by a helper script on restart, so an interrupted
+  download never leaves a half-written app behind. Update checks are
+  read-only until the user confirms.
+- **A cancellable folder load with live progress.** Loading a folder now
+  reports *Scanning… N audio file(s) found* and then *Reading tags: X of Y* as
+  it goes, with a determinate bar for the read phase and an indeterminate one
+  for the scan. A **Cancel** button sits in the status bar while a load is in
+  flight: the scan stops between directory entries, the tag read stops between
+  50-file chunks, and whatever was already read stays in the grid rather than
+  being thrown away. Starting a second load cancels the first. The status line
+  is a live region throughout, so the progress is announced, not merely drawn.
+- **Select a whole folder from its separator row.** Clicking a folder header
+  now selects every file under it; Ctrl-click toggles the group, Shift-click
+  takes the contiguous range from the anchor through the group, and
+  Ctrl+Shift-click adds that range to the existing selection. Range selection
+  stays group-aware afterwards — extending a selection past a folder-selected
+  anchor spans from the group's edge, not its first file. The separator shows
+  a selected state so the group is visibly part of the selection.
+- **Read-only files are a first-class rename case.** Before renaming, the
+  dialog inspects the filesystem (not just an open-for-write probe, so files
+  held by a media player or indexer are not misreported) and, if any target
+  is read-only, asks: **Rename** (clear the attribute and proceed),
+  **Skip** (leave those files and rename the rest), or **Cancel**. The same
+  `FileUtils.isFileReadOnly` / `clearReadOnly` pair backs the read-only badge
+  in the tag panel and the ID3/TagLib readers, so one definition decides
+  what "read-only" means everywhere.
+- **Rename failures are reported in the grid, not just in a toast.** A failed
+  rename now flags the file row with an error indicator and its message, and
+  opens a persistent *Rename Incomplete* dialog listing each failure — a
+  30-second snackbar was the wrong shape for a result the user has to act on.
+  Successful renames update the in-memory list in place (path, filename and
+  extension, tags preserved) and remap the current selection, so the grid
+  does not have to be reloaded from disk to reflect what just happened.
+
+### Changed
+- **Folder loading is progressive.** Tags are read in 50-file batches with a
+  yield between them, so the grid fills in and the UI stays responsive on a
+  multi-thousand-file folder instead of blocking on one large isolate call.
+  A load can be cancelled at each stage, and the in-memory list is updated
+  incrementally rather than in one final swap.
+- The read-only check moved out of the two tag readers into
+  `FileUtils.isFileReadOnly` (with an optional pre-fetched `FileStat`), so the
+  same file is not stat'd and probed twice per read.
+
+### Fixed
+- Read-only detection no longer opens every file for append just to ask
+  whether it is writable. On Windows the `FILE_ATTRIBUTE_READONLY` bit is
+  read from the file's attributes and cleared with `SetFileAttributesW`; on
+  POSIX the owner write bit is checked. Files locked by another process are
+  no longer misclassified as read-only, and a large folder read no longer
+  pays for an open/close per file.
+- The folder-load progress bar can no longer overflow its track if the
+  completed count exceeds the total; the fraction is clamped.
+- A rename that partially failed no longer dismisses its own result before it
+  can be read: the summary moved from a timed snackbar to a dialog, and the
+  per-file errors persist in the list.
+
+### Docs
+- CHANGELOG now documents the auto-update, cancellable-load, folder-group
+  selection and read-only-rename work that had accumulated since 0.4.0.
+- CI accepts `v*` tag pushes: the format/analyze/test and three-platform
+  build pipeline verifies the tagged tree, then a publish job fails hard if
+  the tag disagrees with `pubspec.yaml`, repackages the build artifacts into
+  the usual bundle archives, extracts these notes from this changelog and
+  attaches them to a GitHub release. Branch builds keep building artifacts
+  without publishing.
 
 ## [0.4.0] - 2026-10-19
 

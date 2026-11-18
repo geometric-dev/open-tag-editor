@@ -17,6 +17,9 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
   static const _keyHighContrast = 'settings_v1_general_high_contrast';
   static const _keyUiScale = 'settings_v1_general_ui_scale';
   static const _keyThemeMode = 'settings_v1_general_theme_mode';
+  static const _keyAutoUpdateEnabled = 'settings_v1_auto_update_enabled';
+  static const _keyAutoUpdatePromptShown =
+      'settings_v1_auto_update_prompt_shown';
 
   /// Loads settings from SharedPreferences.
   Future<void> loadFromPrefs() async {
@@ -31,6 +34,9 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
         highContrast: prefs.getBool(_keyHighContrast) ?? false,
         uiScale: prefs.getDouble(_keyUiScale) ?? 1.0,
         themeMode: _parseThemeMode(prefs.getString(_keyThemeMode)),
+        autoUpdateEnabled: prefs.getBool(_keyAutoUpdateEnabled) ?? true,
+        autoUpdatePromptShown:
+            prefs.getBool(_keyAutoUpdatePromptShown) ?? false,
       );
     } catch (_) {
       // Keep defaults on error
@@ -90,6 +96,18 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
     _persist();
   }
 
+  /// Updates whether automatic update checking is enabled.
+  void setAutoUpdateEnabled(bool value) {
+    state = state.copyWith(autoUpdateEnabled: value);
+    _persist();
+  }
+
+  /// Updates whether the first-start auto-update prompt has been shown.
+  void setAutoUpdatePromptShown(bool value) {
+    state = state.copyWith(autoUpdatePromptShown: value);
+    _persist();
+  }
+
   /// Resets all general settings to their factory defaults and persists.
   void resetToDefaults() {
     state = const GeneralSettings();
@@ -107,6 +125,11 @@ class GeneralSettingsNotifier extends StateNotifier<GeneralSettings> {
       await prefs.setBool(_keyHighContrast, state.highContrast);
       await prefs.setDouble(_keyUiScale, state.uiScale);
       await prefs.setString(_keyThemeMode, state.themeMode.name);
+      await prefs.setBool(_keyAutoUpdateEnabled, state.autoUpdateEnabled);
+      await prefs.setBool(
+        _keyAutoUpdatePromptShown,
+        state.autoUpdatePromptShown,
+      );
     } catch (_) {
       // Best-effort persistence
     }
