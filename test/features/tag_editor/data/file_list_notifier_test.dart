@@ -2,27 +2,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/file_list_provider.dart';
 import 'package:open_tag_editor/features/tag_editor/data/providers/selection_provider.dart';
 import 'package:open_tag_editor/shared/models/audio_file.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   group('FileListNotifier rename and error flagging', () {
     late FileListNotifier notifier;
 
+    // Paths are assembled with the platform separator: applyRenames parses
+    // the filename with `p.basename`, whose rules are platform-specific, so
+    // a hardcoded Windows path would parse differently on the Linux CI.
+    final musicDir = p.join('music');
+    final old1 = p.join(musicDir, 'old1.mp3');
+    final old2 = p.join(musicDir, 'old2.mp3');
+    final renamed1 = p.join(musicDir, '01 - Track One.mp3');
+
     setUp(() {
       notifier = FileListNotifier();
       notifier.addFiles([
-        const AudioFile(
-          path: r'C:\Music\old1.mp3',
+        AudioFile(
+          path: old1,
           filename: 'old1.mp3',
           extension: '.mp3',
           fileSize: 1024,
-          tags: {'title': 'Track One'},
+          tags: const {'title': 'Track One'},
         ),
-        const AudioFile(
-          path: r'C:\Music\old2.mp3',
+        AudioFile(
+          path: old2,
           filename: 'old2.mp3',
           extension: '.mp3',
           fileSize: 2048,
-          tags: {'title': 'Track Two'},
+          tags: const {'title': 'Track Two'},
         ),
       ]);
     });
@@ -30,26 +39,22 @@ void main() {
     test(
       'applyRenames updates path, filename, and extension while preserving tags',
       () {
-        notifier.applyRenames({
-          r'C:\Music\old1.mp3': r'C:\Music\01 - Track One.mp3',
-        });
+        notifier.applyRenames({old1: renamed1});
 
         final files = notifier.currentFiles;
         expect(files.length, 2);
-        expect(files[0].path, r'C:\Music\01 - Track One.mp3');
+        expect(files[0].path, renamed1);
         expect(files[0].filename, '01 - Track One.mp3');
         expect(files[0].extension, '.mp3');
         expect(files[0].tags['title'], 'Track One');
 
         // Untouched file remains unchanged
-        expect(files[1].path, r'C:\Music\old2.mp3');
+        expect(files[1].path, old2);
       },
     );
 
     test('setFileErrors flags readError on specified files', () {
-      notifier.setFileErrors({
-        r'C:\Music\old2.mp3': 'Rename failed: Permission denied',
-      });
+      notifier.setFileErrors({old2: 'Rename failed: Permission denied'});
 
       final files = notifier.currentFiles;
       expect(files[0].readError, isNull);
@@ -62,15 +67,17 @@ void main() {
       'updates selected paths and anchor/active paths when paths are renamed',
       () {
         final notifier = SelectionNotifier();
-        notifier.select(r'C:\Music\old1.mp3');
+        final old1 = p.join('music', 'old1.mp3');
+        final new1 = p.join('music', 'new1.mp3');
+        notifier.select(old1);
 
-        expect(notifier.state.selectedPaths, {r'C:\Music\old1.mp3'});
-        expect(notifier.state.anchorPath, r'C:\Music\old1.mp3');
+        expect(notifier.state.selectedPaths, {old1});
+        expect(notifier.state.anchorPath, old1);
 
-        notifier.remapPaths({r'C:\Music\old1.mp3': r'C:\Music\new1.mp3'});
+        notifier.remapPaths({old1: new1});
 
-        expect(notifier.state.selectedPaths, {r'C:\Music\new1.mp3'});
-        expect(notifier.state.anchorPath, r'C:\Music\new1.mp3');
+        expect(notifier.state.selectedPaths, {new1});
+        expect(notifier.state.anchorPath, new1);
       },
     );
   });
