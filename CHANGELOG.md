@@ -6,6 +6,19 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-11-19
+
+Small quality-of-life fix: the rename-related dialogs now reopen on the
+preset you last used.
+
+### Changed
+- **The rename dialogs remember the most recently used preset.** Both
+  **Rename Files** and **Tags from Filename** previously reopened on the
+  first preset in the list, regardless of what you last picked. They now
+  restore the last-applied preset on open, and selecting a preset records
+  it. The choice is persisted by preset *name*, not index, so it stays
+  correct when user presets are added or deleted (which shifts indices).
+
 ## [0.5.2] - 2026-11-19
 
 Bug-fix release for the in-app updater's Windows install step.

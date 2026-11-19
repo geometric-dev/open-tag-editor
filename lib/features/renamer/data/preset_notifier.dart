@@ -13,6 +13,24 @@ class PresetNotifier extends StateNotifier<List<MaskPreset>> {
 
   final PresetStorage _storage;
 
+  /// The name of the most recently applied preset, or null if none has been
+  /// applied yet (or the remembered one was since deleted).
+  String? _lastUsedName;
+
+  /// The name of the most recently applied preset, or null.
+  String? get lastUsedName => _lastUsedName;
+
+  /// The index of the most recently applied preset, or null if there is none.
+  ///
+  /// Resolves the remembered name against the current list each call, so it
+  /// stays correct after presets are added or deleted.
+  int? get lastUsedIndex {
+    final name = _lastUsedName;
+    if (name == null) return null;
+    final index = state.indexWhere((p) => p.name == name);
+    return index < 0 ? null : index;
+  }
+
   /// Built-in default presets that cannot be deleted.
   static const List<MaskPreset> _defaultPresets = [
     MaskPreset(
@@ -44,7 +62,15 @@ class PresetNotifier extends StateNotifier<List<MaskPreset>> {
 
   Future<void> _loadUserPresets() async {
     final userPresets = await _storage.load();
+    _lastUsedName = await _storage.loadLastUsed();
     state = [..._defaultPresets, ...userPresets];
+  }
+
+  /// Records [name] as the most recently used preset and persists it.
+  void markUsed(String name) {
+    if (_lastUsedName == name) return;
+    _lastUsedName = name;
+    _storage.saveLastUsed(name);
   }
 
   /// Saves a new preset with the given [name] and [pattern].

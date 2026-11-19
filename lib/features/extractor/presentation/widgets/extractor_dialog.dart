@@ -23,17 +23,22 @@ class ExtractorDialog extends ConsumerStatefulWidget {
 class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
   final _patternController = TextEditingController();
   bool _showTagHelper = false;
+  int? _selectedPresetIndex;
 
   @override
   void initState() {
     super.initState();
     final presets = ref.read(presetProvider);
-    if (presets.isNotEmpty) {
-      _patternController.text = presets.first.pattern;
+    final lastUsedIndex = ref.read(presetProvider.notifier).lastUsedIndex;
+    final startIndex = lastUsedIndex ?? (presets.isNotEmpty ? 0 : null);
+    _selectedPresetIndex = startIndex;
+    final startPattern = startIndex != null
+        ? presets[startIndex].pattern
+        : null;
+    if (startPattern != null) {
+      _patternController.text = startPattern;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(extractorStateProvider.notifier)
-            .setPattern(presets.first.pattern);
+        ref.read(extractorStateProvider.notifier).setPattern(startPattern);
       });
     }
   }
@@ -124,6 +129,8 @@ class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
           children: [
             // 1. Preset selector
             DropdownButtonFormField<int>(
+              key: ValueKey(presets.length),
+              initialValue: _selectedPresetIndex,
               decoration: const InputDecoration(
                 labelText: 'Preset',
                 isDense: true,
@@ -137,6 +144,10 @@ class _ExtractorDialogState extends ConsumerState<ExtractorDialog> {
                   final pattern = presets[value].pattern;
                   _patternController.text = pattern;
                   ref.read(extractorStateProvider.notifier).setPattern(pattern);
+                  ref
+                      .read(presetProvider.notifier)
+                      .markUsed(presets[value].name);
+                  setState(() => _selectedPresetIndex = value);
                 }
               },
             ),

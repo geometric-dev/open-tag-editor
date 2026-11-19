@@ -42,11 +42,20 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
   @override
   void initState() {
     super.initState();
-    final defaultPattern = ref.read(renamingSettingsProvider).defaultPattern;
-    _patternController.text = defaultPattern;
-    _selectedPresetIndex = ref.read(presetProvider).isNotEmpty ? 0 : null;
+    final presets = ref.read(presetProvider);
+    final lastUsedIndex = ref.read(presetProvider.notifier).lastUsedIndex;
+
+    // Restore the most recently used preset, falling back to the configured
+    // default pattern when none has been used yet.
+    final startIndex = lastUsedIndex ?? (presets.isNotEmpty ? 0 : null);
+    _selectedPresetIndex = startIndex;
+    final startPattern = startIndex != null
+        ? presets[startIndex].pattern
+        : ref.read(renamingSettingsProvider).defaultPattern;
+
+    _patternController.text = startPattern;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(renamerStateProvider.notifier).setPattern(defaultPattern);
+      ref.read(renamerStateProvider.notifier).setPattern(startPattern);
     });
   }
 
@@ -484,6 +493,9 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
                         ref
                             .read(renamerStateProvider.notifier)
                             .setPattern(pattern);
+                        ref
+                            .read(presetProvider.notifier)
+                            .markUsed(presets[value].name);
                         setState(() => _selectedPresetIndex = value);
                       }
                     },
