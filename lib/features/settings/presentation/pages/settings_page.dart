@@ -5,6 +5,7 @@ import '../../../auto_update/data/providers/update_provider.dart';
 import '../../../auto_update/presentation/widgets/update_dialog.dart';
 import '../../../online_lookup/data/models/lookup_settings.dart';
 import '../../../online_lookup/data/providers/lookup_settings_provider.dart';
+import '../../../renamer/presentation/widgets/rename_profiles_section.dart';
 import '../../data/models/general_settings.dart';
 import '../../data/models/id3v2_version.dart';
 import '../../data/models/tag_encoding.dart';
@@ -418,6 +419,8 @@ class _RenamingPane extends StatelessWidget {
               .read(renamingSettingsProvider.notifier)
               .setPreviewBeforeRenaming(v),
         ),
+        const Divider(height: 24),
+        const RenameProfilesSection(),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../../core/utils/file_utils.dart';
 import '../../../../shared/models/audio_file.dart';
@@ -17,8 +18,11 @@ import '../../data/models/case_option.dart';
 import '../../data/models/conflict_strategy.dart';
 import '../../data/models/rename_execution_result.dart';
 import '../../data/models/rename_preview.dart';
+import '../../data/models/rename_profile.dart';
 import '../../data/models/tag_variable.dart';
+import '../../data/profile_evaluator.dart';
 import '../../data/providers/renamer_providers.dart';
+import '../../data/rename_profile_notifier.dart';
 import '../../data/rename_scope.dart';
 import 'preview_panel.dart';
 
@@ -56,7 +60,49 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
     _patternController.text = startPattern;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(renamerStateProvider.notifier).setPattern(startPattern);
+      // If the user has defined rename profiles, pick the first one that
+      // matches the current selection and apply its pattern. This is the
+      // rule-based alternative to manually flipping presets per release type.
+      _applyMatchingProfile();
     });
+  }
+
+  /// Finds the first [RenameProfile] matching the current selection and, if
+  /// one matches, applies its pattern (overriding the restored preset).
+  ///
+  /// Does nothing when no profiles are defined or none match, leaving the
+  /// preset/default pattern in place.
+  void _applyMatchingProfile() {
+    final profiles = ref.read(renameProfileProvider);
+    if (profiles.isEmpty) return;
+
+    final files = ref.read(renamerStateProvider.notifier).files;
+    if (files.isEmpty) return;
+
+    final root = ref.read(loadedFolderPathProvider);
+    const evaluator = ProfileEvaluator();
+
+    RenameProfile? match;
+    for (final file in files) {
+      final depth = _folderDepth(file.path, root);
+      final profile = evaluator.firstMatch(profiles, file, folderDepth: depth);
+      if (profile != null) {
+        match = profile;
+        break;
+      }
+    }
+
+    if (match == null) return;
+    _patternController.text = match.pattern;
+    ref.read(renamerStateProvider.notifier).setPattern(match.pattern);
+  }
+
+  /// How many directories [path] sits below [root], or 0 if unknown.
+  static int _folderDepth(String path, String? root) {
+    if (root == null) return 0;
+    final relative = p.relative(p.dirname(path), from: root);
+    if (relative == '.' || relative.isEmpty) return 0;
+    return relative.split(p.separator).length;
   }
 
   @override

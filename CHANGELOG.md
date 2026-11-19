@@ -6,6 +6,38 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-19
+
+A new **rule-based rename profiles** feature: get "Standard" / "Various
+Artists" / "Compilation" / "multi-disc" naming picked automatically from
+tags, instead of manually flipping presets.
+
+### Added
+- **Rename profiles** (Settings ▸ File Renaming). A profile is a name, a
+  mask pattern, and one or more **condition groups**. Each group is a set of
+  conditions that are ANDed together; the groups are ORed. The rename dialog
+  picks the first profile (top-to-bottom) whose conditions match the current
+  selection and applies its pattern automatically.
+- **Multiple alternatives per profile, one pattern.** This is the answer to
+  "same rule for AlbumArtist = OST *or* VA *or* Soundtrack": put each value
+  in its own condition group within a single profile. You maintain the
+  pattern in exactly one place rather than duplicating a near-identical
+  profile per value.
+- **Flexible match conditions.** Any tag field (case-insensitive) plus a few
+  computed pseudo-fields: `discCount` / `trackCount` (the "/total" part of a
+  track/disc number) and `folderDepth`. Operators: equals, not equals,
+  contains, does not contain, is set, is not set, and is greater than
+  (numeric).
+- **Built-in starter profiles** (editable/deletable, not locked): a
+  multi-alternative *Various Artists / OST / Soundtrack* profile, a
+  *Multi-disc* profile (`discCount > 1`), and a *Standard* catch-all. Order
+  is meaningful — specific profiles above general ones; the catch-all stays
+  last.
+- Profiles are persisted and managed from the settings pane: add, edit,
+  delete, and reorder (move up/down = higher/lower priority). Legacy
+  single-group profiles saved by earlier builds still load (migrated to a
+  one-group shape).
+
 ## [0.5.3] - 2026-11-19
 
 Small quality-of-life fix: the rename-related dialogs now reopen on the
