@@ -6,6 +6,23 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-19
+
+Bug-fix release for the in-app updater's Windows install step.
+
+### Fixed
+- **The Windows updater no longer opens a terminal window that spins
+  forever on "find".** Clicking *Restart & Install* launched a batch file
+  that polled for the app's PID with `tasklist | find` in a detached
+  console. Without a real attached console the `find` never returned, so a
+  visible terminal window opened and sat there indefinitely; closing the
+  main window did nothing and closing the terminal killed the swap, leaving
+  the app to restart into the old build. The install step is now a
+  PowerShell script that waits on the process by PID with `Wait-Process`
+  and is launched with `-WindowStyle Hidden`, so no window appears and the
+  wait actually completes. The macOS/Linux path got the same quoting
+  hardening for paths containing quotes or `$`.
+
 ## [0.5.1] - 2026-11-19
 
 Bug-fix release for three regressions found in 0.5.0. No new features.

@@ -209,33 +209,34 @@ class UpdateService {
     }
 
     if (Platform.isWindows) {
+      // A PowerShell helper rather than a .bat: the batch version polled for
+      // the PID with `tasklist | find`, which needs a real console to behave
+      // and so opened a visible terminal window that then sat spinning. This
+      // script waits on the process by PID with `Wait-Process`, copies the
+      // payload over the install directory, relaunches, and removes itself.
+      // It is launched with -WindowStyle Hidden so no window appears.
       final scriptFile = File(
-        p.join(payloadDir.parent.path, 'apply_update.bat'),
+        p.join(payloadDir.parent.path, 'apply_update.ps1'),
       );
-      final script =
-          '''
-@echo off
-set "TARGET_PID=$currentPid"
-set "SRC=${payloadDir.path}"
-set "DEST=$appDir"
-set "EXE=$exeName"
+      await scriptFile.writeAsString(
+        buildWindowsUpdateScript(
+          targetPid: currentPid,
+          srcDir: payloadDir.path,
+          destDir: appDir,
+          exeName: exeName,
+        ),
+      );
 
-:wait_pid
-tasklist /fi "PID eq %TARGET_PID%" | find "%TARGET_PID%" >nul
-if not errorlevel 1 (
-    timeout /t 1 /nobreak >nul
-    goto wait_pid
-)
-
-timeout /t 1 /nobreak >nul
-xcopy /s /e /y "%SRC%\\*" "%DEST%\\"
-start "" "%DEST%\\%EXE%"
-del "%~f0"
-''';
-      await scriptFile.writeAsString(script);
-
-      await Process.start('cmd.exe', [
-        '/c',
+      // -NoProfile keeps startup fast and deterministic; -ExecutionPolicy
+      // Bypass allows the script to run without a signed/trusted policy;
+      // -WindowStyle Hidden prevents the console window from flashing.
+      await Process.start('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-WindowStyle',
+        'Hidden',
+        '-File',
         scriptFile.path,
       ], mode: ProcessStartMode.detached);
     } else {
@@ -246,9 +247,9 @@ del "%~f0"
           '''
 #!/usr/bin/env bash
 TARGET_PID=$currentPid
-SRC="${payloadDir.path}"
-DEST="$appDir"
-EXE="$exeName"
+SRC='${_shEscape(payloadDir.path)}'
+DEST='${_shEscape(appDir)}'
+EXE='${_shEscape(exeName)}'
 
 while kill -0 \$TARGET_PID 2>/dev/null; do
     sleep 1
@@ -271,4 +272,55 @@ rm -- "\$0"
       exit(0);
     }
   }
+
+  /// Escapes [value] for inclusion inside a single-quoted POSIX shell string.
+  ///
+  /// A single quote inside a single-quoted string is written as `'\''`
+  /// (close the quote, an escaped quote, reopen). This keeps a path
+  /// containing `'` or `$` literal.
+  static String _shEscape(String value) => value.replaceAll("'", "'\\''");
+}
+
+/// Builds the Windows helper script that applies a downloaded update.
+///
+/// The app launches this detached, then exits. The script waits for the app
+/// process ([targetPid]) to exit, copies the staged payload ([srcDir]) over
+/// the install directory ([destDir]), relaunches [exeName], and deletes
+/// itself.
+///
+/// Deliberately a PowerShell script using `Wait-Process`, not a `.bat` that
+/// polls with `tasklist | find`: the batch form needs a real console to work
+/// and opened a visible terminal window that then spun indefinitely. Keeping
+/// this as a pure function lets a test assert that regression stays fixed.
+String buildWindowsUpdateScript({
+  required int targetPid,
+  required String srcDir,
+  required String destDir,
+  required String exeName,
+}) {
+  final src = srcDir.replaceAll("'", "''");
+  final dest = destDir.replaceAll("'", "''");
+  final exe = exeName.replaceAll("'", "''");
+  return '''
+\$ErrorActionPreference = 'Stop'
+\$targetPid = $targetPid
+\$src = '$src'
+\$dest = '$dest'
+\$exe = '$exe'
+
+try {
+    Wait-Process -Id \$targetPid -ErrorAction SilentlyContinue
+} catch {}
+
+# Give the OS a moment to release file handles on the old executable.
+Start-Sleep -Milliseconds 1000
+
+# Copy the payload over the install directory, overwriting in place.
+Copy-Item -Path (Join-Path \$src '*') -Destination \$dest -Recurse -Force
+
+Start-Process -FilePath (Join-Path \$dest \$exe)
+
+# Remove this helper script; best-effort.
+Remove-Item -LiteralPath \$PSCommandPath -Force -ErrorAction SilentlyContinue
+''';
 }
