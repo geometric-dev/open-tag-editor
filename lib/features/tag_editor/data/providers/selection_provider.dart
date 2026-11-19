@@ -497,6 +497,37 @@ class SelectionNotifier extends StateNotifier<SelectionState> {
     );
   }
 
+  /// Drops [paths] from the selection, e.g. because those files left the
+  /// loaded folder after a rename and were removed from the list.
+  ///
+  /// The anchor and active path are cleared when they point at a removed
+  /// path, so a stale reference cannot drive range selection afterwards.
+  void removePaths(Set<String> paths) {
+    if (paths.isEmpty) return;
+    final current = state.selectedPaths;
+    if (!current.any(paths.contains) &&
+        !(state.anchorPath != null && paths.contains(state.anchorPath)) &&
+        !(state.activePath != null && paths.contains(state.activePath))) {
+      return;
+    }
+
+    final newSelected = current.where((p) => !paths.contains(p)).toSet();
+    final newGroup = state.anchorGroup
+        ?.where((p) => !paths.contains(p))
+        .toList();
+
+    state = SelectionState(
+      selectedPaths: newSelected,
+      anchorPath: state.anchorPath != null && paths.contains(state.anchorPath)
+          ? null
+          : state.anchorPath,
+      activePath: state.activePath != null && paths.contains(state.activePath)
+          ? null
+          : state.activePath,
+      anchorGroup: newGroup,
+    );
+  }
+
   void _extendSelection(
     List<String> orderedPaths,
     int direction, {

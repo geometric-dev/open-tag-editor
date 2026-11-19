@@ -53,6 +53,15 @@ String computeRelativePath(String folderPath, String rootFolder) {
   // Compute the relative path from root to the folder.
   final relative = p.relative(normalised, from: normalRoot);
 
+  // If the folder lies outside the root, `p.relative` produces leading
+  // `..` segments (e.g. `..\Other`). That is meaningless as a breadcrumb
+  // under the loaded folder, so fall back to the folder's own name. This
+  // should not normally happen — the rename flow drops files that leave the
+  // loaded scope — but a stale path must never render as `../../..`.
+  if (relative == '..' || relative.startsWith('..${p.separator}')) {
+    return p.basename(normalised);
+  }
+
   // Replace platform separators with the display delimiter " / ".
   return relative.split(p.separator).join(' / ');
 }

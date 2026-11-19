@@ -7,16 +7,85 @@ class MaskEvaluator {
   /// Resolves all tokens using the audio file's tags and returns the
   /// resulting path string.
   String evaluate(List<MaskToken> tokens, AudioFile file) {
-    final pairs = tokens.map((token) {
-      return _TokenPair(token, _resolve(token, file));
-    }).toList();
+    final n = tokens.length;
+    final resolved = [for (final token in tokens) _resolve(token, file)];
+    final out = StringBuffer();
 
-    _collapseDelimiters(pairs);
+    // A literal is held back as [pending] until we know whether it is a real
+    // separator (keep) or a delimiter left dangling by an empty variable
+    // (drop). This is what stops `%album\%disc%track` with an empty disc from
+    // collapsing to `Album01`: the backslash has a value on its left and a
+    // value on its right, so it must survive.
+    String? pending;
+    // Whether [pending] sits between two variable slots (so it is a
+    // delimiter rather than free-standing leading content).
+    var pendingAfterSlot = false;
+    // Whether [pending] directly follows an *empty* slot, which makes it a
+    // candidate trailing delimiter.
+    var pendingAfterEmptySlot = false;
+    var prevWasEmptySlot = false;
 
-    return pairs
-        .where((p) => p.resolved.isNotEmpty)
-        .map((p) => p.resolved)
-        .join();
+    for (var i = 0; i < n; i++) {
+      final token = tokens[i];
+
+      if (token is LiteralToken) {
+        // Two literals in a row: the earlier one is genuine content.
+        if (pending != null) out.write(pending);
+        pending = token.text;
+        pendingAfterSlot = i > 0 && tokens[i - 1] is! LiteralToken;
+        pendingAfterEmptySlot = prevWasEmptySlot;
+        prevWasEmptySlot = false;
+        continue;
+      }
+
+      final value = resolved[i];
+
+      if (value.isEmpty) {
+        // Empty slot. Decide the fate of the delimiter before it.
+        if (pending != null) {
+          final hasValueAfter = _hasNonEmptyAfter(resolved, tokens, i);
+          final nextIsLiteral = i + 1 < n && tokens[i + 1] is LiteralToken;
+          if (!hasValueAfter || nextIsLiteral) {
+            // Nothing follows, or a literal still separates the neighbours:
+            // the pending delimiter is a trailing/leading one — drop it.
+            pending = null;
+          }
+          // Otherwise keep it: dropping it would merge the previous value
+          // with the next one.
+        }
+        prevWasEmptySlot = true;
+        continue;
+      }
+
+      // Non-empty value: flush the pending delimiter unless it is a leading
+      // delimiter sitting before any real content.
+      if (pending != null) {
+        final isLeadingDelimiter = out.isEmpty && pendingAfterSlot;
+        if (!isLeadingDelimiter) out.write(pending);
+        pending = null;
+      }
+      out.write(value);
+      prevWasEmptySlot = false;
+    }
+
+    // A trailing literal is content only if it did not directly follow an
+    // empty variable (which would make it a dangling delimiter).
+    if (pending != null && !pendingAfterEmptySlot) out.write(pending);
+
+    return out.toString();
+  }
+
+  /// Whether any variable slot after [index] resolves to a non-empty value.
+  bool _hasNonEmptyAfter(
+    List<String> resolved,
+    List<MaskToken> tokens,
+    int index,
+  ) {
+    for (var j = index + 1; j < tokens.length; j++) {
+      if (tokens[j] is LiteralToken) continue;
+      if (resolved[j].isNotEmpty) return true;
+    }
+    return false;
   }
 
   String _resolve(MaskToken token, AudioFile file) {
@@ -108,44 +177,4 @@ class MaskEvaluator {
     if (number == null) return value;
     return number.toString().padLeft(2, '0');
   }
-
-  void _collapseDelimiters(List<_TokenPair> pairs) {
-    for (var i = 0; i < pairs.length; i++) {
-      final token = pairs[i].token;
-      final isEmpty = pairs[i].resolved.isEmpty;
-
-      if (!isEmpty) continue;
-      if (token is! VariableToken && token is! IgnoreToken) continue;
-
-      // Remove adjacent literal delimiter before this empty variable.
-      if (i > 0 && pairs[i - 1].token is LiteralToken) {
-        final hasNextVariable =
-            i + 1 < pairs.length &&
-            (pairs[i + 1].token is VariableToken ||
-                pairs[i + 1].token is IgnoreToken);
-        if (hasNextVariable) {
-          pairs[i - 1].resolved = '';
-          continue;
-        }
-      }
-
-      // Remove adjacent literal delimiter after this empty variable.
-      if (i + 1 < pairs.length && pairs[i + 1].token is LiteralToken) {
-        final hasPrevVariable =
-            i > 0 &&
-            (pairs[i - 1].token is VariableToken ||
-                pairs[i - 1].token is IgnoreToken);
-        if (hasPrevVariable) {
-          pairs[i + 1].resolved = '';
-        }
-      }
-    }
-  }
-}
-
-class _TokenPair {
-  _TokenPair(this.token, this.resolved);
-
-  final MaskToken token;
-  String resolved;
 }

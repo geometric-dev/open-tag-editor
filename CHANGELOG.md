@@ -6,6 +6,37 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-19
+
+Bug-fix release for three regressions found in 0.5.0. No new features.
+
+### Fixed
+- **Renaming a file out of the loaded folder no longer produces a
+  `../../../..` breadcrumb.** After a successful rename the list is
+  refreshed in place, but the folder dividers are grouped relative to the
+  loaded root. A file that moved outside that root made `p.relative` emit
+  `..` segments, so the divider read `.. / Other` (or deeper). The refresh
+  now partitions renames by scope: files that stayed inside the root keep
+  their place with updated paths, and files that left the root are dropped
+  from the list and selection — they no longer belong to the loaded folder.
+  `computeRelativePath` also falls back to the folder's own name rather than
+  ever rendering a `..` breadcrumb, as a defensive backstop.
+- **The rename preview no longer blanks out after a preset is applied.**
+  The renamer state provider watched the file list and selection, so any
+  change to either — most visibly the `applyRenames` + `remapPaths` pair
+  that runs after a rename — disposed the autoDispose notifier and recreated
+  it with an empty state, wiping the previews mid-dialog. The dialog is the
+  provider's only consumer and is modal, so the file set is now captured once
+  when it opens and the provider no longer watches the list.
+- **A mask variable followed by a value no longer swallows the preceding
+  separator.** With `%artist\%album\%disc%track` and an empty disc, the
+  backslash between `%album` and `%disc` was dropped, producing
+  `Artist\Album01` instead of `Artist\Album\01`. The delimiter-collapsing
+  pass only removed a separator when it genuinely dangled (nothing on either
+  side); it now keeps a separator that still has a value on its left and a
+  value on its right. Leading, trailing, and last-position empty variables
+  still collapse correctly.
+
 ## [0.5.0] - 2026-11-18
 
 A release about the two operations users repeat most — loading a folder and

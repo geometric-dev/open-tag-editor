@@ -47,5 +47,16 @@ void main() {
 
       expect(result, equals('Artist / Year / Album'));
     });
+
+    test('a folder outside the root falls back to its own name', () {
+      // A rename can leave a file outside the loaded folder. `p.relative`
+      // would produce `../..` segments, which are meaningless as a
+      // breadcrumb; the display falls back to the folder's own name.
+      final outside = p.join('C:', 'Music', 'Other');
+      final result = computeRelativePath(outside, root);
+
+      expect(result, isNot(contains('..')));
+      expect(result, equals('Other'));
+    });
   });
 }

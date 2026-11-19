@@ -262,6 +262,32 @@ void main() {
         expect(notifier.state.selectedPaths, {'a.mp3', 'b.mp3'});
       });
     });
+
+    group('removePaths', () {
+      test('drops removed paths from the selection', () {
+        notifier.selectAll(['a.mp3', 'b.mp3', 'c.mp3']);
+        notifier.removePaths({'b.mp3'});
+
+        expect(notifier.state.selectedPaths, {'a.mp3', 'c.mp3'});
+      });
+
+      test('clears anchor and active when they are removed', () {
+        notifier.select('b.mp3');
+        notifier.removePaths({'b.mp3'});
+
+        expect(notifier.state.selectedPaths, isEmpty);
+        expect(notifier.state.anchorPath, isNull);
+        expect(notifier.state.activePath, isNull);
+      });
+
+      test('no-op when nothing selected is removed', () {
+        notifier.select('a.mp3');
+        notifier.removePaths({'z.mp3'});
+
+        expect(notifier.state.selectedPaths, {'a.mp3'});
+        expect(notifier.state.anchorPath, 'a.mp3');
+      });
+    });
   });
 
   group('SelectionNotifier keyboard paging', () {

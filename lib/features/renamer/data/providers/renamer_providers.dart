@@ -19,12 +19,20 @@ final presetProvider = StateNotifierProvider<PresetNotifier, List<MaskPreset>>((
 ///
 /// This provider depends on the current file list and selection state.
 /// Uses selected files if any are selected, otherwise uses all files.
+///
+/// The file list and selection are **read once**, when the dialog opens, and
+/// deliberately not watched. The rename dialog is this provider's only
+/// consumer and is modal, so the set of files it operates on is fixed for the
+/// dialog's lifetime. Watching them instead meant that a change to either
+/// provider — most visibly the `applyRenames` + `remapPaths` pair that runs
+/// after a successful rename — disposed this autoDispose notifier and
+/// recreated it with an empty state, blanking the previews mid-dialog.
 final renamerStateProvider =
     StateNotifierProvider.autoDispose<RenamerStateNotifier, RenamerState>((
       ref,
     ) {
-      final allFiles = ref.watch(fileListProvider);
-      final selection = ref.watch(selectionProvider);
+      final allFiles = ref.read(fileListProvider);
+      final selection = ref.read(selectionProvider);
       final undoRedo = ref.read(undoRedoProvider.notifier);
 
       // Use selected files if any are selected, otherwise use all files.

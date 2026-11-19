@@ -12,12 +12,14 @@ import '../../../settings/data/providers/settings_providers.dart';
 import '../../../tag_editor/data/providers/file_list_provider.dart';
 import '../../../tag_editor/data/providers/selection_provider.dart';
 import '../../../tag_editor/data/providers/service_providers.dart';
+import '../../../tag_editor/presentation/widgets/address_bar.dart';
 import '../../data/models/case_option.dart';
 import '../../data/models/conflict_strategy.dart';
 import '../../data/models/rename_execution_result.dart';
 import '../../data/models/rename_preview.dart';
 import '../../data/models/tag_variable.dart';
 import '../../data/providers/renamer_providers.dart';
+import '../../data/rename_scope.dart';
 import 'preview_panel.dart';
 
 /// Main rename dialog using the mask-based architecture.
@@ -109,17 +111,30 @@ class _RenameDialogState extends ConsumerState<RenameDialog> {
 
     // 1b) Partially refresh the file list for the updated files.
     if (result.successfulRenames.isNotEmpty) {
-      ref
-          .read(fileListProvider.notifier)
-          .applyRenames(result.successfulRenames);
-      ref.read(selectionProvider.notifier).remapPaths(result.successfulRenames);
+      // A rename can move a file out of the folder currently loaded in the
+      // grid. Those files no longer belong to the loaded scope, so they are
+      // dropped from the list rather than shown under a nonsense `../..`
+      // breadcrumb. Files that stayed inside the root are updated in place.
+      final root = ref.read(loadedFolderPathProvider);
+      final scope = partitionRenamesByScope(result.successfulRenames, root);
 
-      // Refresh tags for the newly renamed files to ensure in-memory tags are fresh
-      final tagReader = ref.read(tagReaderProvider);
-      final refreshed = await tagReader.readTagsBatch(
-        result.successfulRenames.values.toList(),
-      );
-      ref.read(fileListProvider.notifier).updateFiles(refreshed);
+      if (scope.insideRoot.isNotEmpty) {
+        ref.read(fileListProvider.notifier).applyRenames(scope.insideRoot);
+        ref.read(selectionProvider.notifier).remapPaths(scope.insideRoot);
+
+        // Refresh tags for the newly renamed files so in-memory tags are fresh.
+        final tagReader = ref.read(tagReaderProvider);
+        final refreshed = await tagReader.readTagsBatch(
+          scope.insideRoot.values.toList(),
+        );
+        ref.read(fileListProvider.notifier).updateFiles(refreshed);
+      }
+
+      if (scope.outsideRoot.isNotEmpty) {
+        final movedOutPaths = scope.outsideRoot.keys.toSet();
+        ref.read(fileListProvider.notifier).removeFiles(movedOutPaths);
+        ref.read(selectionProvider.notifier).removePaths(movedOutPaths);
+      }
     }
 
     if (mounted) {
