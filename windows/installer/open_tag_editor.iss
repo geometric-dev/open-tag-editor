@@ -36,9 +36,8 @@ DefaultGroupName={#MyAppName}
 ; Per-user install: no admin elevation, and the install dir is writable so the
 ; in-app updater can replace files without a UAC prompt.
 PrivilegesRequired=lowest
-OutputDir=.
 OutputBaseFilename=open_tag_editor-{#MyAppVersion}-windows-x64-setup
-SetupIconFile=..\windows\runner\resources\app_icon.ico
+SetupIconFile=..\runner\resources\app_icon.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
