@@ -37,6 +37,8 @@ where the updater compared against a hardcoded version.
 ### Changed
 - The version is generated from `pubspec.yaml` rather than hardcoded; run
   `dart run scripts/gen_version.dart` after a version bump (CI enforces it).
+- The Windows installer targets the current `x64compatible` architecture
+  identifier (the older `x64` is deprecated in Inno 6.7).
 
 ## [0.6.0] - 2026-11-19
 
