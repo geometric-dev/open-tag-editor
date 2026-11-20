@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
 import '../models/update_info.dart';
+import '../update_staging.dart';
 
 /// Handles checking GitHub for new releases, streaming downloads,
 /// staging update archives, and executing the restart swap.
@@ -224,6 +225,8 @@ class UpdateService {
           srcDir: payloadDir.path,
           destDir: appDir,
           exeName: exeName,
+          relaunch: true,
+          clearMarker: UpdateStaging.pendingMarkerPath(),
         ),
       );
 
@@ -279,6 +282,135 @@ rm -- "\$0"
   /// (close the quote, an escaped quote, reopen). This keeps a path
   /// containing `'` or `$` literal.
   static String _shEscape(String value) => value.replaceAll("'", "'\\''");
+
+  /// Applies a previously staged update on startup, if one is waiting.
+  ///
+  /// This is the Chrome/Firefox-style "apply on next start" step: a prior run
+  /// downloaded and staged an update and wrote a pending marker; this reads
+  /// that marker and swaps the payload in.
+  ///
+  /// The app cannot replace its own files while it is running, so when a
+  /// pending swap is found this launches a detached helper that waits for this
+  /// process to exit, copies the payload over the install dir, clears the
+  /// marker, and relaunches — and then returns **true** to tell the caller to
+  /// exit now. The caller (`main`) calls `exit(0)` so the helper can proceed.
+  ///
+  /// Returns true if the caller should exit to let an update apply.
+  ///
+  /// A failure here never blocks startup and leaves the marker in place so the
+  /// next start can retry.
+  Future<bool> applyPendingUpdateIfAny({String? currentExecutablePath}) async {
+    final pending = UpdateStaging.readPending();
+    if (pending == null) return false;
+
+    final exePath = currentExecutablePath ?? Platform.resolvedExecutable;
+    final appDir = p.dirname(exePath);
+    final exeName = p.basename(exePath);
+    final currentPid = pid;
+
+    try {
+      if (pending.kind == PendingUpdateKind.installer) {
+        await _launchInstaller(pending.sourcePath);
+        UpdateStaging.clearPending();
+        return true;
+      }
+
+      final payloadDir = Directory(pending.sourcePath);
+      if (Platform.isWindows) {
+        final scriptFile = File(
+          p.join(UpdateStaging.baseDir(), 'apply_update_startup.ps1'),
+        );
+        await scriptFile.writeAsString(
+          buildWindowsUpdateScript(
+            targetPid: currentPid,
+            srcDir: payloadDir.path,
+            destDir: appDir,
+            exeName: exeName,
+            relaunch: true,
+            clearMarker: UpdateStaging.pendingMarkerPath(),
+          ),
+        );
+        await Process.start('powershell.exe', [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-WindowStyle',
+          'Hidden',
+          '-File',
+          scriptFile.path,
+        ], mode: ProcessStartMode.detached);
+      } else {
+        final scriptFile = File(
+          p.join(UpdateStaging.baseDir(), 'apply_update_startup.sh'),
+        );
+        await scriptFile.writeAsString(
+          _buildPosixStartupSwapScript(
+            targetPid: currentPid,
+            srcDir: payloadDir.path,
+            destDir: appDir,
+            exeName: exeName,
+            clearMarker: UpdateStaging.pendingMarkerPath(),
+          ),
+        );
+        await Process.run('chmod', ['+x', scriptFile.path]);
+        await Process.start('bash', [
+          scriptFile.path,
+        ], mode: ProcessStartMode.detached);
+      }
+      return true;
+    } catch (_) {
+      // A failed pending apply must not stop the app from starting; leave the
+      // marker in place so the next start can retry.
+      return false;
+    }
+  }
+
+  /// Launches a downloaded installer and exits so it can replace the app.
+  Future<void> _launchInstaller(String installerPath) async {
+    if (Platform.isWindows) {
+      await Process.start(installerPath, [
+        '/SILENT',
+      ], mode: ProcessStartMode.detached);
+    } else if (Platform.isMacOS) {
+      // A .dmg/.pkg would be opened; the installer asset for macOS is the
+      // .app tar, so this path is effectively unused today.
+      await Process.start('open', [
+        installerPath,
+      ], mode: ProcessStartMode.detached);
+    } else {
+      await Process.start(installerPath, [], mode: ProcessStartMode.detached);
+    }
+  }
+
+  /// Builds the POSIX startup-swap script.
+  String _buildPosixStartupSwapScript({
+    required int targetPid,
+    required String srcDir,
+    required String destDir,
+    required String exeName,
+    String? clearMarker,
+  }) {
+    final clearLine = clearMarker != null
+        ? 'rm -f \'${_shEscape(clearMarker)}\''
+        : '';
+    return '''
+#!/usr/bin/env bash
+TARGET_PID=$targetPid
+SRC='${_shEscape(srcDir)}'
+DEST='${_shEscape(destDir)}'
+EXE='${_shEscape(exeName)}'
+
+while kill -0 \$TARGET_PID 2>/dev/null; do
+    sleep 1
+done
+
+sleep 1
+cp -R "\$SRC/"* "\$DEST/"
+$clearLine
+"\$DEST/\$EXE" &
+rm -- "\$0"
+''';
+  }
 }
 
 /// Builds the Windows helper script that applies a downloaded update.
@@ -297,10 +429,20 @@ String buildWindowsUpdateScript({
   required String srcDir,
   required String destDir,
   required String exeName,
+  bool relaunch = true,
+  String? clearMarker,
 }) {
   final src = srcDir.replaceAll("'", "''");
   final dest = destDir.replaceAll("'", "''");
   final exe = exeName.replaceAll("'", "''");
+  final relaunchLine = relaunch
+      ? '''
+Start-Process -FilePath (Join-Path \$dest \$exe)'''
+      : '';
+  final clearLine = clearMarker != null
+      ? '''
+Remove-Item -LiteralPath '${clearMarker.replaceAll("'", "''")}' -Force -ErrorAction SilentlyContinue'''
+      : '';
   return '''
 \$ErrorActionPreference = 'Stop'
 \$targetPid = $targetPid
@@ -317,8 +459,7 @@ Start-Sleep -Milliseconds 1000
 
 # Copy the payload over the install directory, overwriting in place.
 Copy-Item -Path (Join-Path \$src '*') -Destination \$dest -Recurse -Force
-
-Start-Process -FilePath (Join-Path \$dest \$exe)
+$clearLine$relaunchLine
 
 # Remove this helper script; best-effort.
 Remove-Item -LiteralPath \$PSCommandPath -Force -ErrorAction SilentlyContinue

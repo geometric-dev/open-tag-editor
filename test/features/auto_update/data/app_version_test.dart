@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:open_tag_editor/features/auto_update/data/app_version_generated.dart';
 import 'package:open_tag_editor/features/auto_update/data/models/app_version.dart';
 
 void main() {
@@ -45,11 +48,28 @@ void main() {
       expect(v040 == AppVersion.tryParse('0.4.0'), isTrue);
     });
 
-    test('current version matches project callsign v0.4.0', () {
-      expect(AppVersion.current.major, 0);
-      expect(AppVersion.current.minor, 4);
-      expect(AppVersion.current.patch, 0);
-      expect(AppVersion.current.toString(), 'v0.4.0');
+    test('current version matches the generated build version', () {
+      // Regression guard: AppVersion.current must track the real build version
+      // (generated from pubspec.yaml), not a hardcoded constant that goes
+      // stale. A stale value makes the updater offer every release forever.
+      expect(AppVersion.current.major, AppVersionGenerated.major);
+      expect(AppVersion.current.minor, AppVersionGenerated.minor);
+      expect(AppVersion.current.patch, AppVersionGenerated.patch);
+      expect(AppVersion.current.toString(), 'v${AppVersionGenerated.version}');
+    });
+
+    test('generated version agrees with pubspec.yaml (drift guard)', () {
+      final pubspec = File('pubspec.yaml').readAsStringSync();
+      final match = RegExp(
+        r'^version:\s*([0-9]+\.[0-9]+\.[0-9]+)',
+        multiLine: true,
+      ).firstMatch(pubspec);
+      expect(match, isNotNull, reason: 'pubspec.yaml has a version line');
+      expect(
+        AppVersionGenerated.version,
+        match!.group(1),
+        reason: 'run: dart run scripts/gen_version.dart',
+      );
     });
   });
 }

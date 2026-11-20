@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import '../models/app_version.dart';
 import '../models/update_state.dart';
 import '../services/update_service.dart';
+import '../update_staging.dart';
 
 /// Provider for the [UpdateService].
 final updateServiceProvider = Provider<UpdateService>((ref) {
@@ -115,6 +116,15 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
       );
 
       _stagedPayloadDir = payloadDir;
+      // Mark this update as pending so it is applied on the next start (the
+      // Chrome/Firefox model) rather than swapping files under a running app.
+      UpdateStaging.writePending(
+        PendingUpdate(
+          version: info.version.toString().replaceFirst('v', ''),
+          kind: PendingUpdateKind.swap,
+          sourcePath: payloadDir.path,
+        ),
+      );
       state = state.copyWith(
         status: UpdateStatus.readyToInstall,
         downloadedBytes: info.assetSize,

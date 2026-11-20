@@ -60,6 +60,19 @@ jobs:
             exit 1
           }
 
+      # The build version is a generated Dart constant (AppVersion.current).
+      # Regenerate it and fail if the committed file disagrees with
+      # pubspec.yaml, so the updater can never compare against a stale
+      # hardcoded version again.
+      - name: Check generated version is current
+        run: |
+          dart run scripts/gen_version.dart
+          if ! git diff --quiet -- lib/features/auto_update/data/app_version_generated.dart; then
+            echo "::error::app_version_generated.dart is out of date; run 'dart run scripts/gen_version.dart' and commit it"
+            git --no-pager diff -- lib/features/auto_update/data/app_version_generated.dart
+            exit 1
+          fi
+
   analyze:
     name: Analyze (${{ matrix.os }})
     strategy:
@@ -136,6 +149,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate version constant
+        run: dart run scripts/gen_version.dart
+
       - name: Build release
         run: flutter build windows --release
 
@@ -156,11 +172,36 @@ jobs:
         shell: pwsh
         run: ./scripts/verify-release.ps1 -RequireCrt
 
+      # Build a per-user installer (Inno Setup) from the verified bundle.
+      # Installs to %LOCALAPPDATA%\Programs\OpenTagEditor (writable, so the
+      # in-app updater can swap files without elevation) and adds shortcuts +
+      # an uninstaller. Installed here and attached to the GitHub release as
+      # the primary Windows download; the portable bundle stays as a secondary.
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)').Matches[0].Groups[1].Value
+          $source = (Resolve-Path build\windows\x64\runner\Release).Path
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $outDir = (Resolve-Path dist).Path
+          iscc "/DMyAppVersion=$version" "/DMySourceDir=$source" "/O$outDir" windows\installer\open_tag_editor.iss
+
       - name: Upload bundle
         uses: actions/upload-artifact@v4
         with:
           name: open_tag_editor-windows-x64
           path: build/windows/x64/runner/Release
+          retention-days: 14
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: open_tag_editor-windows-x64-setup
+          path: dist\open_tag_editor-*-windows-x64-setup.exe
           retention-days: 14
 
   build-macos:
@@ -305,6 +346,20 @@ jobs:
           Compress-Archive -Path dist/open_tag_editor-windows-x64 `
             -DestinationPath "dist/open_tag_editor-$tag-windows-x64.zip"
 
+      # The Windows installer artifact extracts into its own dist/ subdir;
+      # promote the setup .exe to the top-level dist/ so the release asset
+      # glob picks it up alongside the archives.
+      - name: Collect the Windows installer
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME.TrimStart('v')
+          $setup = Get-ChildItem -Path dist -Recurse -Filter "*-windows-x64-setup.exe" | Select-Object -First 1
+          if (-not $setup) {
+            Write-Error "Windows installer artifact not found in dist/"
+            exit 1
+          }
+          Copy-Item $setup.FullName "dist/open_tag_editor-$tag-windows-x64-setup.exe"
+
       # The notes are the changelog's section for this version — the same
       # text a reader gets from the repo. A missing section is not an empty
       # release body; it means the maintainer forgot to write one, so fail.
@@ -322,7 +377,8 @@ jobs:
           fi
           {
             echo "### Bundles"
-            echo "- \`open_tag_editor-${tag_version}-windows-x64.zip\` — Windows x64. TagLib is built with MSVC, so end users need the VC++ runtime; the needed DLLs are included in the bundle."
+            echo "- \`open_tag_editor-${tag_version}-windows-x64-setup.exe\` — Windows x64 installer. Installs per-user to %LOCALAPPDATA%\\Programs\\OpenTagEditor (no admin rights); the app can then update itself without elevation. **Recommended for most users.**"
+            echo "- \`open_tag_editor-${tag_version}-windows-x64.zip\` — Windows x64 portable. TagLib is built with MSVC, so end users need the VC++ runtime; the needed DLLs are included in the bundle."
             echo "- \`open_tag_editor-${tag_version}-macos-universal.tar.gz\` — universal (Apple Silicon + Intel); unpack to get \`open_tag_editor.app\`."
             echo "- \`open_tag_editor-${tag_version}-linux-x64.tar.gz\` — Linux x64, built with the GTK 3 pipeline."
           } >> notes.md
@@ -336,11 +392,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           assets=()
-          for f in dist/open_tag_editor-*.zip dist/open_tag_editor-*.tar.gz; do
+          for f in dist/open_tag_editor-*.zip dist/open_tag_editor-*.tar.gz dist/open_tag_editor-*.exe; do
             [ -e "$f" ] && assets+=("$f")
           done
-          if [ "${#assets[@]}" -ne 3 ]; then
-            echo "::error::expected 3 asset archives, found ${#assets[@]}"
+          if [ "${#assets[@]}" -ne 4 ]; then
+            echo "::error::expected 4 release assets (3 archives + installer), found ${#assets[@]}"
             ls -la dist
             exit 1
           fi

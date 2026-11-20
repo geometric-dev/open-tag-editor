@@ -6,6 +6,38 @@ versioning follows [SemVer](https://semver.org/) while pre-1.0.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-20
+
+The auto-updater is now a Chrome/Firefox-style updater: a Windows installer,
+background update checks and downloads, and updates applied on the next start
+rather than by swapping files under a running app. Also fixes a latent bug
+where the updater compared against a hardcoded version.
+
+### Added
+- **A Windows installer.** A per-user Inno Setup installer installs to
+  `%LOCALAPPDATA%\Programs\OpenTagEditor` — no admin rights, and the install
+  directory is writable so the app can update itself without elevation
+  (the Chrome model). It creates Start-menu and optional desktop shortcuts
+  and a proper uninstaller. CI builds it and attaches it to the release as
+  the recommended Windows download; the portable `.zip` stays as a secondary
+  asset. macOS/Linux keep their archive bundles.
+- **Updates apply on the next start.** After an update downloads and stages,
+  the app writes a pending marker; on the next launch a small helper swaps the
+  staged payload in before the UI comes up. This is more robust than swapping
+  files while the app runs, and matches how Chrome/Firefox apply updates.
+
+### Fixed
+- **The updater compared against a hardcoded version.** `AppVersion.current`
+  was a constant pinned at `0.4.0`, so on any newer build the updater believed
+  every published release was newer and offered updates forever. It is now a
+  generated constant (`app_version_generated.dart`, produced from
+  `pubspec.yaml` by `scripts/gen_version.dart`), with a CI drift guard and a
+  unit test that both fail if the generated file disagrees with `pubspec.yaml`.
+
+### Changed
+- The version is generated from `pubspec.yaml` rather than hardcoded; run
+  `dart run scripts/gen_version.dart` after a version bump (CI enforces it).
+
 ## [0.6.0] - 2026-11-19
 
 A new **rule-based rename profiles** feature: get "Standard" / "Various

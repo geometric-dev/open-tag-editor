@@ -2,6 +2,7 @@
 .dart_tool/
 .packages
 build/
+dist/
 
 # Generated code is gitignored EXCEPT the committed ffigen output, which is
 # required to compile and only changes when native/taglib_c.h changes.

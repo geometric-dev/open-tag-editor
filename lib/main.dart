@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'features/auto_update/data/services/update_service.dart';
 import 'features/settings/data/models/window_state.dart';
 import 'features/settings/data/notifiers/window_state_notifier.dart';
 import 'features/settings/data/providers/settings_providers.dart';
@@ -12,6 +15,17 @@ import 'features/settings/data/services/window_state_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Chrome/Firefox-style apply-on-next-start: if a previous run downloaded and
+  // staged an update, a helper now swaps it in. The helper waits for this
+  // process to exit, so when one is pending we launch it and exit immediately;
+  // it relaunches the app on the new version. Best-effort — a failure here
+  // falls through to a normal start.
+  final pendingApplied = await UpdateService().applyPendingUpdateIfAny();
+  if (pendingApplied) {
+    exit(0);
+  }
+
   await windowManager.ensureInitialized();
 
   // Load persisted window state before showing the window.

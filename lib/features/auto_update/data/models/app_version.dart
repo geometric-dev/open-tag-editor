@@ -1,3 +1,5 @@
+import '../app_version_generated.dart';
+
 /// Semantic version representation with comparison and parsing support.
 class AppVersion implements Comparable<AppVersion> {
   const AppVersion({
@@ -8,11 +10,17 @@ class AppVersion implements Comparable<AppVersion> {
   });
 
   /// The current version of Open Tag Editor.
-  static const current = AppVersion(
-    major: 0,
-    minor: 4,
-    patch: 0,
-    rawTag: 'v0.4.0',
+  ///
+  /// Resolved from the build-time generated constant (see
+  /// `app_version_generated.dart`, generated from pubspec.yaml), because a
+  /// hardcoded constant silently goes stale: the updater would then believe
+  /// every published release is newer than the running build and offer
+  /// updates forever (the original bug — this read 0.4.0 while 0.6.0 shipped).
+  static const AppVersion current = AppVersion(
+    major: AppVersionGenerated.major,
+    minor: AppVersionGenerated.minor,
+    patch: AppVersionGenerated.patch,
+    rawTag: 'v${AppVersionGenerated.version}',
   );
 
   final int major;

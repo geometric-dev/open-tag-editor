@@ -47,5 +47,27 @@ void main() {
     test('embeds the target PID as a bare integer', () {
       expect(script, contains('\$targetPid = 1234'));
     });
+
+    test('relaunch:false omits the relaunch line', () {
+      final noRelaunch = buildWindowsUpdateScript(
+        targetPid: 1,
+        srcDir: r'C:\src',
+        destDir: r'C:\dest',
+        exeName: 'app.exe',
+        relaunch: false,
+      );
+      expect(noRelaunch, isNot(contains('Start-Process')));
+    });
+
+    test('clearMarker adds a marker-removal line', () {
+      final withMarker = buildWindowsUpdateScript(
+        targetPid: 1,
+        srcDir: r'C:\src',
+        destDir: r'C:\dest',
+        exeName: 'app.exe',
+        clearMarker: r'C:\data\pending.json',
+      );
+      expect(withMarker, contains('pending.json'));
+    });
   });
 }
